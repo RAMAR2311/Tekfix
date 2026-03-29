@@ -4,9 +4,6 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold text-brand-black m-0">Inventario Central</h2>
     <div>
-        <a href="{{ url_for('inventory_bp.historial_ajustes') }}" class="btn btn-outline-secondary rounded-pill px-4 me-2">
-            <i class="fa-solid fa-clock-rotate-left me-1"></i> Ver Historial de Ajustes
-        </a>
         <!-- Botón Nuevo Producto ahora en Azul Turquesa -->
         <a href="/inventory/nuevo" class="btn btn-blue rounded-pill px-4">
             <i class="fa-solid fa-plus me-1"></i> Nuevo Producto
@@ -25,7 +22,7 @@
                     <th width="150" class="text-end">PRECIO COSTO</th>
                     <th width="150" class="text-end">PRECIO MÍNIMO</th>
                     <th width="150" class="text-end pe-4">PRECIO SUGERIDO</th>
-                    <th width="100" class="text-center">EDICIÓN</th>
+                    <th width="140" class="text-center">ACCIONES</th>
                 </tr>
             </thead>
             <tbody>
@@ -46,6 +43,9 @@
                     <td class="text-end text-muted fw-bold">${{ "%.2f"|format(p.precio_minimo) }}</td>
                     <td class="text-end fw-bold text-brand-black pe-4">${{ "%.2f"|format(p.precio_sugerido) }}</td>
                     <td class="text-center">
+                        <a href="{{ url_for('inventory_bp.ver_producto', id=p.id) }}" class="btn btn-sm btn-outline-info rounded-pill hover-primary me-1" title="Ver Detalle">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
                         <!-- Enlace dinámico con ID insertado (Jinja2 url_for) -->
                         <a href="{{ url_for('inventory_bp.editar_producto', id=p.id) }}" class="btn btn-sm text-secondary hover-primary" title="Editar">
                             <i class="fa-solid fa-pen"></i>

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, Sale, ArqueoCaja
+from models import db, Sale, ArqueoCaja, Expense
 from decorators import admin_required
 from datetime import datetime, date
 import pytz
@@ -27,12 +27,26 @@ def nuevo():
     total_efectivo = sum(v.monto_total for v in ventas_del_dia if v.metodo_pago == 'efectivo')
     total_transferencia = sum(v.monto_total for v in ventas_del_dia if v.metodo_pago == 'transferencia')
 
+    # Calcular gastos automáticos del día
+    gastos_diarios_registros = Expense.query.filter(
+        db.func.date(Expense.fecha_gasto) == fecha_seleccionada,
+        Expense.tipo_gasto == 'Gasto Diario'
+    ).all()
+    gastos_automaticos = float(sum(g.monto for g in gastos_diarios_registros))
+
     # Verificar si ya existe arqueo para esa fecha por este vendedor (Opcional, pero recomendado)
     arqueo_existente = ArqueoCaja.query.filter_by(fecha_arqueo=fecha_seleccionada, vendedor_id=current_user.id).first()
 
     if request.method == 'POST':
         base_inicial = float(request.form.get('base_inicial', 0.0))
-        gastos_del_dia = float(request.form.get('gastos_del_dia', 0.0))
+        
+        # Recalcular gastos automáticos por seguridad en el backend
+        gastos_recalculados = Expense.query.filter(
+            db.func.date(Expense.fecha_gasto) == fecha_seleccionada,
+            Expense.tipo_gasto == 'Gasto Diario'
+        ).all()
+        gastos_del_dia = float(sum(g.monto for g in gastos_recalculados))
+        
         observaciones_gastos = request.form.get('observaciones_gastos', '').strip()
 
         nuevo_arqueo = ArqueoCaja(
@@ -59,7 +73,8 @@ def nuevo():
         fecha=fecha_str,
         total_efectivo=total_efectivo,
         total_transferencia=total_transferencia,
-        arqueo_existente=arqueo_existente
+        arqueo_existente=arqueo_existente,
+        gastos_automaticos=gastos_automaticos
     )
 
 @arqueo_bp.route('/reporte', methods=['GET'])
@@ -94,10 +109,13 @@ def reporte():
     resumen['total_recaudado'] = resumen['total_efectivo'] + resumen['total_transferencia']
     resumen['efectivo_esperado'] = (resumen['total_base'] + resumen['total_efectivo']) - resumen['total_gastos']
 
+    fecha_generacion = obtener_hora_bogota().strftime('%Y-%m-%d %H:%M')
+
     return render_template(
         'arqueo/reporte.html',
         arqueos=arqueos,
         resumen=resumen,
         fecha_inicio=fecha_inicio_str,
-        fecha_fin=fecha_fin_str
+        fecha_fin=fecha_fin_str,
+        fecha_generacion=fecha_generacion
     )

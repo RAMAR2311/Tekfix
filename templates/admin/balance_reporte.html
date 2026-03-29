@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <!-- Navbar y Botones de Opción -->
+    <div class="col-12 d-print-none mb-4">
+         <div class="card card-custom p-4 border-0 shadow-sm d-flex justify-content-between align-items-center flex-row">
+             <h4 class="fw-bold m-0" style="color: var(--brand-blue);">
+                 <i class="fa-solid fa-scale-balanced me-2"></i> Balance Financiero Operativo
+             </h4>
+             <button onclick="window.print()" class="btn btn-pink rounded-pill fw-bold text-dark px-4 shadow-sm">
+                 <i class="fa-solid fa-file-pdf me-1"></i> Imprimir Reporte Oficial
+             </button>
+         </div>
+    </div>
+
+    <!-- Contenido del Reporte -->
+    <div class="col-12 col-xl-10 report-container">
+        <div class="card bg-white p-5 border-0 shadow-sm rounded-4 printable-document">
+            
+            <!-- Cabecera Oficial -->
+            <div class="text-center mb-5 pb-4 border-bottom d-print-block">
+                <img src="{{ url_for('static', filename='img/cases.png') }}" alt="cases.com" style="max-height: 80px;" class="mb-3">
+                <h4 class="text-brand-black fw-bold mb-1">ESTADO DE RESULTADOS CONTABLE</h4>
+                <p class="mb-0 text-secondary">
+                    Período Limitado: <strong>{{ fecha_inicio }}</strong> hasta <strong>{{ fecha_fin }}</strong><br>
+                    Generado por sistema el: <strong>{{ fecha_generacion }}</strong>
+                </p>
+            </div>
+
+            <!-- Sección 1: Ingresos -->
+            <h5 class="fw-bold text-success mb-3 border-bottom pb-2"><i class="fa-solid fa-arrow-trend-up me-2"></i> 1. INGRESOS EN BRUTO</h5>
+            <table class="table table-borderless table-sm fw-semibold text-secondary fs-6 mb-5">
+                <tbody>
+                    <tr>
+                        <td width="70%">Ventas Validadas en Efectivo</td>
+                        <td width="30%" class="text-end">${{ "%.2f"|format(datos.ventas_efectivo) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Ventas por Transferencias Informadas</td>
+                        <td class="text-end">${{ "%.2f"|format(datos.ventas_transferencia) }}</td>
+                    </tr>
+                    <tr class="border-top text-brand-black fw-bolder bg-light">
+                        <td class="p-3">Σ TOTAL INGRESOS (VENTAS)</td>
+                        <td class="text-end p-3 text-success fs-5">${{ "%.2f"|format(datos.total_ingresos) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Sección 2: Costos y Gastos -->
+            <h5 class="fw-bold text-danger mb-3 border-bottom pb-2"><i class="fa-solid fa-arrow-trend-down me-2"></i> 2. COSTOS DE MERCANCÍA Y GASTOS</h5>
+            <table class="table table-borderless table-sm fw-semibold text-secondary fs-6 mb-5">
+                <tbody>
+                    <tr>
+                        <td width="70%">Costos Directos del Producto Vendido (COGS)</td>
+                        <td width="30%" class="text-danger text-end">-${{ "%.2f"|format(datos.costos_directos) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Gastos Diarios / Operacionales (Salidas de Caja)</td>
+                        <td class="text-danger text-end">-${{ "%.2f"|format(datos.gastos_operacionales) }}</td>
+                    </tr>
+                    <tr>
+                        <td>Costos Indirectos Permanentes</td>
+                        <td class="text-danger text-end">-${{ "%.2f"|format(datos.costos_indirectos) }}</td>
+                    </tr>
+                    <tr class="border-top text-brand-black fw-bolder bg-light">
+                        <td class="p-3">Σ TOTAL SALIDAS Y DEDUCCIONES</td>
+                        <td class="text-danger text-end p-3 fs-5">-${{ "%.2f"|format(datos.total_salidas) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Sección 3: Balance Neto de Resultados -->
+            <h5 class="fw-bold text-brand-black mb-3 border-bottom pb-2"><i class="fa-solid fa-sack-dollar me-2"></i> 3. RENDIMIENTO NETO PERIÓDICO</h5>
+            {% set balance_positivo = datos.balance_neto >= 0 %}
+            <div class="card p-4 text-center border-0 mt-4 {% if balance_positivo %}bg-success{% else %}bg-danger{% endif %} bg-opacity-10 rounded-4">
+                <small class="text-uppercase fw-bold text-brand-black mb-1 opacity-75">
+                    {% if balance_positivo %}Ganancia Neta / Utilidad del Ejercicio{% else %}Pérdida Neta Registrada{% endif %}
+                </small>
+                <h1 class="fw-bolder mb-0 {% if balance_positivo %}text-success{% else %}text-danger{% endif %}" style="font-size: 3rem; letter-spacing: -2px;">
+                    ${{ "%.2f"|format(datos.balance_neto) }}
+                </h1>
+            </div>
+
+            <!-- Firmas Contables -->
+            <div class="row mt-5 pt-5 d-none d-print-flex">
+                <div class="col-8 mx-auto text-center mt-5">
+                    <hr class="w-100 border-dark border-1 opacity-100">
+                    <p class="mb-0 fw-bold">Verificado y Autorizado</p>
+                    <p class="text-muted small mb-0">{{ current_user.nombre }}</p>
+                    <p class="text-muted" style="font-size: 0.7rem;">Administración General</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+/* ====== Estilos Exclusivos para PDF/Impresión del Reporte Financiero ====== */
+@media print {
+    @page { margin: 1.5cm; }
+    body, html {
+        background-color: white !important;
+        margin: 0 !important; 
+        padding: 0 !important;
+        font-size: 11pt !important;
+        color: black !important;
+    }
+    
+    .container, main.container, .container-fluid {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    main > nav, header, footer, .d-print-none {
+        display: none !important;
+    }
+
+    .d-print-flex {
+        display: flex !important;
+    }
+
+    .printable-document {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+
+    /* Colores e Impresión Forzada estricta para validación visual de pérdidas y ganancias */
+    .text-success { color: #198754 !important; }
+    .text-danger { color: #dc3545 !important; }
+    .text-secondary { color: #555 !important; }
+    .bg-light { background-color: #f8f9fa !important; border: 1px solid #eee !important; }
+    .bg-success { background-color: rgba(25, 135, 84, 0.1) !important; }
+    .bg-danger { background-color: rgba(220, 53, 69, 0.1) !important; }
+
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+</style>
+{% endblock %}

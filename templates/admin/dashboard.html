@@ -6,12 +6,46 @@
         <h2 class="fw-bold text-brand-black mb-0">Dashboard Operativo</h2>
         <p class="text-muted">¡Bienvenido al panel central, {{ current_user.nombre }}!</p>
     </div>
+    <div>
+        <button type="button" class="btn btn-blue rounded-pill fw-bold shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#modalBalance">
+            <i class="fa-solid fa-scale-balanced me-2"></i>Generar Balance
+        </button>
+    </div>
 </div>
 
-<!-- Layout de Tarjetas (Fila de 3 Elementos) -->
-<div class="row g-4 mb-4">
+<!-- Modal Generar Balance Financiero -->
+<div class="modal fade" id="modalBalance" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="fw-bold text-brand-black"><i class="fa-solid fa-file-invoice-dollar me-2" style="color: var(--brand-blue);"></i>Balance Financiero</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('admin_bp.balance_financiero') }}" method="GET">
+          <div class="modal-body">
+              <p class="text-muted small">Selecciona el rango de fechas para cruzar las ventas e ingresos totales contra el Costo Directo y los Gastos Registrados.</p>
+              <div class="mb-3">
+                  <label class="form-label fw-bold text-brand-black small">Fecha de Inicio</label>
+                  <input type="date" name="fecha_inicio" class="form-control" required>
+              </div>
+              <div class="mb-4">
+                  <label class="form-label fw-bold text-brand-black small">Fecha de Fin</label>
+                  <input type="date" name="fecha_fin" class="form-control" required>
+              </div>
+          </div>
+          <div class="modal-footer border-top-0 pt-0">
+            <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-blue rounded-pill px-4 fw-bold"><i class="fa-solid fa-file-pdf me-1"></i> Calcular y Validar</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Layout de Tarjetas (Fila de 4 Elementos) -->
+<div class="row g-3 mb-4">
     <!-- 1. Tarjeta: Ingresos Totales (Botones/Textos Azul Turquesa / .btn-blue) -->
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card card-custom h-100 p-4">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <i class="fa-solid fa-sack-dollar fs-1" style="color: var(--brand-blue);"></i>
@@ -25,7 +59,7 @@
     </div>
 
     <!-- 2. Tarjeta: Productos en Catálogo (Rosa Pastel / .btn-pink) -->
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card card-custom h-100 p-4">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <i class="fa-solid fa-cubes fs-1" style="color: var(--brand-pink);"></i>
@@ -39,7 +73,7 @@
     </div>
 
     <!-- 3. Tarjeta: Alertas de Stock (Danger Colors / Bootstrap Nativo) -->
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card card-custom h-100 p-4 border border-danger border-2">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <i class="fa-solid fa-triangle-exclamation fs-1 text-danger"></i>
@@ -49,6 +83,21 @@
             <p class="text-muted small">Tienen existencias limitadas (10 o menos unidades).</p>
             <div class="mt-auto pt-3">
                 <a href="/inventory/" class="btn btn-outline-danger w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye me-2"></i> Revisar Urgencias</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Tarjeta: Maneos de Mercancía -->
+    <div class="col-md-3">
+        <div class="card card-custom h-100 p-4 border border-warning border-2">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <i class="fa-solid fa-handshake fs-1 text-warning"></i>
+            </div>
+            <h5 class="text-brand-black fw-bold">Maneos Activos</h5>
+            <h2 class="fw-bolder text-warning">{{ maneos_activos }} docs.</h2>
+            <p class="text-muted small">Préstamos vecinos esperando resolución.</p>
+            <div class="mt-auto pt-3">
+                <a href="{{ url_for('admin_bp.maneos') }}" class="btn btn-outline-warning text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye me-2"></i> Ver Maneos</a>
             </div>
         </div>
     </div>

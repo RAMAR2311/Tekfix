@@ -33,6 +33,8 @@ class Product(db.Model):
     precio_costo = db.Column(db.Numeric(10, 2), nullable=False, default=0.00) # El Costo de Bodega
     precio_minimo = db.Column(db.Numeric(10, 2), nullable=False)
     precio_sugerido = db.Column(db.Numeric(10, 2), nullable=False)
+    imagen = db.Column(db.String(255), nullable=True) # Nombre de la foto subida
+    observacion = db.Column(db.Text, nullable=True) # Nota descriptiva
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
     
     detalles_venta = db.relationship('SaleDetail', backref='producto', lazy=True)
@@ -64,6 +66,7 @@ class StockAdjustment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    tipo_movimiento = db.Column(db.String(100), nullable=True) # Ej: Creación Inicial, Ajuste Manual
     stock_anterior = db.Column(db.Integer, nullable=False)
     stock_nuevo = db.Column(db.Integer, nullable=False)
     fecha_ajuste = db.Column(db.DateTime, default=obtener_hora_bogota)
@@ -80,3 +83,29 @@ class ArqueoCaja(db.Model):
     total_efectivo_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
     total_transferencia_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+class Maneo(db.Model):
+    __tablename__ = 'maneos'
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    local_vecino = db.Column(db.String(150), nullable=False)
+    cantidad = db.Column(db.Integer, nullable=False)
+    estado = db.Column(db.String(50), nullable=False, default='PENDIENTE') # PENDIENTE, FACTURADO, DEVUELTO
+    fecha_prestamo = db.Column(db.DateTime, default=obtener_hora_bogota)
+    fecha_resolucion = db.Column(db.DateTime, nullable=True)
+
+    producto = db.relationship('Product', backref='maneos', lazy=True)
+
+class Expense(db.Model):
+    __tablename__ = 'expenses'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    tipo_gasto = db.Column(db.String(50), nullable=False) # 'Gasto Diario' o 'Costo Indirecto'
+    categoria = db.Column(db.String(100), nullable=False)
+    descripcion = db.Column(db.String(255), nullable=True)
+    monto = db.Column(db.Numeric(10, 2), nullable=False)
+    fecha_gasto = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    usuario = db.relationship('User', backref='gastos', lazy=True)

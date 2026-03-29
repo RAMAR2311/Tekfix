@@ -53,8 +53,10 @@ def procesar_venta():
             if cantidad_vendida > producto.cantidad_stock:
                 raise ValueError(f"Stock insuficiente para el producto '{producto.nombre}'. Solicitado: {cantidad_vendida}, Disponible: {producto.cantidad_stock}.")
 
-            if precio_venta_final < producto.precio_minimo:
-                raise ValueError(f"No autorizado: El precio ({precio_venta_final}) del producto '{producto.nombre}' está por debajo del mínimo ({producto.precio_minimo}).")
+            precio_limite_autorizado = producto.precio_costo if current_user.rol == 'admin' else producto.precio_minimo
+
+            if precio_venta_final < precio_limite_autorizado:
+                raise ValueError(f"No autorizado: El precio ({precio_venta_final}) del producto '{producto.nombre}' está por debajo del límite permitido ({precio_limite_autorizado}).")
 
             producto.cantidad_stock -= cantidad_vendida
 
@@ -101,6 +103,7 @@ def api_buscar_producto(sku):
         'sku': producto.sku,
         'cantidad_stock': producto.cantidad_stock,
         'precio_minimo': float(producto.precio_minimo),
+        'precio_limite': float(producto.precio_costo) if current_user.rol == 'admin' else float(producto.precio_minimo),
         'precio_sugerido': float(producto.precio_sugerido)
     })
 

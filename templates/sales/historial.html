@@ -7,13 +7,30 @@
         <h2 class="fw-bolder m-0" style="color: var(--brand-blue);">
             <i class="fa-solid fa-clock-rotate-left me-2"></i>Historial de Operaciones
         </h2>
-        <a href="/admin/dashboard" class="btn btn-light rounded-pill px-4 fw-bold text-muted border shadow-sm">
-            <i class="fa-solid fa-arrow-left me-1"></i> Panel Principal
-        </a>
+        <div class="d-flex align-items-center gap-2 d-print-none">
+            <button onclick="window.print()" class="btn px-4 rounded-pill fw-bold text-dark border shadow-sm" style="background-color: #F9C8D3; border-color: #ebaebc;">
+                <i class="fa-solid fa-print me-1"></i> Imprimir a PDF
+            </button>
+            <a href="/admin/dashboard" class="btn btn-light rounded-pill px-4 fw-bold text-muted border shadow-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Panel 
+            </a>
+        </div>
+    </div>
+
+    <!-- Encabezado de Impresión / PDF -->
+    <div class="col-12 d-none d-print-block text-center mb-4 pb-3 border-bottom">
+        <h1 class="fw-bold text-brand-black mb-1"><i class="fa-solid fa-chart-line me-2"></i> cases.com</h1>
+        <h4 class="text-muted fw-semibold">REPORTE CONSOLIDADO DE VENTAS</h4>
+        <p class="mb-0 text-secondary">
+            Período Analizado: <strong>{{ fecha_inicio if fecha_inicio else 'Inicios' }}</strong> hasta <strong>{{ fecha_fin if fecha_fin else 'Hoy' }}</strong>
+        </p>
+        {% if current_user.rol != 'admin' %}
+            <p class="mb-0 text-brand-black fw-bold">Usuario Solicitante: {{ current_user.nombre }}</p>
+        {% endif %}
     </div>
 
     <!-- UI: Resumen Financiero Dinámico (Tarjetas) -->
-    <div class="col-md-6 mb-3">
+    <div class="col-6 col-md-6 mb-3">
         <!-- Borde Ultra-Grueso de Acabado (Azul Turquesa) -->
         <div class="card card-custom h-100" style="border-left: 6px solid var(--brand-blue) !important;">
             <div class="card-body py-4 ps-4">
@@ -23,7 +40,7 @@
         </div>
     </div>
     
-    <div class="col-md-6 mb-3">
+    <div class="col-6 col-md-6 mb-3">
         <!-- Borde Ultra-Grueso de Acabado (Rosa Pastel) -->
         <div class="card card-custom h-100" style="border-left: 6px solid var(--brand-pink) !important;">
             <div class="card-body py-4 ps-4">
@@ -34,7 +51,7 @@
     </div>
     
     <!-- UI: Filtro de Fechas Oculto (Collapsible Bootstrap) -->
-    <div class="col-12 mt-2 mb-2">
+    <div class="col-12 mt-2 mb-2 d-print-none">
         <button class="btn btn-outline-dark btn-sm rounded-pill fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosCollapse">
             <i class="fa-solid fa-filter me-1"></i> Ver más filtros
         </button>
@@ -90,9 +107,9 @@
                     </td>
                     <td class="text-center align-middle">
                         {% if venta.metodo_pago == 'efectivo' %}
-                            <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-3 py-2 w-100"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
+                            <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
                         {% else %}
-                            <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2 w-100"><i class="fa-solid fa-building-columns me-1"></i> Transferencia</span>
+                            <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> Transferencia</span>
                         {% endif %}
                     </td>
                     <td class="text-end align-middle fw-bolder text-brand-black fs-5">
@@ -118,4 +135,113 @@
         </table>
     </div>
 </div>
+
+<style>
+/* ====== Estilos Exclusivos para PDF/Impresión del Reporte de Ventas ====== */
+@media print {
+    /* 1. Resetear Página y Contenedores Base */
+    @page { margin: 1.5cm; }
+    body, html {
+        background-color: white !important;
+        margin: 0 !important; 
+        padding: 0 !important;
+        font-size: 10pt !important;
+        color: black !important;
+    }
+    
+    .container, main.container, .container-fluid {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* 2. Ocultar Elementos Interactivos Innecesarios */
+    main > nav, header, footer, .d-print-none, #filtrosCollapse {
+        display: none !important;
+    }
+    
+    /* Mostrar cabecera oficial de impresión */
+    .d-print-block {
+        display: block !important;
+    }
+
+    /* 3. Arreglar Tarjetas Superiores (Resumen) para que no se sobrepongan */
+    .row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 15px !important;
+        margin-bottom: 20px !important;
+    }
+    .col-6 {
+        flex: 1 !important;
+        max-width: 50% !important;
+        padding: 0 !important;
+    }
+    
+    /* Simplificar tarjetas, quitando sombras y rebordes gigantes */
+    .card-custom, .card {
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+        background-color: transparent !important;
+        border-radius: 4px !important;
+        page-break-inside: avoid;
+    }
+    .card-custom[style] {
+        border-left: 1px solid #ccc !important; /* Sobrescribir borde de color grueso */
+    }
+    .card-body {
+        padding: 10px 15px !important;
+    }
+    .card-body p { margin-bottom: 5px !important; font-size: 9pt !important; }
+    .card-body h2 { font-size: 16pt !important; color: black !important; }
+
+    /* 4. Arreglar la Tabla de Datos para evitar desbordamientos */
+    .table-responsive {
+        overflow: visible !important; /* Desactiva el scroll horizontal */
+    }
+    .table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        table-layout: auto !important; /* Permite adaptación de columnas */
+    }
+    .table th, .table td {
+        padding: 6px !important;
+        font-size: 9pt !important;
+        white-space: normal !important; 
+        word-wrap: break-word !important;
+        border: 1px solid #eee !important;
+        color: black !important;
+    }
+    .table thead th {
+        background-color: #f8f9fa !important;
+        border-bottom: 2px solid #ccc !important;
+        color: black !important;
+    }
+
+    /* Ocultar la columna de botones "Auditar / Ver Recibo" */
+    th:nth-child(6), td:nth-child(6) {
+        display: none !important;
+    }
+
+    /* 5. Limpiar Etiquetas (Badges) */
+    .badge {
+        border: none !important;
+        background: transparent !important;
+        color: black !important;
+        padding: 0 !important;
+        font-size: 9pt !important;
+        font-weight: bold !important;
+    }
+    .badge i {
+        display: none !important; /* Ocultar íconos para ahorrar espacio horizontal */
+    }
+
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+</style>
 {% endblock %}

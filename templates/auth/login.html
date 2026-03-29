@@ -1,9 +1,23 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6 col-lg-4">
-        <div class="card card-custom p-5">
+<style>
+    /* Fondo limpio que mantiene la legibilidad */
+    body {
+        background-color: var(--brand-bg) !important;
+        background-image: linear-gradient(135deg, var(--brand-bg) 0%, #eef3f5 100%);
+    }
+
+    /* Opcional: Ocultar la barra solo en login */
+    .navbar-custom {
+        display: none !important;
+    }
+</style>
+
+<div class="row align-items-center justify-content-evenly" style="min-height: 85vh;">
+    <!-- Columna Izquierda: Cuadro de Acceso Segregado -->
+    <div class="col-md-6 col-lg-5 mb-4">
+        <div class="card card-custom p-5 border-0 shadow-lg rounded-4" style="background-color: white; border-top: 5px solid var(--brand-blue) !important;">
             <div class="text-center mb-5">
                 <h3 class="fw-bold text-brand-black">Acceso al Panel</h3>
                 <p class="text-muted">Introduce tus credenciales operativas</p>
@@ -22,13 +36,18 @@
                 </div>
                 
                 <div class="d-grid">
-                    <!-- Botón de Login ahora en Azul Turquesa -->
-                    <button type="submit" class="btn btn-blue btn-lg rounded-pill">
+                    <button type="submit" class="btn btn-blue btn-lg rounded-pill shadow-sm">
                         Ingresar <i class="fa-solid fa-arrow-right ms-2"></i>
                     </button>
                 </div>
             </form>
         </div>
+    </div>
+
+    <!-- Columna Derecha: Logo Central y Limpio -->
+    <div class="col-md-6 col-lg-6 d-none d-md-flex justify-content-center align-items-center text-center">
+        <!-- Logo a la altura del usuario sin solapamiento -->
+        <img src="{{ url_for('static', filename='img/cases.png') }}" alt="Identidad Visual cases.com" class="img-fluid" style="max-height: 380px; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1));">
     </div>
 </div>
 {% endblock %}

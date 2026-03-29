@@ -36,7 +36,7 @@
                 <p class="mb-0 text-secondary">
                     Período: <strong>{{ fecha_inicio }}</strong> hasta <strong>{{ fecha_fin }}</strong>
                     <br>
-                    Generado el: <strong>{{ "now"|datetimeformat("%Y-%m-%d %H:%M") if "now"|datetimeformat else "Recién" }}</strong>
+                    Generado el: <strong>{{ fecha_generacion }}</strong>
                 </p>
                 {% if current_user.rol != 'admin' %}
                     <p class="mb-0 text-brand-black fw-bold">Usuario Solicitante: {{ current_user.nombre }}</p>

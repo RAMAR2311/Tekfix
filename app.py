@@ -15,6 +15,7 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-super-secreta')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///crm_inventory.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
     # Inicializar Extensiones
     db.init_app(app)
@@ -34,11 +35,13 @@ def create_app():
     from routes.inventory import inventory_bp
     from routes.auth import auth_bp
     from routes.arqueo import arqueo_bp
+    from routes.gastos import gastos_bp
     
     app.register_blueprint(sales_bp, url_prefix='/sales')
     app.register_blueprint(inventory_bp, url_prefix='/inventory')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(arqueo_bp, url_prefix='/arqueo')
+    app.register_blueprint(gastos_bp, url_prefix='/gastos')
     
     # Registro de Blueprint Admin
     from routes.admin import admin_bp
@@ -68,6 +71,9 @@ if __name__ == '__main__':
         
         # Aseguramos que las tablas existan sin romper migraciones
         db.create_all()
+        
+        # Crear la carpeta de imágenes si no existe
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
         
         # Verificamos e instanciamos al Administrador si no existe
         if not User.query.filter_by(email='admin@cases.com').first():

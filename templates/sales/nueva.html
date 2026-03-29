@@ -149,6 +149,7 @@
                     nombre: producto.nombre,
                     cantidad: 1,
                     precio_final: producto.precio_sugerido, // Cargar Precio de anaquel
+                    precio_limite: producto.precio_limite,
                     precio_minimo: producto.precio_minimo,
                     cantidad_stock: producto.cantidad_stock
                 });
@@ -185,9 +186,9 @@
         if (campo === 'precio_final') {
             const nuevoPrecio = parseFloat(valor);
             
-            // Regla de Negocio: Control de precio Mínimo (Impedir estafas del vendedor)
-            if (nuevoPrecio < item.precio_minimo) {
-                alert(`¡OPERACIÓN BLOQUEADA! El precio pactado ($${nuevoPrecio}) es INFERIOR al Mínimo Autorizado por la empresa ($${item.precio_minimo}). No se puede vender a este precio para evitar pérdidas.`);
+            // Regla de Negocio: Control de precio según Autoridad
+            if (nuevoPrecio < item.precio_limite) {
+                alert(`¡OPERACIÓN BLOQUEADA! El precio pactado ($${nuevoPrecio}) es INFERIOR al Mínimo Autorizado para tu nivel de usuario ($${item.precio_limite}). No se puede vender a este precio para evitar pérdidas.`);
                 renderizarCarrito(); // Re-renderizar ignorando el valor digitado
                 return;
             }
