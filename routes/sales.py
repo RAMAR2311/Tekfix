@@ -92,7 +92,7 @@ def procesar_venta():
 @sales_bp.route('/api/producto/<string:sku>', methods=['GET'])
 @login_required
 def api_buscar_producto(sku):
-    producto = Product.query.filter_by(sku=sku).first()
+    producto = Product.query.filter_by(sku=sku, tipo_inventario='tienda').first()
     
     if not producto:
         return jsonify({'error': 'Código SKU no encontrado en el sistema'}), 404
@@ -144,13 +144,19 @@ def historial():
     
     # Auditar y cruzar sumatorios de métricas de pago por Python (List Comprehension seguro)
     total_efectivo = sum(v.monto_total for v in ventas if v.metodo_pago == 'efectivo')
-    total_transferencia = sum(v.monto_total for v in ventas if v.metodo_pago == 'transferencia')
+    total_nequi = sum(v.monto_total for v in ventas if v.metodo_pago == 'nequi')
+    total_bancolombia = sum(v.monto_total for v in ventas if v.metodo_pago == 'bancolombia')
+    total_daviplata = sum(v.monto_total for v in ventas if v.metodo_pago == 'daviplata')
+    total_transferencia_legacy = sum(v.monto_total for v in ventas if v.metodo_pago == 'transferencia')
 
     # Envío al Engine de HTML
     return render_template('sales/historial.html', 
                            ventas=ventas, 
                            total_efectivo=total_efectivo,
-                           total_transferencia=total_transferencia,
+                           total_nequi=total_nequi,
+                           total_bancolombia=total_bancolombia,
+                           total_daviplata=total_daviplata,
+                           total_transferencia_legacy=total_transferencia_legacy,
                            fecha_inicio=fecha_inicio,
                            fecha_fin=fecha_fin)
 
@@ -164,7 +170,7 @@ def catalogo():
     if query_str:
         # Motor de similitud Case-Insensitive (Like)
         search_term = f"%{query_str}%"
-        productos = Product.query.filter(
+        productos = Product.query.filter_by(tipo_inventario='tienda').filter(
             or_(
                 Product.sku.ilike(search_term), 
                 Product.nombre.ilike(search_term)
@@ -172,6 +178,6 @@ def catalogo():
         ).limit(50).all()
     else:
         # Límite pasivo de 50 ítems para ahorrar memoria RAM de BD en carga inicial
-        productos = Product.query.limit(50).all()
+        productos = Product.query.filter_by(tipo_inventario='tienda').limit(50).all()
         
     return render_template('sales/catalogo.html', productos=productos, q=query_str)

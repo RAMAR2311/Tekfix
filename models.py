@@ -29,6 +29,7 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(150), nullable=False)
     sku = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    tipo_inventario = db.Column(db.String(50), nullable=False, server_default='tienda') # 'tienda' o 'bodega'
     cantidad_stock = db.Column(db.Integer, nullable=False, default=0)
     precio_costo = db.Column(db.Numeric(10, 2), nullable=False, default=0.00) # El Costo de Bodega
     precio_minimo = db.Column(db.Numeric(10, 2), nullable=False)
@@ -109,3 +110,69 @@ class Expense(db.Model):
     fecha_gasto = db.Column(db.DateTime, default=obtener_hora_bogota)
 
     usuario = db.relationship('User', backref='gastos', lazy=True)
+
+class Cliente(db.Model):
+    __tablename__ = 'clientes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_o_razon_social = db.Column(db.String(150), nullable=False)
+    documento_o_nit = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    telefono = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(120), nullable=True)
+    direccion = db.Column(db.String(255), nullable=True)
+    fecha_registro = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    facturas = db.relationship('FacturaBodega', backref='cliente', lazy=True)
+
+    @property
+    def deuda_total(self):
+        return sum(f.saldo_pendiente for f in self.facturas)
+
+    @property
+    def estado_global(self):
+        return "Con Deuda" if self.deuda_total > 0 else "Al Día"
+
+class FacturaBodega(db.Model):
+    __tablename__ = 'facturas_bodega'
+
+    id = db.Column(db.Integer, primary_key=True)
+    cliente_id = db.Column(db.Integer, db.ForeignKey('clientes.id'), nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    numero_factura = db.Column(db.String(100), nullable=False)
+    archivo_ruta = db.Column(db.String(255), nullable=False)
+    monto_total = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    estado = db.Column(db.String(50), nullable=False, default='Pendiente') # Pendiente, Parcial, Pagado
+    fecha_subida = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    usuario = db.relationship('User', backref='facturas_subidas', lazy=True)
+    abonos = db.relationship('AbonoBodega', backref='factura', lazy=True, cascade="all, delete-orphan")
+    detalles = db.relationship('FacturaBodegaDetalle', backref='factura', lazy=True, cascade="all, delete-orphan")
+
+    @property
+    def saldo_pendiente(self):
+        total_abonado = sum(abono.monto for abono in self.abonos)
+        return float(self.monto_total) - float(total_abonado)
+
+class FacturaBodegaDetalle(db.Model):
+    __tablename__ = 'facturas_bodega_detalles'
+
+    id = db.Column(db.Integer, primary_key=True)
+    factura_id = db.Column(db.Integer, db.ForeignKey('facturas_bodega.id'), nullable=False)
+    producto_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    cantidad = db.Column(db.Integer, nullable=False)
+    precio_venta = db.Column(db.Numeric(10, 2), nullable=True) # Opcional para futuros análisis
+
+    producto = db.relationship('Product', backref='detalles_factura_bodega', lazy=True)
+
+class AbonoBodega(db.Model):
+    __tablename__ = 'abonos_bodega'
+
+    id = db.Column(db.Integer, primary_key=True)
+    factura_id = db.Column(db.Integer, db.ForeignKey('facturas_bodega.id'), nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    monto = db.Column(db.Numeric(10, 2), nullable=False)
+    metodo_pago = db.Column(db.String(50), nullable=False, default='efectivo')
+    observacion = db.Column(db.String(255), nullable=True)
+    fecha_abono = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    usuario = db.relationship('User', backref='abonos_registrados', lazy=True)

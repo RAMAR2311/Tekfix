@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-brand-black m-0"><i class="fa-solid fa-file-invoice text-brand-pink me-2"></i> Anexar Factura</h2>
+            <a href="{{ url_for('bodega_bp.dashboard') }}" class="btn btn-light rounded-pill px-3 shadow-sm border">Volver</a>
+        </div>
+
+        <div class="card card-custom p-4 border-0">
+            <form method="POST" action="{{ url_for('bodega_bp.nueva_factura') }}" enctype="multipart/form-data" id="facturaForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Fijar al Cliente <span class="text-danger">*</span></label>
+                    <select name="cliente_id" class="form-select border-0 bg-light shadow-sm" required>
+                        <option value="" disabled selected>-- Selecciona el destinatario --</option>
+                        {% for c in clientes %}
+                            <option value="{{ c.id }}">{{ c.nombre_o_razon_social }} - (NIT: {{ c.documento_o_nit }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label fw-bold">Número de Factura o Remisión <span class="text-danger">*</span></label>
+                        <input type="text" name="numero_factura" class="form-control bg-light border-0 shadow-sm" required placeholder="Ej: FAC-987019">
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label fw-bold">Monto Total de la Deuda <span class="text-danger">*</span></label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text border-0 bg-light text-success fw-bold">$</span>
+                            <input type="number" step="0.01" min="0" name="monto_total" id="inputMontoTotal" class="form-control bg-light border-0" required placeholder="0.00" title="Calculado automáticamente, pero puedes ajustarlo si hay descuentos finales">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DE BÚSQUEDA Y CARRITO DE FACTURA -->
+                <div class="mb-4 bg-light p-4 rounded-3 border position-relative">
+                    <h5 class="fw-bold border-bottom pb-2 mb-3"><i class="fa-solid fa-barcode text-brand-blue me-2"></i> Escanear Productos</h5>
+                    
+                    <div class="row g-2 mb-4 align-items-end">
+                        <div class="col-md-10">
+                            <label class="form-label fw-semibold small text-muted">Código SKU (Decodificador)</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-0 bg-white"><i class="fa-solid fa-search text-muted"></i></span>
+                                <input type="text" id="skuBuscador" class="form-control border-0 shadow-sm form-control-lg" placeholder="Pistolea o escribe el código aquí..." autofocus autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-blue w-100 fw-bold shadow-sm py-2" onclick="buscarSKUManual()" title="Buscar Manual"><i class="fa-solid fa-magnifying-glass"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Carrito -->
+                    <div class="table-responsive bg-white rounded-3 shadow-sm border">
+                        <table class="table table-hover mb-0 text-center align-middle" id="tablaProductos">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-3 text-start">Producto (SKU)</th>
+                                    <th width="15%">Ctd.</th>
+                                    <th width="25%">Precio Und.</th>
+                                    <th width="20%">Subtotal</th>
+                                    <th class="pe-3" width="10%"><i class="fa-solid fa-trash text-muted"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="carritoBody">
+                                <!-- Filas dinámicas se agregan vía JS -->
+                                <tr id="emptyRow">
+                                    <td colspan="5" class="text-muted py-4"><i class="fa-solid fa-barcode opacity-50 fs-2 mb-2"></i><br>Escanea un producto para agregarlo a la factura.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold border-bottom pb-2 w-100">Documento Escaneado o PDF <span class="text-danger">*</span></label>
+                    <input class="form-control form-control-lg bg-light border-0 shadow-sm mt-3" type="file" name="archivo_factura" accept=".pdf,.png,.jpg,.jpeg,.webp" required>
+                    <small class="text-muted mt-2 d-block"><i class="fa-solid fa-circle-info me-1"></i> Formatos PDF, JPG, PNG. Máx. 3MB.</small>
+                </div>
+
+                <button type="button" onclick="validarEnvio()" class="btn btn-pink w-100 rounded-pill fw-bold py-3 shadow-sm text-uppercase"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Procesar y Subir Factura</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let carrito = {};
+
+    // Escucha el evento Enter en la pistola o teclado
+    document.getElementById('skuBuscador').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Evita que se envíe el formulario globalmente
+            buscarSKUManual();
+        }
+    });
+
+    function buscarSKUManual() {
+        const skuInput = document.getElementById('skuBuscador');
+        const sku = skuInput.value.trim();
+        
+        if (!sku) return;
+
+        fetch(`/bodega/api/producto/${sku}`)
+            .then(res => {
+                if (!res.ok) throw new Error("Producto no existe en la bodega o no hay stock.");
+                return res.json();
+            })
+            .then(data => {
+                agregarProducto(data);
+                skuInput.value = ''; // limpiar Input
+                skuInput.focus(); // mantener el cursor ahí
+            })
+            .catch(err => {
+                alert(err.message);
+                skuInput.select();
+            });
+    }
+
+    function agregarProducto(data) {
+        const id = data.id;
+        const nombre = data.nombre;
+        const sku = data.sku;
+        const stockDisponible = parseInt(data.cantidad_stock);
+        const precioSugerido = parseFloat(data.precio_sugerido);
+
+        if (stockDisponible <= 0) {
+            alert(`No hay stock disponible para ${nombre}.`);
+            return;
+        }
+
+        if (carrito[id]) {
+            const nuevaCantidad = carrito[id].cantidad + 1;
+            if (nuevaCantidad > stockDisponible) {
+                alert(`Solo hay ${stockDisponible} uds en stock de ${nombre}.`);
+                return;
+            }
+            carrito[id].cantidad = nuevaCantidad;
+            document.getElementById('input_cant_' + id).value = nuevaCantidad;
+            
+        } else {
+            // Producto nuevo en la tabla
+            carrito[id] = { id: id, nombre: nombre, cantidad: 1, max_stock: stockDisponible, precio: precioSugerido };
+            
+            const emptyRow = document.getElementById('emptyRow');
+            if (emptyRow) emptyRow.style.display = 'none';
+
+            const tbody = document.getElementById('carritoBody');
+            const tr = document.createElement('tr');
+            tr.id = 'row_' + id;
+            tr.innerHTML = `
+                <td class="ps-3 text-start">
+                    <span class="fw-bold">${nombre}</span><br>
+                    <small class="text-muted"><i class="fa-solid fa-barcode"></i> ${sku}</small>
+                    <input type="hidden" name="producto_id[]" value="${id}">
+                </td>
+                <td>
+                    <input type="number" name="cantidad[]" value="1" min="1" max="${stockDisponible}" class="form-control form-control-sm text-center fw-bold" id="input_cant_${id}" onchange="actualizarCantidad('${id}', this.value)">
+                </td>
+                <td>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" min="0" name="precio_unitario[]" value="${precioSugerido.toFixed(2)}" class="form-control text-end fw-bold" id="input_precio_${id}" onchange="actualizarPrecio('${id}', this.value)">
+                    </div>
+                </td>
+                <td class="fw-bolder text-success" id="subtotal_${id}">$${precioSugerido.toFixed(2)}</td>
+                <td class="pe-3">
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-circle shadow-sm" onclick="eliminarProducto('${id}')"><i class="fa-solid fa-times"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+        recalcularTotal();
+    }
+
+    function actualizarCantidad(id, newVal) {
+        let val = parseInt(newVal);
+        if (isNaN(val) || val <= 0) val = 1;
+        
+        if (val > carrito[id].max_stock) {
+            alert(`El stock máximo es ${carrito[id].max_stock}`);
+            val = carrito[id].max_stock;
+        }
+        
+        document.getElementById('input_cant_' + id).value = val;
+        carrito[id].cantidad = val;
+        
+        actualizarFilaUI(id);
+    }
+
+    function actualizarPrecio(id, newVal) {
+        let val = parseFloat(newVal);
+        if (isNaN(val) || val < 0) val = 0.00;
+        
+        document.getElementById('input_precio_' + id).value = val.toFixed(2);
+        carrito[id].precio = val;
+        
+        actualizarFilaUI(id);
+    }
+
+    function actualizarFilaUI(id) {
+        const sub = carrito[id].cantidad * carrito[id].precio;
+        document.getElementById('subtotal_' + id).innerText = "$" + sub.toFixed(2);
+        recalcularTotal();
+    }
+
+    function eliminarProducto(id) {
+        delete carrito[id];
+        const row = document.getElementById('row_' + id);
+        if (row) row.remove();
+        
+        if (Object.keys(carrito).length === 0) {
+            document.getElementById('emptyRow').style.display = '';
+        }
+        recalcularTotal();
+    }
+
+    function recalcularTotal() {
+        let suma = 0;
+        for (const key in carrito) {
+            suma += (carrito[key].cantidad * carrito[key].precio);
+        }
+        // Actualizamos el input de Monto Total Principal para que se envíe formateado
+        document.getElementById('inputMontoTotal').value = suma.toFixed(2);
+    }
+
+    function validarEnvio() {
+        if (Object.keys(carrito).length === 0) {
+            alert("No has pistoleado ningún producto. La factura no puede ir vacía.");
+            document.getElementById('skuBuscador').focus();
+            return;
+        }
+        document.getElementById('facturaForm').submit();
+    }
+</script>
+{% endblock %}

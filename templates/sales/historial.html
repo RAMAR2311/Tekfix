@@ -30,25 +30,52 @@
     </div>
 
     <!-- UI: Resumen Financiero Dinámico (Tarjetas) -->
-    <div class="col-6 col-md-6 mb-3">
-        <!-- Borde Ultra-Grueso de Acabado (Azul Turquesa) -->
+    <div class="col-6 col-md-3 mb-3">
         <div class="card card-custom h-100" style="border-left: 6px solid var(--brand-blue) !important;">
-            <div class="card-body py-4 ps-4">
-                <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-money-bills me-1"></i> Entradas en Efectivo</p>
-                <h2 class="fw-bolder m-0" style="color: var(--brand-blue);">${{ "%.2f"|format(total_efectivo) }}</h2>
+            <div class="card-body py-3 ps-3">
+                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</p>
+                <h4 class="fw-bolder m-0" style="color: var(--brand-blue);">${{ "%.2f"|format(total_efectivo) }}</h4>
             </div>
         </div>
     </div>
     
-    <div class="col-6 col-md-6 mb-3">
-        <!-- Borde Ultra-Grueso de Acabado (Rosa Pastel) -->
-        <div class="card card-custom h-100" style="border-left: 6px solid var(--brand-pink) !important;">
-            <div class="card-body py-4 ps-4">
-                <p class="text-muted fw-bold text-uppercase mb-1 small"><i class="fa-solid fa-building-columns me-1"></i> Depósitos & Transferencias</p>
-                <h2 class="fw-bolder m-0" style="color: var(--brand-pink);">${{ "%.2f"|format(total_transferencia) }}</h2>
+    <div class="col-6 col-md-3 mb-3">
+        <div class="card card-custom h-100" style="border-left: 6px solid #6f42c1 !important;">
+            <div class="card-body py-3 ps-3">
+                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-mobile-button me-1"></i> Nequi</p>
+                <h4 class="fw-bolder m-0" style="color: #6f42c1;">${{ "%.2f"|format(total_nequi) }}</h4>
             </div>
         </div>
     </div>
+
+    <div class="col-6 col-md-3 mb-3">
+        <div class="card card-custom h-100" style="border-left: 6px solid #fd7e14 !important;">
+            <div class="card-body py-3 ps-3">
+                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-building-columns me-1"></i> Bancolombia</p>
+                <h4 class="fw-bolder m-0" style="color: #fd7e14;">${{ "%.2f"|format(total_bancolombia) }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3 mb-3">
+        <div class="card card-custom h-100" style="border-left: 6px solid #dc3545 !important;">
+            <div class="card-body py-3 ps-3">
+                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-mobile-screen me-1"></i> Daviplata</p>
+                <h4 class="fw-bolder m-0" style="color: #dc3545;">${{ "%.2f"|format(total_daviplata) }}</h4>
+            </div>
+        </div>
+    </div>
+
+    {% if total_transferencia_legacy > 0 %}
+    <div class="col-12 mb-3">
+        <div class="card card-custom h-100" style="border-left: 6px solid var(--brand-pink) !important;">
+            <div class="card-body py-3 ps-3">
+                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-clock-rotate-left me-1"></i> Transf. Históricas</p>
+                <h4 class="fw-bolder m-0" style="color: var(--brand-pink);">${{ "%.2f"|format(total_transferencia_legacy) }}</h4>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     
     <!-- UI: Filtro de Fechas Oculto (Collapsible Bootstrap) -->
     <div class="col-12 mt-2 mb-2 d-print-none">
@@ -109,7 +136,7 @@
                         {% if venta.metodo_pago == 'efectivo' %}
                             <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
                         {% else %}
-                            <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> Transferencia</span>
+                            <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> {{ venta.metodo_pago|capitalize }}</span>
                         {% endif %}
                     </td>
                     <td class="text-end align-middle fw-bolder text-brand-black fs-5">

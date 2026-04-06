@@ -25,7 +25,7 @@ def nuevo():
     ventas_del_dia = Sale.query.filter(db.func.date(Sale.fecha_venta) == fecha_seleccionada).all()
     
     total_efectivo = sum(v.monto_total for v in ventas_del_dia if v.metodo_pago == 'efectivo')
-    total_transferencia = sum(v.monto_total for v in ventas_del_dia if v.metodo_pago == 'transferencia')
+    total_transferencia = sum(v.monto_total for v in ventas_del_dia if v.metodo_pago in ['transferencia', 'nequi', 'bancolombia', 'daviplata'])
 
     # Calcular gastos automáticos del día
     gastos_diarios_registros = Expense.query.filter(

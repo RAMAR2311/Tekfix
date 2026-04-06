@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-brand-black m-0"><i class="fa-solid fa-boxes-stacked text-brand-blue me-2"></i> Área de Bodega</h2>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-lg-4">
+        <div class="card card-custom h-100 border-0 p-4 text-center">
+            <h5 class="text-muted fw-bold">Total Clientes</h5>
+            <h1 class="display-4 fw-bolder text-brand-black" style="color: var(--brand-blue) !important;">{{ clientes_count }}</h1>
+            <a href="{{ url_for('bodega_bp.nuevo_cliente') }}" class="btn btn-blue rounded-pill mt-3"><i class="fa-solid fa-plus me-1"></i> Nuevo Cliente</a>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-8">
+        <div class="card card-custom border-0 p-0 overflow-hidden h-100">
+            <h5 class="fw-bold p-4 bg-light mb-0 border-bottom"><i class="fa-solid fa-file-pdf text-brand-pink me-2"></i> Últimas Facturas</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-custom mb-0">
+                    <thead class="bg-light text-muted">
+                        <tr>
+                            <th class="ps-4">TICKET/DOC</th>
+                            <th>CLIENTE</th>
+                            <th>FECHA</th>
+                            <th class="text-center">ARCHIVO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in facturas %}
+                        <tr>
+                            <td class="ps-4 fw-bold">#{{ f.numero_factura }}</td>
+                            <td><a href="{{ url_for('bodega_bp.cliente_detalle', id=f.cliente.id) }}" class="text-decoration-none text-brand-black fw-bold"><i class="fa-solid fa-user-circle text-muted me-1"></i> {{ f.cliente.nombre_o_razon_social }}</a></td>
+                            <td class="text-muted"><small>{{ f.fecha_subida.strftime('%d/%m/%Y %H:%M') }}</small></td>
+                            <td class="text-center">
+                                {% if f.estado == 'Pagado' %}
+                                    <span class="badge bg-success rounded-pill px-2 py-1">Pagado</span>
+                                {% elif f.estado == 'Parcial' %}
+                                    <span class="badge bg-warning text-dark rounded-pill px-2 py-1">Parcial</span>
+                                {% else %}
+                                    <span class="badge bg-danger rounded-pill px-2 py-1">Pend.</span>
+                                {% endif %}
+                                <a href="{{ url_for('static', filename=f.archivo_ruta) }}" target="_blank" class="btn btn-outline-secondary btn-sm ms-2 rounded-pill"><i class="fa-solid fa-download"></i></a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">Aún no has registrado facturas para los clientes.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 text-end bg-light border-top">
+                <a href="{{ url_for('bodega_bp.nueva_factura') }}" class="btn btn-pink rounded-pill"><i class="fa-solid fa-upload me-1"></i> Subir Documento</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

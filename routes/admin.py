@@ -130,6 +130,11 @@ def maneos_facturar(id):
         return redirect(url_for('admin_bp.maneos'))
     
     precio_venta = float(request.form.get('precio_venta', maneo.producto.precio_sugerido))
+    cantidad_vendida = int(request.form.get('cantidad_vendida', maneo.cantidad))
+
+    if cantidad_vendida <= 0 or cantidad_vendida > maneo.cantidad:
+        flash(f'Operación rechazada: La cantidad vendida ({cantidad_vendida}) es inválida.', 'danger')
+        return redirect(url_for('admin_bp.maneos'))
 
     precio_limite = maneo.producto.precio_costo if current_user.rol == 'admin' else maneo.producto.precio_minimo
 
@@ -138,14 +143,35 @@ def maneos_facturar(id):
         return redirect(url_for('admin_bp.maneos'))
 
     try:
+        cantidad_no_vendida = maneo.cantidad - cantidad_vendida
+
         maneo.estado = 'FACTURADO'
         maneo.fecha_resolucion = obtener_hora_bogota()
 
+        # Si hubo un cobro parcial, las unidades restantes vuelven al inventario
+        if cantidad_no_vendida > 0:
+            stock_anterior = maneo.producto.cantidad_stock
+            maneo.producto.cantidad_stock += cantidad_no_vendida
+
+            ajuste_retorno = StockAdjustment(
+                product_id=maneo.product_id,
+                admin_id=current_user.id,
+                tipo_movimiento=f'Dev. Parcial de Maneo ({maneo.local_vecino})',
+                stock_anterior=stock_anterior,
+                stock_nuevo=maneo.producto.cantidad_stock
+            )
+            db.session.add(ajuste_retorno)
+            
+            # Actualizamos la cantidad del maneo a la realmente facturada para que el historial sea claro
+            maneo.cantidad = cantidad_vendida
+
+        metodo_pago_seleccionado = request.form.get('metodo_pago', 'efectivo')
+        
         # Registrar la venta real del Maneo
         nueva_venta = Sale(
             vendedor_id=current_user.id,
-            monto_total=(precio_venta * maneo.cantidad),
-            metodo_pago='efectivo' # Por defecto en efectivo a la caja, luego ajustamos si piden otras formas
+            monto_total=(precio_venta * cantidad_vendida),
+            metodo_pago=metodo_pago_seleccionado
         )
         db.session.add(nueva_venta)
         db.session.flush() # forzar DB a darnos un ID para nueva_venta
@@ -153,13 +179,17 @@ def maneos_facturar(id):
         detalle = SaleDetail(
             sale_id=nueva_venta.id,
             product_id=maneo.product_id,
-            cantidad_vendida=maneo.cantidad,
+            cantidad_vendida=cantidad_vendida,
             precio_venta_final=precio_venta
         )
         db.session.add(detalle)
         
         db.session.commit()
-        flash(f'Maneo facturado. Se registró la venta de ${precio_venta * maneo.cantidad} en la caja.', 'success')
+
+        if cantidad_no_vendida > 0:
+            flash(f'Maneo facturado parcialmente. Se registró la venta de ${precio_venta * cantidad_vendida} y se devolvieron {cantidad_no_vendida} uds al inventario.', 'success')
+        else:
+            flash(f'Maneo facturado totalmente. Se registró la venta de ${precio_venta * cantidad_vendida} en la caja.', 'success')
     except Exception as e:
         db.session.rollback()
         flash('Error al facturar el maneo.', 'danger')
@@ -235,7 +265,7 @@ def balance_financiero():
     ventas_query = Sale.query.filter(Sale.fecha_venta >= inicio_dt, Sale.fecha_venta < fin_dt_query).all()
     
     ventas_efectivo = sum(v.monto_total for v in ventas_query if v.metodo_pago == 'efectivo')
-    ventas_transferencia = sum(v.monto_total for v in ventas_query if v.metodo_pago == 'transferencia')
+    ventas_transferencia = sum(v.monto_total for v in ventas_query if v.metodo_pago in ['transferencia', 'nequi', 'bancolombia', 'daviplata'])
     total_ingresos = ventas_efectivo + ventas_transferencia
 
     # 2. Costo de Mercancía Vendida (COGS)

@@ -11,9 +11,12 @@ from models import db, User
 def create_app():
     app = Flask(__name__)
     
-    # Configuración mediante variables de entorno (con valores por defecto seguros para desarrollo)
+    # Configuración mediante variables de entorno (con fallback a PostgreSQL local)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-super-secreta')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///crm_inventory.db')
+    
+    # Para la conexión a PostgreSQL, psycopg2 es el default de SQLALchemy al usar postgresql://
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://postgres:admin123@localhost:5432/crm_cases')
+    
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
@@ -47,6 +50,10 @@ def create_app():
     from routes.admin import admin_bp
     app.register_blueprint(admin_bp, url_prefix='/admin')
 
+    # Registro de Blueprint Bodega
+    from routes.bodega import bodega_bp
+    app.register_blueprint(bodega_bp, url_prefix='/bodega')
+
     @app.route('/')
     def index():
         # Redirección de sesión y rol de usuario
@@ -55,6 +62,9 @@ def create_app():
             
         if current_user.rol == 'admin':
             return redirect(url_for('admin_bp.dashboard'))
+            
+        if current_user.rol == 'bodega':
+            return redirect(url_for('bodega_bp.dashboard'))
             
         # Por defecto, Vendedores van directo a Cajas
         return redirect(url_for('sales_bp.procesar_venta'))

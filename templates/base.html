@@ -113,76 +113,124 @@
             padding: 1.25rem 1rem;
             vertical-align: middle;
         }
+
+        /* Sidebar Offcanvas Estilos */
+        .offcanvas-body .nav-link {
+            transition: all 0.2s ease-in-out;
+        }
+        .offcanvas-body .nav-link:hover {
+            background-color: rgba(163, 216, 222, 0.15); /* bg-brand-blue transparente */
+            transform: translateX(4px);
+            border-left: 3px solid var(--brand-pink) !important;
+        }
     </style>
 </head>
 <body>
     <!-- Navbar cases.com -->
-    <nav class="navbar navbar-expand-lg navbar-custom mb-5">
-        <div class="container">
-            <!-- Brand Logo -->
-            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+    <nav class="navbar navbar-custom mb-5 position-relative">
+        <div class="container-fluid px-3 d-flex justify-content-between align-items-center">
+            
+            {% if current_user.is_authenticated %}
+            <!-- Botón Hamburguesa (Izquierda) -->
+            <button class="navbar-toggler border-0 shadow-none p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                <i class="fa-solid fa-bars fs-3 text-brand-black"></i>
+            </button>
+            {% else %}
+            <!-- Spacer if not authenticated -->
+            <div style="width: 40px;"></div>
+            {% endif %}
+
+            <!-- Brand Logo (Centro) -->
+            <a class="navbar-brand d-flex align-items-center fw-bold m-0 position-absolute start-50 translate-middle-x" href="{{ url_for('index') }}">
                 <img src="{{ url_for('static', filename='img/cases.png') }}" alt="cases.com" style="height: 38px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));" class="me-2">
                 cases.com
             </a>
-            {% if current_user.is_authenticated %}
-            <!-- Botón Hamburguesa Móvil Oculto Sin Sesión -->
-            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    {% if current_user.rol == 'admin' %}
-                    <!-- Enlaces Únicos para el Administrador de la Tienda -->
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black" href="/admin/dashboard"><i class="fa-solid fa-chart-pie text-muted"></i> Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black" href="/inventory"><i class="fa-solid fa-box text-muted"></i> Inventario</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black" href="/sales/nueva"><i class="fa-solid fa-cash-register text-muted"></i> Caja Terminal</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black" href="/admin/vendedores"><i class="fa-solid fa-users text-muted"></i> Personal</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black" href="/gastos"><i class="fa-solid fa-money-bill-transfer" style="color: var(--brand-blue);"></i> Gastos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black fw-bold" href="/sales/catalogo"><i class="fa-solid fa-book-open text-brand-pink"></i> Catálogo Físico</a>
-                    </li>
-                    <li class="nav-item border-start ps-3 border-dark border-opacity-25">
-                        <a class="nav-link text-brand-black fw-bold" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-brand-blue" style="color: #A3D8DE;"></i> Arqueo de Caja</a>
-                    </li>
-                    {% elif current_user.rol == 'vendedor' %}
-                    <!-- Vistas Estrictamente Operativas (Cajeros) -->
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black fw-bold" href="/sales/catalogo"><i class="fa-solid fa-book-open text-muted"></i> Catálogo Rápido</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black fw-bold" href="/sales/nueva"><i class="fa-solid fa-cash-register text-brand-pink"></i> Módulo de Caja</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black fw-bold" href="/admin/maneos"><i class="fa-solid fa-handshake" style="color: var(--brand-blue);"></i> Maneos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black fw-bold" href="/gastos"><i class="fa-solid fa-money-bill-transfer text-success"></i> Gastos</a>
-                    </li>
-                    <li class="nav-item border-start ps-3 border-dark border-opacity-25">
-                        <a class="nav-link text-brand-black fw-bold" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-brand-blue" style="color: #A3D8DE;"></i> Arqueo</a>
-                    </li>
-                    {% endif %}
-                    
-                    <!-- Interfaz de Desconexión / Fin de Turno -->
-                    <li class="nav-item ms-lg-3">
-                        <!-- En rojo encendido para evitar cierres de sesión accidentales -->
-                        <a class="nav-link fw-bold text-danger" href="{{ url_for('auth_bp.logout') }}"><i class="fa-solid fa-sign-out-alt"></i> Salir</a>
-                    </li>
-                </ul>
-            </div>
-            {% endif %}
+
+            <!-- Spacer derecho para equilibrar flex -->
+            <div style="width: 40px;"></div>
         </div>
     </nav>
+
+    {% if current_user.is_authenticated %}
+    <!-- Offcanvas Menú Lateral (Sidebar) -->
+    <div class="offcanvas offcanvas-start border-0 shadow" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel" style="width: 280px;">
+        <div class="offcanvas-header bg-brand-pink border-bottom">
+            <h5 class="offcanvas-title fw-bold text-brand-black" id="offcanvasNavbarLabel">
+                <i class="fa-solid fa-user-circle me-2"></i>{{ current_user.rol | capitalize }}
+            </h5>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column p-0">
+            <ul class="navbar-nav w-100 mb-auto px-3 py-3 gap-2">
+                {% if current_user.rol == 'admin' %}
+                    <!-- Enlaces Únicos para el Administrador de la Tienda -->
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/dashboard"><i class="fa-solid fa-chart-pie text-muted me-2" style="width:20px; text-align:center;"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/inventory"><i class="fa-solid fa-box text-muted me-2" style="width:20px; text-align:center;"></i> Inventario Tienda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/nueva"><i class="fa-solid fa-cash-register text-muted me-2" style="width:20px; text-align:center;"></i> Caja Terminal</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/vendedores"><i class="fa-solid fa-users text-muted me-2" style="width:20px; text-align:center;"></i> Personal</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/gastos"><i class="fa-solid fa-money-bill-transfer me-2" style="color: var(--brand-blue); width:20px; text-align:center;"></i> Gastos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-bold border-bottom" href="/sales/catalogo"><i class="fa-solid fa-book-open text-brand-pink me-2" style="width:20px; text-align:center;"></i> Catálogo Físico</a>
+                    </li>
+                    <li class="nav-item mt-2">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-bold bg-light border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-brand-blue me-2" style="width:20px; text-align:center;"></i> Arqueo de Caja</a>
+                    </li>
+                {% elif current_user.rol == 'vendedor' %}
+                    <!-- Vistas Estrictamente Operativas (Cajeros) -->
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/catalogo"><i class="fa-solid fa-book-open text-muted me-2" style="width:20px; text-align:center;"></i> Catálogo Rápido</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/nueva"><i class="fa-solid fa-cash-register text-brand-pink me-2" style="width:20px; text-align:center;"></i> Módulo de Caja</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/maneos"><i class="fa-solid fa-handshake me-2" style="color: var(--brand-blue); width:20px; text-align:center;"></i> Maneos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/gastos"><i class="fa-solid fa-money-bill-transfer text-success me-2" style="width:20px; text-align:center;"></i> Gastos</a>
+                    </li>
+                    <li class="nav-item mt-2">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-bold bg-light border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-brand-blue me-2" style="width:20px; text-align:center;"></i> Arqueo</a>
+                    </li>
+                {% elif current_user.rol == 'bodega' %}
+                    <!-- Vistas Exclusivas para el Encargado de Bodega -->
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.dashboard') }}"><i class="fa-solid fa-boxes-stacked text-brand-blue me-2" style="width:20px; text-align:center;"></i> Bodega</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('inventory_bp.index') }}"><i class="fa-solid fa-box text-brand-pink me-2" style="width:20px; text-align:center;"></i> Mi Inventario (Bodega)</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.clientes') }}"><i class="fa-solid fa-address-book text-muted me-2" style="width:20px; text-align:center;"></i> Directorio Clientes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.nuevo_cliente') }}"><i class="fa-solid fa-user-plus text-muted me-2" style="width:20px; text-align:center;"></i> Registrar Cliente</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.nueva_factura') }}"><i class="fa-solid fa-file-invoice text-brand-pink me-2" style="width:20px; text-align:center;"></i> Subir Factura</a>
+                    </li>
+                {% endif %}
+            </ul>
+            
+            <!-- Interfaz de Desconexión / Fin de Turno al final del sidebar -->
+            <div class="px-3 pb-4 mt-auto">
+                <a class="btn btn-outline-danger w-100 rounded-pill fw-bold" href="{{ url_for('auth_bp.logout') }}">
+                    <i class="fa-solid fa-sign-out-alt me-2"></i> Salir del Sistema
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- App Container -->
     <main class="container mb-5">
