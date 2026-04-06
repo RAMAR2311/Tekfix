@@ -19,11 +19,8 @@ def login():
             login_user(user) # Iniciar sesión del lado del servidor persistente
             flash('¡Sesión iniciada con éxito!', 'success')
             
-            # Redirección inteligente basada en ROL
-            if user.rol == 'admin':
-                return redirect(url_for('admin_bp.dashboard'))
-            else:
-                return redirect(url_for('sales_bp.procesar_venta'))
+            # Redirección inteligente basada en ROL o hacia la raíz para delegar el control
+            return redirect(url_for('index'))
         
         flash('Tus credenciales (Correo o Contraseña) son inválidas.', 'error')
         return redirect(url_for('auth_bp.login'))
