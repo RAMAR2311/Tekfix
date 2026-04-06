@@ -129,10 +129,9 @@
 
             const producto = await response.json();
 
-            // Buscar si ya lo habíamos pistoleado antes...
-            const existente = carrito.find(item => item.id === producto.id);
+            const existente = carrito.find(item => item.id === producto.id && (!item.variantes || item.variantes.length === 0));
             if (existente) {
-                // Validación Estricta: Sobreventa (Stock)
+                // Validación Estricta: Sobreventa (Stock) en productos planos
                 if (existente.cantidad + 1 > producto.cantidad_stock) {
                     alert(`¡Stock insuficiente! Solo te quedan ${producto.cantidad_stock} unidades de ${producto.nombre}.`);
                 } else {
@@ -144,16 +143,31 @@
                     return;
                 }
                 
-                // Si es nuevo, inicializar con el array
+                // Si es nuevo, inicializar con el array. Permite encolar un renglón nuevo si tiene variantes.
+                let initial_variant_id = null;
+                let initial_precio = producto.precio_sugerido;
+                let initial_limite = producto.precio_limite;
+                let initial_minimo = producto.precio_minimo;
+                
+                if (producto.variantes && producto.variantes.length > 0) {
+                    let defaultVar = producto.variantes[0];
+                    initial_variant_id = defaultVar.id;
+                    initial_precio = defaultVar.precio_sugerido;
+                    initial_limite = defaultVar.precio_limite;
+                    initial_minimo = defaultVar.precio_minimo;
+                }
+
                 carrito.push({
                     id: producto.id,
                     sku: producto.sku,
                     nombre: producto.nombre,
                     cantidad: 1,
-                    precio_final: producto.precio_sugerido, // Cargar Precio de anaquel
-                    precio_limite: producto.precio_limite,
-                    precio_minimo: producto.precio_minimo,
-                    cantidad_stock: producto.cantidad_stock
+                    precio_final: initial_precio, 
+                    precio_limite: initial_limite,
+                    precio_minimo: initial_minimo,
+                    cantidad_stock: producto.cantidad_stock,
+                    variantes: producto.variantes,
+                    variant_id: initial_variant_id
                 });
             }
 
@@ -177,12 +191,36 @@
                 renderizarCarrito();
                 return;
             }
-            if (nuevaCantidad > item.cantidad_stock) {
-                alert(`La empresa no cuenta con Stock suficiente. Inventario Máximo: ${item.cantidad_stock}`);
+            
+            // Validar stock de la variante si existe, si no del producto base
+            let max_stock = item.cantidad_stock;
+            if (item.variantes && item.variantes.length > 0) {
+                const varSel = item.variantes.find(v => v.id == item.variant_id);
+                if(varSel) max_stock = varSel.stock;
+            }
+
+            if (nuevaCantidad > max_stock) {
+                alert(`La empresa no cuenta con Stock suficiente en esta variante/producto. Inventario Máximo: ${max_stock}`);
                 renderizarCarrito();
                 return;
             }
             item.cantidad = nuevaCantidad;
+        }
+
+        if (campo === 'variant_id') {
+            item.variant_id = parseInt(valor);
+            
+            const varSel = item.variantes.find(v => v.id == item.variant_id);
+            if (varSel) {
+                if (item.cantidad > varSel.stock) {
+                    alert(`Has seleccionado una variante con poco stock (${varSel.stock}). Se ajustará la cantidad.`);
+                    item.cantidad = varSel.stock > 0 ? varSel.stock : 1;
+                }
+                // Update specific variant bounds & price
+                item.precio_final = varSel.precio_sugerido;
+                item.precio_limite = varSel.precio_limite;
+                item.precio_minimo = varSel.precio_minimo;
+            }
         }
 
         if (campo === 'precio_final') {
@@ -232,12 +270,25 @@
             granTotal += subtotal;
             totalItems += item.cantidad;
 
+            let variantHtml = '';
+            if (item.variantes && item.variantes.length > 0) {
+                variantHtml = `<select class="form-select form-select-sm mt-1 text-secondary bg-light border-0 shadow-sm" onchange="actualizarItem(${index}, 'variant_id', this.value)">`;
+                item.variantes.forEach(v => {
+                    let selected = (v.id == item.variant_id) ? "selected" : "";
+                    // Si tiene 0 despintar opción o alertarlo
+                    let disableStr = v.stock <= 0 ? "(Sin stock)" : `(Stock: ${v.stock})`;
+                    variantHtml += `<option value="${v.id}" ${selected}>${v.nombre} ${disableStr}</option>`;
+                });
+                variantHtml += `</select>`;
+            }
+
             const tr = document.createElement('tr');
             // Celdas DOM
             tr.innerHTML = `
                 <td>
                     <div class="fw-bold text-brand-black">${item.nombre}</div>
                     <small class="text-muted">${item.sku}</small>
+                    ${variantHtml}
                 </td>
                 <td width="130">
                     <input type="number" class="form-control form-control-sm text-center" value="${item.cantidad}" onchange="actualizarItem(${index}, 'cantidad', this.value)">
@@ -271,10 +322,11 @@
 
         const metodoPago = document.getElementById('metodo-pago').value;
 
-        // Estructura de Diccionario aceptada estrictamente por el Backend que creamos hace un momento (routes/sales.py)
+        // Estructura de Diccionario aceptada estrictamente por Backend 
         const payload = {
             items: carrito.map(item => ({
                 product_id: item.id,
+                variant_id: item.variant_id,
                 cantidad: item.cantidad,
                 precio_final: item.precio_final
             })),

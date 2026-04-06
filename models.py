@@ -40,6 +40,39 @@ class Product(db.Model):
     
     detalles_venta = db.relationship('SaleDetail', backref='producto', lazy=True)
     ajustes_stock = db.relationship('StockAdjustment', backref='producto_rel', lazy=True)
+    variantes = db.relationship('ProductVariant', backref='producto', lazy=True, cascade="all, delete-orphan")
+
+    @property
+    def total_stock(self):
+        if self.variantes:
+            return sum(v.cantidad_stock for v in self.variantes)
+        return self.cantidad_stock
+
+    @property
+    def rango_precios(self):
+        if not self.variantes:
+            return None
+        precios = [v.precio_sugerido for v in self.variantes]
+        if not precios:
+            return None
+        min_p = min(precios)
+        max_p = max(precios)
+        if min_p == max_p:
+            return min_p
+        return (min_p, max_p)
+
+class ProductVariant(db.Model):
+    __tablename__ = 'product_variants'
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    nombre_variante = db.Column(db.String(100), nullable=False)
+    cantidad_stock = db.Column(db.Integer, nullable=False, default=0)
+    
+    # Nuevos precios específicos para variantes
+    precio_costo = db.Column(db.Numeric(10, 2), nullable=True) 
+    precio_minimo = db.Column(db.Numeric(10, 2), nullable=True)
+    precio_sugerido = db.Column(db.Numeric(10, 2), nullable=True)
 
 class Sale(db.Model):
     __tablename__ = 'sales'
@@ -58,8 +91,11 @@ class SaleDetail(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sale_id = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    variant_id = db.Column(db.Integer, db.ForeignKey('product_variants.id'), nullable=True)
     cantidad_vendida = db.Column(db.Integer, nullable=False)
     precio_venta_final = db.Column(db.Numeric(10, 2), nullable=False)
+
+    variante = db.relationship('ProductVariant', backref='ventas_rel', lazy=True)
 
 class StockAdjustment(db.Model):
     __tablename__ = 'stock_adjustments'

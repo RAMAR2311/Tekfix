@@ -1,8 +1,8 @@
 import os
 from werkzeug.utils import secure_filename
-from flask import current_app, Blueprint, render_template, request, redirect, url_for, flash, abort, send_file
+from flask import current_app, Blueprint, render_template, request, redirect, url_for, flash, abort, send_file, jsonify
 from flask_login import login_required, current_user
-from models import db, Product, StockAdjustment
+from models import db, Product, StockAdjustment, ProductVariant
 from decorators import admin_required, admin_or_bodega_required
 import pandas as pd
 from io import BytesIO
@@ -137,6 +137,67 @@ def ver_producto(id):
         abort(403)
     ajustes = StockAdjustment.query.filter_by(product_id=id).order_by(StockAdjustment.fecha_ajuste.desc()).all()
     return render_template('inventory/ver.html', producto=producto, ajustes=ajustes)
+
+@inventory_bp.route('/producto/<int:id>/agregar_variante', methods=['POST'])
+@login_required
+@admin_or_bodega_required
+def agregar_variante(id):
+    producto = Product.query.get_or_404(id)
+    nombre_variante = request.form.get('nombre_variante')
+    cantidad_stock = int(request.form.get('cantidad_stock', 0))
+    
+    precio_costo_req = request.form.get('precio_costo')
+    precio_minimo_req = request.form.get('precio_minimo')
+    precio_sugerido_req = request.form.get('precio_sugerido')
+
+    if not nombre_variante:
+        flash('El nombre de la variante es obligatorio.', 'danger')
+        return redirect(url_for('inventory_bp.index'))
+
+    nueva_variante = ProductVariant(
+        product_id=producto.id,
+        nombre_variante=nombre_variante,
+        cantidad_stock=cantidad_stock,
+        precio_costo=float(precio_costo_req) if precio_costo_req else producto.precio_costo,
+        precio_minimo=float(precio_minimo_req) if precio_minimo_req else producto.precio_minimo,
+        precio_sugerido=float(precio_sugerido_req) if precio_sugerido_req else producto.precio_sugerido
+    )
+    try:
+        db.session.add(nueva_variante)
+        # Opcionalmente descontar o trackear en Kardex? La instrucción solo dice: "crea la ruta para añadir la subcategoría"
+        db.session.commit()
+        flash(f'Variante "{nombre_variante}" agregada con éxito.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error al agregar la variante.', 'danger')
+
+    return redirect(url_for('inventory_bp.index'))
+
+@inventory_bp.route('/variante/<int:id>/editar', methods=['POST'])
+@login_required
+@admin_or_bodega_required
+def editar_variante(id):
+    variante = ProductVariant.query.get_or_404(id)
+    
+    variante.nombre_variante = request.form.get('nombre_variante')
+    variante.cantidad_stock = int(request.form.get('cantidad_stock', variante.cantidad_stock))
+    
+    precio_costo_req = request.form.get('precio_costo')
+    precio_minimo_req = request.form.get('precio_minimo')
+    precio_sugerido_req = request.form.get('precio_sugerido')
+    
+    if precio_costo_req: variante.precio_costo = float(precio_costo_req)
+    if precio_minimo_req: variante.precio_minimo = float(precio_minimo_req)
+    if precio_sugerido_req: variante.precio_sugerido = float(precio_sugerido_req)
+    
+    try:
+        db.session.commit()
+        flash('Variante editada con éxito.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error al editar la variante.', 'danger')
+        
+    return redirect(url_for('inventory_bp.index'))
 
 @inventory_bp.route('/plantilla-importacion')
 @login_required

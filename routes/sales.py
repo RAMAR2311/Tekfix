@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, flash, redirect, render_template, abort
 from flask_login import login_required, current_user
-from models import db, Product, Sale, SaleDetail, obtener_hora_bogota
+from models import db, Product, ProductVariant, Sale, SaleDetail, obtener_hora_bogota
 from decorators import admin_required
 from decimal import Decimal
 from datetime import datetime, timedelta
@@ -39,6 +39,7 @@ def procesar_venta():
 
         for item in items:
             product_id = item.get('product_id')
+            variant_id = item.get('variant_id') # Posible variante
             cantidad_vendida = int(item.get('cantidad', 0))
             precio_venta_final = Decimal(str(item.get('precio_final', '0.00')))
 
@@ -50,19 +51,27 @@ def procesar_venta():
             if not producto:
                 raise ValueError(f"El producto con ID {product_id} no existe.")
 
-            if cantidad_vendida > producto.cantidad_stock:
-                raise ValueError(f"Stock insuficiente para el producto '{producto.nombre}'. Solicitado: {cantidad_vendida}, Disponible: {producto.cantidad_stock}.")
-
-            precio_limite_autorizado = producto.precio_costo if current_user.rol == 'admin' else producto.precio_minimo
+            if variant_id:
+                variante = ProductVariant.query.with_for_update().get(variant_id)
+                if not variante:
+                    raise ValueError(f"La variante con ID {variant_id} no existe.")
+                if cantidad_vendida > variante.cantidad_stock:
+                    raise ValueError(f"Stock insuficiente para la variante '{variante.nombre_variante}' de '{producto.nombre}'. Solicitado: {cantidad_vendida}, Disponible: {variante.cantidad_stock}.")
+                variante.cantidad_stock -= cantidad_vendida
+                precio_limite_autorizado = variante.precio_costo if current_user.rol == 'admin' else variante.precio_minimo
+            else:
+                if cantidad_vendida > producto.cantidad_stock:
+                    raise ValueError(f"Stock insuficiente para el producto '{producto.nombre}'. Solicitado: {cantidad_vendida}, Disponible: {producto.cantidad_stock}.")
+                producto.cantidad_stock -= cantidad_vendida
+                precio_limite_autorizado = producto.precio_costo if current_user.rol == 'admin' else producto.precio_minimo
 
             if precio_venta_final < precio_limite_autorizado:
                 raise ValueError(f"No autorizado: El precio ({precio_venta_final}) del producto '{producto.nombre}' está por debajo del límite permitido ({precio_limite_autorizado}).")
 
-            producto.cantidad_stock -= cantidad_vendida
-
             detalle = SaleDetail(
                 sale_id=nueva_venta.id,
                 product_id=producto.id,
+                variant_id=variant_id,
                 cantidad_vendida=cantidad_vendida,
                 precio_venta_final=precio_venta_final
             )
@@ -101,10 +110,11 @@ def api_buscar_producto(sku):
         'id': producto.id,
         'nombre': producto.nombre,
         'sku': producto.sku,
-        'cantidad_stock': producto.cantidad_stock,
+        'cantidad_stock': producto.total_stock,
         'precio_minimo': float(producto.precio_minimo),
         'precio_limite': float(producto.precio_costo) if current_user.rol == 'admin' else float(producto.precio_minimo),
-        'precio_sugerido': float(producto.precio_sugerido)
+        'precio_sugerido': float(producto.precio_sugerido),
+        'variantes': [{"id": v.id, "nombre": v.nombre_variante, "stock": v.cantidad_stock, "precio_minimo": float(v.precio_minimo or producto.precio_minimo), "precio_limite": float(v.precio_costo or producto.precio_costo) if current_user.rol == 'admin' else float(v.precio_minimo or producto.precio_minimo), "precio_sugerido": float(v.precio_sugerido or producto.precio_sugerido)} for v in producto.variantes]
     })
 
 # Ruta para la Impresión del formato Térmico (Ticket)
