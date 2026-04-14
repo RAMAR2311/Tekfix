@@ -74,6 +74,18 @@ class ProductVariant(db.Model):
     precio_minimo = db.Column(db.Numeric(10, 2), nullable=True)
     precio_sugerido = db.Column(db.Numeric(10, 2), nullable=True)
 
+class Loss(db.Model):
+    __tablename__ = 'losses'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    cost_at_loss = db.Column(db.Numeric(10, 2), nullable=False)
+    reason = db.Column(db.String(255), nullable=True)
+    date = db.Column(db.DateTime, default=obtener_hora_bogota)
+    
+    producto = db.relationship('Product', backref='perdidas', lazy=True)
+
 class Sale(db.Model):
     __tablename__ = 'sales'
     

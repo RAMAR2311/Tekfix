@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, abort, request, redirect, url_for, flash
+from flask import Blueprint, render_template, abort, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, obtener_hora_bogota
+from models import db, Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, Loss, obtener_hora_bogota
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 from decorators import admin_required
@@ -54,12 +54,103 @@ def dashboard():
     
     # Se delega la suma al motor de base de datos para no saturar la memoria de la aplicación con registros a medida que crecen las ventas
     total_ventas = db.session.query(func.sum(Sale.monto_total)).scalar() or 0.0
-
+    
+    # Cálculos para modulo de Pérdidas (Mermas) del mes actual
+    hoy = obtener_hora_bogota()
+    mes_actual = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    perdidas_valor = db.session.query(func.sum(Loss.cost_at_loss * Loss.quantity)).filter(Loss.date >= mes_actual).scalar() or 0.0
+    ventas_mes_actual = db.session.query(func.sum(Sale.monto_total)).filter(Sale.fecha_venta >= mes_actual).scalar() or 0.0
+    
+    porcentaje_perdidas = 0
+    if ventas_mes_actual > 0:
+        porcentaje_perdidas = round(float((perdidas_valor / ventas_mes_actual) * 100), 2)
+        
     return render_template('admin/dashboard.html', 
                            total_productos=total_productos,
                            productos_bajo_stock=productos_bajo_stock,
                            total_ventas=total_ventas,
-                           maneos_activos=maneos_activos)
+                           maneos_activos=maneos_activos,
+                           total_perdidas=perdidas_valor,
+                           porcentaje_perdidas=porcentaje_perdidas)
+
+# --- ENDPOINTS MODULO PERDIDAS ---
+@admin_bp.route('/perdidas')
+@login_required
+@admin_required
+def perdidas():
+    ultimas_perdidas = Loss.query.order_by(Loss.date.desc()).all()
+    return render_template('admin/perdidas.html', ultimas_perdidas=ultimas_perdidas)
+@admin_bp.route('/api/product/<sku>')
+@login_required
+@admin_required
+def api_producto_codigo(sku):
+    producto = Product.query.filter_by(sku=sku.strip()).first()
+    if not producto:
+        return jsonify({'error': 'Producto no encontrado'}), 404
+        
+    return jsonify({
+        'id': producto.id,
+        'nombre': producto.nombre,
+        'precio_costo': float(producto.precio_costo)
+    })
+
+@admin_bp.route('/perdidas/registrar', methods=['POST'])
+@login_required
+@admin_required
+def registrar_perdida():
+    product_id = request.form.get('product_id')
+    cantidad = int(request.form.get('cantidad', 0))
+    motivo = request.form.get('motivo', '').strip()
+    
+    if not product_id or cantidad <= 0:
+        flash('Datos inválidos para registrar la pérdida.', 'danger')
+        return redirect(url_for('admin_bp.dashboard'))
+        
+    producto = Product.query.get(product_id)
+    if not producto:
+        flash('El producto seleccionado no existe en el sistema.', 'danger')
+        return redirect(url_for('admin_bp.dashboard'))
+        
+    if producto.cantidad_stock < cantidad:
+        flash(f'Stock insuficiente. No puedes registrar una pérdida de {cantidad} si el sistema solo registra {producto.cantidad_stock} unidades.', 'danger')
+        return redirect(url_for('admin_bp.dashboard'))
+        
+    try:
+        # Descuento en stock central
+        stock_anterior = producto.cantidad_stock
+        producto.cantidad_stock -= cantidad
+        
+        costo_actual = producto.precio_costo
+        
+        # Registrar pérdida
+        nueva_perdida = Loss(
+            product_id=producto.id,
+            quantity=cantidad,
+            cost_at_loss=costo_actual,
+            reason=motivo
+        )
+        db.session.add(nueva_perdida)
+        
+        # Rastreabilidad en Kardex
+        ajuste = StockAdjustment(
+            product_id=producto.id,
+            admin_id=current_user.id,
+            tipo_movimiento=f'Merma/Pérdida Registrada ({motivo})',
+            stock_anterior=stock_anterior,
+            stock_nuevo=producto.cantidad_stock
+        )
+        db.session.add(ajuste)
+        
+        db.session.commit()
+        flash(f'Pérdida por {cantidad} unidades registrada con éxito. Inventario deducido.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('No se pudo registrar la pérdida por un error interno.', 'danger')
+        
+    return redirect(url_for('admin_bp.perdidas'))
+# ---------------------------------
+
 
 @admin_bp.route('/maneos')
 @login_required
@@ -355,7 +446,11 @@ def balance_financiero():
     costos_indirectos = sum(g.monto for g in gastos_query if g.tipo_gasto == 'Costo Indirecto')
     gastos_operacionales = sum(g.monto for g in gastos_query if g.tipo_gasto == 'Gasto Diario')
     
-    total_salidas = float(costos_directos) + float(costos_indirectos) + float(gastos_operacionales)
+    # 4. Mermas y Pérdidas
+    perdidas_query = Loss.query.filter(Loss.date >= inicio_dt, Loss.date < fin_dt_query).all()
+    costo_perdidas = sum((p.cost_at_loss * p.quantity) for p in perdidas_query)
+    
+    total_salidas = float(costos_directos) + float(costos_indirectos) + float(gastos_operacionales) + float(costo_perdidas)
     balance_neto = float(total_ingresos) - total_salidas
 
     datos_financieros = {
@@ -365,6 +460,7 @@ def balance_financiero():
         'costos_directos': float(costos_directos),
         'costos_indirectos': float(costos_indirectos),
         'gastos_operacionales': float(gastos_operacionales),
+        'costo_perdidas': float(costo_perdidas),
         'total_salidas': total_salidas,
         'balance_neto': balance_neto
     }

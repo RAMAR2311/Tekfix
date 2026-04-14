@@ -63,6 +63,10 @@
                         <td>Costos Indirectos Permanentes</td>
                         <td class="text-danger text-end">-${{ (datos.costos_indirectos)|cop }}</td>
                     </tr>
+                    <tr>
+                        <td>Mermas y Pérdidas Oficiales</td>
+                        <td class="text-danger text-end">-${{ (datos.costo_perdidas)|cop }}</td>
+                    </tr>
                     <tr class="border-top text-tekfix-main fw-bolder bg-tekfix-card">
                         <td class="p-3">Σ TOTAL SALIDAS Y DEDUCCIONES</td>
                         <td class="text-danger text-end p-3 fs-5">-${{ (datos.total_salidas)|cop }}</td>

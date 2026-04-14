@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <div>
+        <h2 class="fw-bold text-tekfix-main mb-0">Módulo de Mermas y Pérdidas</h2>
+        <p class="text-tekfix-sec">Registra la deducción de inventario por robos, averías o vencimientos.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('admin_bp.dashboard') }}" class="btn btn-outline-light rounded-pill px-4 fw-bold">
+            <i class="fa-solid fa-arrow-left me-2"></i>Volver al Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Formulario de Registro -->
+    <div class="col-xl-5">
+        <div class="card card-custom p-4 h-100 border-top border-warning border-3">
+            <h5 class="fw-bold text-tekfix-main mb-4"><i class="fa-solid fa-barcode me-2 text-warning"></i> Cargar Nueva Pérdida</h5>
+            <form action="{{ url_for('admin_bp.registrar_perdida') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="product_id" id="loss_product_id" required>
+                
+                <div class="mb-3">
+                    <label class="form-label text-tekfix-sec small fw-bold">1. Escanea o digita el SKU</label>
+                    <input type="text" id="loss_sku" class="form-control form-control-lg bg-tekfix-card text-tekfix-main border-0" placeholder="SKU del producto" autocomplete="off" autofocus required>
+                    <div id="loss_status" class="form-text text-warning mt-1" style="display: none;">Buscando...</div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-8">
+                        <label class="form-label text-tekfix-sec small fw-bold">Producto Detectado</label>
+                        <input type="text" id="loss_name" class="form-control bg-dark border-0 text-muted" readonly placeholder="---">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label text-tekfix-sec small fw-bold">Costo Und.</label>
+                        <input type="text" id="loss_cost" class="form-control bg-dark border-0 text-danger fw-bold fs-6" readonly placeholder="$0">
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-4">
+                        <label class="form-label text-tekfix-sec small fw-bold">Cantidad</label>
+                        <input type="number" name="cantidad" class="form-control border-0 bg-tekfix-card text-tekfix-main" min="1" value="1" required>
+                    </div>
+                    <div class="col-8">
+                        <label class="form-label text-tekfix-sec small fw-bold">Motivo Explícito</label>
+                        <input type="text" name="motivo" class="form-control border-0 bg-tekfix-card text-tekfix-main" placeholder="Ej: Pantalla estrellada vitrina" required>
+                    </div>
+                </div>
+                
+                <button type="submit" id="btn_submit_loss" class="btn btn-warning w-100 fw-bold" disabled>
+                    <i class="fa-solid fa-share me-1"></i> Descontar Stock Oficialmente
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Historial de Pérdidas -->
+    <div class="col-xl-7">
+        <div class="card card-custom p-0 overflow-hidden h-100 table-dark">
+            <div class="bg-tekfix-card p-4 border-bottom d-flex justify-content-between align-items-center">
+                 <h5 class="fw-bold text-tekfix-main m-0"><i class="fa-solid fa-clock-rotate-left me-2"></i> Auditoría de Pérdidas Históricas</h5>
+                 <span class="badge bg-tekfix-hover text-dark">{{ ultimas_perdidas|length }} registros</span>
+            </div>
+            <div class="table-responsive p-0 h-100">
+                <table class="table table-hover align-middle m-0 text-tekfix-sec">
+                    <thead class="bg-dark text-tekfix-main small">
+                        <tr>
+                            <th class="ps-4">Producto Afectado</th>
+                            <th>Motivo Registrado</th>
+                            <th class="text-end pe-4">Impacto Financiero</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in ultimas_perdidas %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="fw-bold text-white">{{ p.producto.nombre }}</span><br>
+                                <small class="text-danger"><i class="fa-solid fa-arrow-down fs-7 me-1"></i>{{ p.quantity }} uds restadas</small>
+                            </td>
+                            <td>
+                                <i>{{ p.reason }}</i>
+                            </td>
+                            <td class="pe-4 text-end">
+                                <span class="badge border border-danger text-danger bg-danger bg-opacity-10 rounded-pill px-2 py-1 mb-1 fs-6">- ${{ (p.cost_at_loss * p.quantity)|cop }}</span><br>
+                                <small style="font-size: 0.70rem;">{{ p.date.strftime('%d/%m/%Y %H:%M') }}</small>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center py-5">
+                                <i class="fa-solid fa-shield-halved fs-1 mb-3 text-success opacity-50"></i>
+                                <p class="mb-0 text-success fw-bold">Sin anomalías registradas. Buen trabajo.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let skuInput = document.getElementById('loss_sku');
+    let statusText = document.getElementById('loss_status');
+    let nameInput = document.getElementById('loss_name');
+    let costInput = document.getElementById('loss_cost');
+    let idInput = document.getElementById('loss_product_id');
+    let submitBtn = document.getElementById('btn_submit_loss');
+    let typingTimer;
+    
+    skuInput.addEventListener('input', function() {
+        clearTimeout(typingTimer);
+        let sku = this.value.trim();
+        
+        nameInput.value = '';
+        costInput.value = '';
+        idInput.value = '';
+        submitBtn.disabled = true;
+        
+        if (sku.length >= 2) {
+            statusText.style.display = 'block';
+            statusText.textContent = 'Buscando...';
+            statusText.className = 'form-text text-warning mt-1';
+            
+            typingTimer = setTimeout(() => {
+                fetch(`/admin/api/product/${sku}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Not found');
+                        return response.json();
+                    })
+                    .then(data => {
+                        idInput.value = data.id;
+                        nameInput.value = data.nombre;
+                        costInput.value = '$' + new Intl.NumberFormat('es-CO').format(data.precio_costo);
+                        statusText.textContent = '¡Producto enlazado!';
+                        statusText.className = 'form-text text-success mt-1 fw-bold';
+                        submitBtn.disabled = false;
+                    })
+                    .catch(error => {
+                        statusText.textContent = 'No coincide con ningún producto en DB.';
+                        statusText.className = 'form-text text-danger mt-1';
+                    });
+            }, 450); 
+        } else {
+            statusText.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}
