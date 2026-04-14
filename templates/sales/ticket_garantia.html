@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garantía #{{ garantia.id }} - Tekfix</title>
+    <!-- Roboto Mono = estándar impresoras térmicas 80mm -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #555;
+            margin: 0;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .ticket {
+            background-color: #FFFFFF;
+            width: 100%;
+            max-width: 380px; /* 80mm ~ 380px en pantalla */
+            padding: 25px 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+            color: #1A1A1A;
+            box-sizing: border-box;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #1A1A1A;
+            padding-bottom: 15px;
+            margin-bottom: 18px;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            margin: 0 0 6px 0;
+        }
+
+        .badge-garantia {
+            display: inline-block;
+            background: #1A1A1A;
+            color: #FFFFFF;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 14px;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+        }
+
+        .info {
+            font-size: 0.85rem;
+            margin: 3px 0;
+            line-height: 1.5;
+        }
+
+        .section-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            border-top: 1px solid #1A1A1A;
+            border-bottom: 1px solid #1A1A1A;
+            padding: 6px 0;
+            margin: 16px 0 10px 0;
+            text-align: center;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            padding: 4px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        .data-row:last-child { border-bottom: none; }
+
+        .data-label {
+            font-weight: 700;
+            color: #555;
+            min-width: 40%;
+        }
+
+        .data-value {
+            text-align: right;
+            max-width: 55%;
+        }
+
+        .motivo-box {
+            margin: 14px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-left: 3px solid #1A1A1A;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .legal-box {
+            font-size: 0.72rem;
+            line-height: 1.5;
+            color: #555;
+            border: 1px dashed #999;
+            padding: 10px;
+            margin-top: 18px;
+            text-align: justify;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.8rem;
+            border-top: 2px dashed #1A1A1A;
+            padding-top: 15px;
+        }
+
+        .btn-print {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: #1A1A1A;
+            color: #FFF;
+            border: 2px solid #1A1A1A;
+            font-size: 1rem;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 24px;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+
+        .btn-print:hover {
+            background-color: #fff;
+            color: #1A1A1A;
+        }
+
+        @media print {
+            body { background-color: #FFF; padding: 0; display: block; }
+            .ticket { box-shadow: none; max-width: 100%; width: 80mm; padding: 0; margin: 0 auto; border: none; }
+            .btn-print { display: none; }
+            .badge-garantia { background: #1A1A1A !important; color: #FFF !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .motivo-box { border-left-color: #1A1A1A !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="ticket">
+    <!-- Encabezado -->
+    <div class="header">
+        <h1 class="logo">TEKFIX</h1>
+        <div class="badge-garantia">COMPROBANTE DE GARANTÍA</div>
+        <p class="info" style="font-size: 0.75rem; color: #555;">Folio Garantía: <strong>#{{ garantia.id }}</strong></p>
+        <p class="info" style="font-size: 0.75rem;">Fecha Recepción: {{ garantia.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+    </div>
+
+    <!-- Datos de la factura de origen -->
+    <div class="section-title">DATOS DE COMPRA ORIGINAL</div>
+    <div class="data-row">
+        <span class="data-label">No. Factura</span>
+        <span class="data-value">#{{ garantia.sale_id }}</span>
+    </div>
+    <div class="data-row">
+        <span class="data-label">Fecha Compra</span>
+        <span class="data-value">{{ garantia.venta.fecha_venta.strftime('%d/%m/%Y') }}</span>
+    </div>
+    <div class="data-row">
+        <span class="data-label">Atendido por</span>
+        <span class="data-value">{{ garantia.venta.vendedor.nombre }}</span>
+    </div>
+
+    <!-- Datos del producto -->
+    <div class="section-title">ARTÍCULO EN GARANTÍA</div>
+    <div class="data-row">
+        <span class="data-label">Producto</span>
+        <span class="data-value">
+            {% if garantia.producto %}
+                {{ garantia.producto.nombre }}
+            {% elif garantia.nombre_manual %}
+                {{ garantia.nombre_manual }}
+            {% else %}
+                No especificado
+            {% endif %}
+        </span>
+    </div>
+    <div class="data-row">
+        <span class="data-label">Cantidad</span>
+        <span class="data-value">{{ garantia.quantity }} unidad(es)</span>
+    </div>
+    <div class="data-row">
+        <span class="data-label">Estado</span>
+        <span class="data-value">{{ garantia.resolution }}</span>
+    </div>
+
+    <!-- Motivo reportado -->
+    <div class="section-title">MOTIVO / FALLA REPORTADA</div>
+    <div class="motivo-box">
+        "{{ garantia.reason }}"
+    </div>
+
+    <!-- Nota legal -->
+    <div class="legal-box">
+        <strong>Texto Legal:</strong> Este documento ampara la recepción del artículo descrito para revisión técnica bajo los términos de garantía del establecimiento. El tiempo de diagnóstico y resolución puede variar. Tekfix se reserva el derecho de negar la garantía si el producto presenta daños por mal uso, golpes físicos o humedad no cubiertos bajo esta garantía. Conserve este comprobante para reclamar.
+    </div>
+
+    <div class="footer">
+        <p style="font-weight: bold; font-size: 0.9rem;">TEKFIX — Soporte al Cliente</p>
+        <p style="font-size: 0.75rem;">Este comprobante es válido como recibo oficial de recepción del equipo.</p>
+    </div>
+
+    <button class="btn-print" onclick="window.print()">
+        [ IMPRIMIR COMPROBANTE ]
+    </button>
+</div>
+
+<script>
+    window.onload = function() {
+        setTimeout(() => { window.print(); }, 700);
+    };
+</script>
+
+</body>
+</html>

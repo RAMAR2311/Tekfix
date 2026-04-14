@@ -288,3 +288,20 @@ class ProviderPayment(db.Model):
     observacion = db.Column(db.String(255), nullable=True)
     fecha_pago = db.Column(db.DateTime, default=obtener_hora_bogota)
 # ====================================================
+# ====== MÓDULO GARANTÍAS ======
+class Warranty(db.Model):
+    __tablename__ = 'warranties'
+
+    id = db.Column(db.Integer, primary_key=True)
+    sale_id = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    nombre_manual = db.Column(db.String(200), nullable=True) # Para items manuales sin product_id
+    quantity = db.Column(db.Integer, nullable=False, default=1)
+    reason = db.Column(db.String(500), nullable=False) # Motivo del cliente
+    resolution = db.Column(db.String(50), nullable=False, default='Pendiente') # Pendiente, Reparacion, Cambio, Reembolso
+    created_at = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    # Relaciones
+    venta = db.relationship('Sale', backref='garantias', lazy=True)
+    producto = db.relationship('Product', backref='garantias', lazy=True)
+# ======================================================

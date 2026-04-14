@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-tekfix-main mb-0"><i class="fa-solid fa-shield-halved me-2" style="color: #DDB856;"></i> Módulo de Garantías</h2>
+        <p class="text-tekfix-sec mb-0">Procesa solicitudes dentro del plazo legal de 3 meses / 90 días.</p>
+    </div>
+</div>
+
+<!-- Buscador principal de factura -->
+<div class="row g-4 mb-5">
+    <div class="col-xl-5">
+        <div class="card card-custom p-4 h-100 border-top border-3" style="border-color: #DDB856 !important;">
+            <h5 class="fw-bold mb-4" style="color: #DDB856;"><i class="fa-solid fa-magnifying-glass me-2"></i> Consultar Factura</h5>
+
+            <div class="mb-3">
+                <label class="form-label text-tekfix-sec small fw-bold">1. Ingresa el Número de Factura (ID)</label>
+                <div class="input-group">
+                    <input type="number" id="sale_id_input" class="form-control form-control-lg bg-tekfix-card border-0 text-white fw-bold" placeholder="Ej: 45" min="1">
+                    <button class="btn fw-bold px-4" id="btn_buscar" style="background-color: #DDB856; color: #1A1818;">
+                        <i class="fa-solid fa-search me-1"></i> Buscar
+                    </button>
+                </div>
+                <div id="search_feedback" class="mt-2" style="display:none;"></div>
+            </div>
+
+            <!-- Detalle de la factura encontrada -->
+            <div id="sale_info" style="display:none;" class="mt-3">
+                <div class="p-3 rounded-3 bg-tekfix-card mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-tekfix-sec small fw-bold">Factura</span>
+                        <span class="fw-bold text-white" id="info_sale_id"></span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <span class="text-tekfix-sec small fw-bold">Fecha</span>
+                        <span class="text-tekfix-main small" id="info_fecha"></span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <span class="text-tekfix-sec small fw-bold">Vendedor</span>
+                        <span class="text-tekfix-main small" id="info_vendedor"></span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <span class="text-tekfix-sec small fw-bold">Total Factura</span>
+                        <span class="fw-bold" style="color: #DDB856;" id="info_total"></span>
+                    </div>
+                </div>
+                <p class="text-tekfix-sec small fw-bold mb-2">2. Selecciona el producto en garantía:</p>
+                <div id="items_container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario de registro -->
+    <div class="col-xl-7">
+        <div class="card card-custom p-4 h-100 border-top border-3" style="border-color: #555 !important;">
+            <h5 class="fw-bold text-tekfix-main mb-4"><i class="fa-solid fa-file-pen me-2 text-secondary"></i> Formulario de Garantía</h5>
+
+            <form action="{{ url_for('warranties_bp.registrar') }}" method="POST" id="warranty_form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="sale_id" id="form_sale_id">
+                <input type="hidden" name="product_id" id="form_product_id">
+                <input type="hidden" name="nombre_manual" id="form_nombre_manual">
+
+                <div class="mb-4 p-3 bg-tekfix-card rounded-3">
+                    <p class="text-tekfix-sec small mb-1">Producto seleccionado:</p>
+                    <h5 class="fw-bold text-white mb-0" id="display_producto">
+                        <span class="text-secondary fst-italic">Busca una factura primero...</span>
+                    </h5>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-4">
+                        <label class="form-label fw-bold text-tekfix-main small">Cantidad en garantía</label>
+                        <input type="number" name="quantity" id="form_quantity" class="form-control border-0 bg-tekfix-card text-white" min="1" value="1" required>
+                    </div>
+                    <div class="col-8">
+                        <label class="form-label fw-bold text-tekfix-main small">Motivo / Falla Reportada (*)</label>
+                        <input type="text" name="reason" class="form-control border-0 bg-tekfix-card text-white" placeholder="Ej: Pantalla presenta líneas de colores" required>
+                    </div>
+                </div>
+
+                <div class="alert border-0 rounded-3 small mb-4" style="background-color: rgba(221,184,86,0.1); color: #DDB856;">
+                    <i class="fa-solid fa-circle-info me-2"></i>
+                    <strong>Aviso:</strong> Al procesar, se generará un ticket de recepción para el cliente. Para dar de baja el producto defectuoso del inventario, ve al módulo de <strong>Mermas</strong>.
+                </div>
+
+                <button type="submit" id="btn_procesar" class="btn fw-bold w-100 rounded-pill py-3" style="background-color: #DDB856; color: #1A1818;" disabled>
+                    <i class="fa-solid fa-print me-2"></i> Procesar y Generar Ticket
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Historial reciente -->
+{% if garantias_recientes %}
+<div class="card card-custom p-0 overflow-hidden">
+    <div class="bg-tekfix-card p-4 border-bottom d-flex align-items-center">
+        <h5 class="fw-bold text-tekfix-main m-0"><i class="fa-solid fa-clock-rotate-left me-2"></i> Garantías Registradas Recientemente</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle m-0 text-tekfix-sec">
+            <thead class="bg-dark text-tekfix-main small">
+                <tr>
+                    <th class="ps-4">ID</th>
+                    <th>Factura</th>
+                    <th>Producto</th>
+                    <th>Motivo</th>
+                    <th>Estado</th>
+                    <th class="pe-4 text-end">Ticket</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in garantias_recientes %}
+                <tr>
+                    <td class="ps-4 fw-bold text-white">#{{ g.id }}</td>
+                    <td><a href="#" onclick="document.getElementById('sale_id_input').value='{{ g.sale_id }}'; document.getElementById('btn_buscar').click(); return false;" class="text-decoration-none" style="color: #DDB856;">Fac. #{{ g.sale_id }}</a></td>
+                    <td>{{ g.producto.nombre if g.producto else g.nombre_manual or '---' }}</td>
+                    <td class="fst-italic">{{ g.reason[:50] }}{% if g.reason|length > 50 %}...{% endif %}</td>
+                    <td>
+                        {% if g.resolution == 'Pendiente' %}
+                        <span class="badge bg-warning text-dark">Pendiente</span>
+                        {% elif g.resolution == 'Reparacion' %}
+                        <span class="badge bg-info text-dark">Reparación</span>
+                        {% elif g.resolution == 'Cambio' %}
+                        <span class="badge bg-success">Cambio</span>
+                        {% else %}
+                        <span class="badge bg-danger">Reembolso</span>
+                        {% endif %}
+                    </td>
+                    <td class="pe-4 text-end">
+                        <a href="{{ url_for('warranties_bp.ticket', warranty_id=g.id) }}" target="_blank" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                            <i class="fa-solid fa-print me-1"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const saleInput = document.getElementById('sale_id_input');
+    const btnBuscar = document.getElementById('btn_buscar');
+    const feedback = document.getElementById('search_feedback');
+    const saleInfo = document.getElementById('sale_info');
+    const itemsContainer = document.getElementById('items_container');
+    const btnProcesar = document.getElementById('btn_procesar');
+    const displayProducto = document.getElementById('display_producto');
+
+    // --- Resetear selección de producto ---
+    function resetProducto() {
+        document.getElementById('form_product_id').value = '';
+        document.getElementById('form_nombre_manual').value = '';
+        displayProducto.innerHTML = '<span class="text-secondary fst-italic">Selecciona un producto de la lista...</span>';
+        btnProcesar.disabled = true;
+    }
+
+    // --- Seleccionar producto del listado ---
+    function seleccionarProducto(productId, nombreManual, nombre) {
+        document.getElementById('form_product_id').value = productId || '';
+        document.getElementById('form_nombre_manual').value = nombreManual || '';
+        displayProducto.innerHTML = `<i class="fa-solid fa-check-circle text-success me-2"></i>${nombre}`;
+        btnProcesar.disabled = false;
+    }
+
+    btnBuscar.addEventListener('click', function() {
+        const saleId = saleInput.value.trim();
+        if (!saleId || saleId < 1) {
+            feedback.style.display = 'block';
+            feedback.innerHTML = '<small class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i>Ingresa un número de factura válido.</small>';
+            return;
+        }
+
+        // Indicador de carga
+        btnBuscar.disabled = true;
+        btnBuscar.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        saleInfo.style.display = 'none';
+        itemsContainer.innerHTML = '';
+        resetProducto();
+        feedback.style.display = 'none';
+
+        fetch(`/garantias/api/sale/${saleId}`)
+            .then(r => r.json())
+            .then(data => {
+                btnBuscar.disabled = false;
+                btnBuscar.innerHTML = '<i class="fa-solid fa-search me-1"></i> Buscar';
+
+                if (data.error) {
+                    feedback.style.display = 'block';
+                    const isExpired = data.expired;
+                    feedback.innerHTML = `<small class="${isExpired ? 'text-danger' : 'text-warning'}"><i class="fa-solid fa-${isExpired ? 'ban' : 'triangle-exclamation'} me-1"></i>${data.error}</small>`;
+                    return;
+                }
+
+                // Mostrar datos de la factura
+                document.getElementById('form_sale_id').value = data.sale_id;
+                document.getElementById('info_sale_id').textContent = '#' + data.sale_id;
+                document.getElementById('info_fecha').textContent = data.fecha;
+                document.getElementById('info_vendedor').textContent = data.vendedor;
+                document.getElementById('info_total').textContent = '$' + new Intl.NumberFormat('es-CO').format(data.total);
+
+                // Renderizar items
+                let html = '';
+                data.items.forEach(item => {
+                    html += `
+                    <div class="card bg-tekfix-card border-0 mb-2 p-3 item-selector" 
+                         style="cursor:pointer; transition: all 0.2s;" 
+                         onmouseover="this.style.borderLeft='3px solid #DDB856'" 
+                         onmouseout="this.style.borderLeft='3px solid transparent'"
+                         onclick="seleccionarProducto('${item.product_id || ''}', '${item.nombre_manual || ''}', '${item.nombre}')">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="fw-bold text-white mb-0">${item.nombre}</p>
+                                <small class="text-tekfix-sec">${item.cantidad} und(s) vendidas · $${new Intl.NumberFormat('es-CO').format(item.precio)} c/u</small>
+                            </div>
+                            <i class="fa-solid fa-hand-pointer" style="color: #DDB856;"></i>
+                        </div>
+                    </div>`;
+                });
+                itemsContainer.innerHTML = html;
+                saleInfo.style.display = 'block';
+                feedback.style.display = 'none';
+            })
+            .catch(() => {
+                btnBuscar.disabled = false;
+                btnBuscar.innerHTML = '<i class="fa-solid fa-search me-1"></i> Buscar';
+                feedback.style.display = 'block';
+                feedback.innerHTML = '<small class="text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i>Error de conexión. Verifica el servidor.</small>';
+            });
+    });
+
+    // Permitir buscar con Enter
+    saleInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') btnBuscar.click();
+    });
+
+    // Exponer para los onclick de items
+    window.seleccionarProducto = seleccionarProducto;
+});
+</script>
+{% endblock %}
