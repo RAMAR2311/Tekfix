@@ -81,6 +81,7 @@
             <h5 class="text-tekfix-main fw-bold">Alertas Stock</h5>
             <h3 class="fw-bolder text-danger">{{ productos_bajo_stock }} items</h3>
             <p class="text-tekfix-sec small m-0 mb-3 text-truncate">Existencias limitadas o en falta.</p>
+
             <div class="mt-auto pt-2">
                 <a href="/inventory/" class="btn btn-outline-light w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye me-2"></i> Urgencias</a>
             </div>
@@ -98,6 +99,21 @@
             <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Impacto deducido contra los ingresos operativos mensuales.</p>
             <div class="mt-auto pt-2">
                 <a href="{{ url_for('admin_bp.perdidas') }}" class="btn btn-danger text-white w-100 rounded-pill fw-bold" style="background-color: var(--tekfix-bg); border-color: #dc3545;"><i class="fa-solid fa-expand me-2"></i> Ver Detalle</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Tarjeta KPI: Proveedores (Cuentas por Pagar) -->
+    <div class="col-md-3">
+        <div class="card card-custom h-100 p-4 border" style="border-color: #ffc107 !important;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <i class="fa-solid fa-address-book fs-1 text-warning"></i>
+            </div>
+            <h5 class="text-tekfix-main fw-bold">Cuentas por Pagar</h5>
+            <h3 class="fw-bolder text-warning">-${{ (deuda_proveedores)|cop }} <span class="fs-6 text-tekfix-sec">({{ total_proveedores }} prov)</span></h3>
+            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Deuda activa con proveedores logísticos.</p>
+            <div class="mt-auto pt-2">
+                <a href="{{ url_for('providers_bp.index') }}" class="btn btn-warning text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-money-check-dollar me-2"></i> Saldar Cuentas</a>
             </div>
         </div>
     </div>

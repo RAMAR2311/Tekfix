@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, abort, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, Loss, obtener_hora_bogota
+from models import db, Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, Loss, Provider, ProviderInvoice, ProviderPayment, obtener_hora_bogota
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 from decorators import admin_required
@@ -66,13 +66,21 @@ def dashboard():
     if ventas_mes_actual > 0:
         porcentaje_perdidas = round(float((perdidas_valor / ventas_mes_actual) * 100), 2)
         
+    # Cálculos modulo Proveedores (Cuentas por Pagar)
+    total_deuda_facturas = db.session.query(func.sum(ProviderInvoice.monto_total)).scalar() or 0.0
+    total_deuda_abonos = db.session.query(func.sum(ProviderPayment.monto_abonado)).scalar() or 0.0
+    deuda_proveedores = float(total_deuda_facturas) - float(total_deuda_abonos)
+    total_proveedores = Provider.query.count()
+        
     return render_template('admin/dashboard.html', 
                            total_productos=total_productos,
                            productos_bajo_stock=productos_bajo_stock,
                            total_ventas=total_ventas,
                            maneos_activos=maneos_activos,
                            total_perdidas=perdidas_valor,
-                           porcentaje_perdidas=porcentaje_perdidas)
+                           porcentaje_perdidas=porcentaje_perdidas,
+                           deuda_proveedores=deuda_proveedores,
+                           total_proveedores=total_proveedores)
 
 # --- ENDPOINTS MODULO PERDIDAS ---
 @admin_bp.route('/perdidas')
