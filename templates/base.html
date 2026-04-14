@@ -182,6 +182,46 @@
         body.light-mode .table { border-color: var(--tekfix-border); color: var(--tekfix-text-main); }
         body.light-mode .table-dark { background-color: var(--tekfix-card-bg) !important; color: var(--tekfix-text-main) !important; }
         body.light-mode .bg-dark { background-color: #e9ecef !important; color: #212529 !important; }
+        
+        /* Forzar visibilidad de texto en modo ligero para todas las utilidades */
+        body.light-mode .text-white, 
+        body.light-mode .text-tekfix-main,
+        body.light-mode h1, body.light-mode h2, body.light-mode h3, body.light-mode h4, body.light-mode h5, body.light-mode h6,
+        body.light-mode p, body.light-mode span, body.light-mode td, body.light-mode th {
+            color: var(--tekfix-text-main) !important;
+        }
+        
+        body.light-mode .text-tekfix-sec {
+            color: var(--tekfix-text-sec) !important;
+        }
+
+        body.light-mode .bg-tekfix-card {
+            background-color: var(--tekfix-card-bg) !important;
+        }
+
+        body.light-mode .navbar-toggler i {
+            color: var(--tekfix-primary) !important;
+        }
+
+        body.light-mode .btn-outline-light {
+            border-color: #dee2e6 !important;
+            color: #212529 !important;
+        }
+        
+        body.light-mode .btn-outline-light:hover {
+            background-color: #212529 !important;
+            color: #ffffff !important;
+        }
+
+        body.light-mode .card {
+            border-color: var(--tekfix-border) !important;
+        }
+
+        body.light-mode .btn-light {
+            background-color: #e9ecef !important;
+            border-color: #dee2e6 !important;
+            color: #212529 !important;
+        }
         .form-control::placeholder {
             color: var(--tekfix-text-sec);
             opacity: 0.6;
