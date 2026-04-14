@@ -3,7 +3,7 @@
 {% block content %}
 <!-- Título de Pantalla Renombrado (Requerimento) -->
 <div class="d-flex align-items-center mb-4">
-    <h2 class="fw-bold text-brand-black m-0"><i class="fa-solid fa-cash-register me-2" style="color: var(--brand-pink);"></i>Caja Central</h2>
+    <h2 class="fw-bold text-tekfix-main m-0"><i class="fa-solid fa-cash-register me-2" style="color: var(--tekfix-hover);"></i>Caja Central</h2>
 </div>
 
 <div class="row">
@@ -12,13 +12,13 @@
         
         <!-- Panel de Escaneo -->
         <div class="card card-custom p-4 mb-4">
-            <label class="form-label fw-bold text-brand-black">Buscar o Escanear Código</label>
+            <label class="form-label fw-bold text-tekfix-main">Buscar o Escanear Código</label>
             <div class="d-flex gap-2">
                 <div class="input-group input-group-lg shadow-sm border-0 rounded-3 overflow-hidden flex-grow-1">
-                    <span class="input-group-text bg-white border-0"><i class="fa-solid fa-barcode text-muted"></i></span>
+                    <span class="input-group-text bg-tekfix-card border-0"><i class="fa-solid fa-barcode text-tekfix-sec"></i></span>
                     <input type="text" class="form-control border-0" id="sku_input" placeholder="Ingresa SKU exacto..." autofocus>
                     <!-- Botón Secundario Rosa Pastel -->
-                    <button class="btn btn-pink px-4" type="button" id="btn_add_product">
+                    <button class="btn btn-tekfix px-4" type="button" id="btn_add_product">
                         <i class="fa-solid fa-check ms-1"></i> Agregar
                     </button>
                 </div>
@@ -31,8 +31,8 @@
         <!-- Tabla Carrito de Compras -->
         <div class="card card-custom p-0 overflow-hidden">
             <div class="table-responsive">
-                <table class="table table-custom mb-0 align-middle">
-                    <thead class="bg-light">
+                <table class="table table-custom table-dark mb-0 align-middle">
+                    <thead class="bg-tekfix-card">
                         <tr>
                             <th>Producto Seleccionado</th>
                             <th class="text-center" width="130">Cantidad</th>
@@ -44,9 +44,9 @@
                     <tbody id="cart_body">
                         <!-- ESPACIO RESERVADO PARA INYECCIÓN JS DINÁMICA -->
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-muted" id="empty_cart_msg">
+                            <td colspan="5" class="text-center py-5 text-tekfix-sec" id="empty_cart_msg">
                                 <!-- Icono Rosa Pastel -->
-                                <i class="fa-solid fa-cart-arrow-down fs-2 mb-2 d-block text-brand-pink opacity-50"></i>
+                                <i class="fa-solid fa-cart-arrow-down fs-2 mb-2 d-block text-tekfix-primary opacity-50"></i>
                                 La venta está vacía actualmente.
                             </td>
                         </tr>
@@ -60,32 +60,32 @@
     <!-- Panel Vertical Cobro Total -->
     <div class="col-lg-4">
         <div class="card card-custom p-4 position-sticky" style="top: 100px;">
-            <h4 class="fw-bold text-brand-black mb-4 pb-3 border-bottom">Balance</h4>
+            <h4 class="fw-bold text-tekfix-main mb-4 pb-3 border-bottom">Balance</h4>
             
             <div class="d-flex justify-content-between mb-3">
-                <span class="text-muted fw-bold">Unidades Totales:</span>
+                <span class="text-tekfix-sec fw-bold">Unidades Totales:</span>
                 <span class="fw-bold fs-5" id="total_items">0</span>
             </div>
             
             <div class="d-flex justify-content-between mb-4">
-                <span class="text-muted fw-bold align-self-center">Total a Cobrar:</span>
-                <span class="fw-bolder fs-1 text-brand-black" id="total_amount">$0</span>
+                <span class="text-tekfix-sec fw-bold align-self-center">Total a Cobrar:</span>
+                <span class="fw-bolder fs-1 text-tekfix-main" id="total_amount">$0</span>
             </div>
 
             {% if current_user.rol == 'admin' %}
             <!-- Selector de Fecha de Venta (colapsable) exclusivo para Admin -->
             <div class="mb-3">
                 <div class="d-flex align-items-center justify-content-between">
-                    <small class="text-muted fw-semibold"><i class="fa-regular fa-calendar me-1"></i> Fecha de Venta:</small>
+                    <small class="text-tekfix-sec fw-semibold"><i class="fa-regular fa-calendar me-1"></i> Fecha de Venta:</small>
                     <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" id="btn_toggle_fecha" onclick="toggleFechaVenta()">
-                        <span id="fecha_display_label" class="badge bg-light text-dark border rounded-pill px-3 py-1" style="font-size: 0.8rem; cursor: pointer;">
+                        <span id="fecha_display_label" class="badge bg-tekfix-card text-tekfix-main border rounded-pill px-3 py-1" style="font-size: 0.8rem; cursor: pointer;">
                             📅 Hoy
                         </span>
                     </button>
                 </div>
                 <div id="fecha_venta_container" style="display: none; margin-top: 8px;">
-                    <input type="date" id="fecha_venta_input" class="form-control form-control-sm bg-light border-0 shadow-sm" value="">
-                    <small class="form-text text-muted"><i class="fa-solid fa-circle-info text-primary me-1"></i>Cambia la fecha para registrar ventas de días anteriores.</small>
+                    <input type="date" id="fecha_venta_input" class="form-control form-control-sm bg-tekfix-card border-0 shadow-sm" value="">
+                    <small class="form-text text-tekfix-sec"><i class="fa-solid fa-circle-info text-primary me-1"></i>Cambia la fecha para registrar ventas de días anteriores.</small>
                 </div>
             </div>
             {% endif %}
@@ -95,21 +95,22 @@
             <!-- Toggle: Pago Único vs Pago Dividido -->
             <div class="mb-3">
                 <div class="d-flex align-items-center gap-3 mb-3">
-                    <label class="form-label fw-bold text-brand-black small text-uppercase m-0">Método de Pago</label>
+                    <label class="form-label fw-bold text-tekfix-main small text-uppercase m-0">Método de Pago</label>
                     <div class="form-check form-switch ms-auto">
                         <input class="form-check-input" type="checkbox" id="toggle_pago_mixto" style="cursor: pointer; width: 3rem; height: 1.5rem;">
-                        <label class="form-check-label fw-bold small text-muted" for="toggle_pago_mixto" style="cursor: pointer;">Dividir Pago</label>
+                        <label class="form-check-label fw-bold small text-tekfix-sec" for="toggle_pago_mixto" style="cursor: pointer;">Dividir Pago</label>
                     </div>
                 </div>
             </div>
 
             <!-- Modo 1: Pago Único (por defecto) -->
             <div id="pago_unico_section">
-                <select id="metodo-pago" class="form-select form-select-lg border-0 shadow-sm bg-light mb-3" style="cursor: pointer;">
+                <select id="metodo-pago" class="form-select form-select-lg border-0 shadow-sm bg-tekfix-card mb-3" style="cursor: pointer;">
                     <option value="efectivo">💵 Efectivo</option>
                     <option value="nequi">📱 Nequi</option>
                     <option value="bancolombia">🏦 Bancolombia</option>
                     <option value="daviplata">📱 Daviplata</option>
+                    <option value="tarjeta">💳 Tarjeta</option>
                 </select>
             </div>
 
@@ -118,8 +119,8 @@
                 <!-- Indicador visual del saldo restante -->
                 <div class="alert border-0 shadow-sm py-2 px-3 mb-3" id="saldo_restante_alert" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
                     <div class="d-flex justify-content-between align-items-center">
-                        <small class="fw-bold text-muted text-uppercase"><i class="fa-solid fa-scale-balanced me-1"></i> Saldo por cubrir:</small>
-                        <span class="fw-bolder fs-5" id="saldo_restante" style="color: var(--brand-blue);">$0</span>
+                        <small class="fw-bold text-tekfix-sec text-uppercase"><i class="fa-solid fa-scale-balanced me-1"></i> Saldo por cubrir:</small>
+                        <span class="fw-bolder fs-5" id="saldo_restante" style="color: var(--tekfix-primary);">$0</span>
                     </div>
                     <!-- Barra de progreso visual -->
                     <div class="progress mt-2" style="height: 6px; border-radius: 10px;">
@@ -139,10 +140,10 @@
 
             <!-- Botón de Cobro Masivo Azul Turquesa -->
             <div class="d-grid gap-2 mt-4">
-                <button type="button" class="btn btn-blue btn-lg rounded-3 py-3 shadow-sm text-uppercase" id="btn_process_sale">
+                <button type="button" class="btn btn-tekfix-secondary btn-lg rounded-3 py-3 shadow-sm text-uppercase" id="btn_process_sale">
                     <i class="fa-solid fa-credit-card me-2"></i> Procesar Cobro
                 </button>
-                <button type="button" class="btn btn-light mt-2 fw-bold text-muted" id="btn_clear_cart">
+                <button type="button" class="btn btn-light mt-2 fw-bold text-tekfix-sec" id="btn_clear_cart">
                     Limpiar Venta
                 </button>
             </div>
@@ -160,8 +161,8 @@
         to { opacity: 1; transform: translateY(0); }
     }
     .form-check-input:checked {
-        background-color: var(--brand-blue) !important;
-        border-color: var(--brand-blue) !important;
+        background-color: var(--tekfix-primary) !important;
+        border-color: var(--tekfix-primary) !important;
     }
     #saldo_restante_alert.saldo-cubierto {
         background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%) !important;
@@ -175,43 +176,43 @@
 <div class="modal fade" id="modalProductoManual" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0 bg-light">
+            <div class="modal-header border-0 bg-tekfix-card">
                 <h5 class="modal-title fw-bold text-primary"><i class="fa-solid fa-handshake me-2"></i>Producto Manual (Externo)</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="alert py-2 px-3 rounded-3 mb-4" style="background: #e8f4fd; border: 1px dashed #90c4e8;">
-                    <small class="text-muted"><i class="fa-solid fa-circle-info text-primary me-1"></i>Usa esta opción para productos <strong>prestados de otros locales</strong>. No se descuenta stock propio.</small>
+                    <small class="text-tekfix-sec"><i class="fa-solid fa-circle-info text-primary me-1"></i>Usa esta opción para productos <strong>prestados de otros locales</strong>. No se descuenta stock propio.</small>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label fw-bold">Nombre del Producto</label>
-                    <input type="text" id="manual_nombre" class="form-control bg-light border-0" placeholder="Ej: Funda iPhone 15 Pro Max - Local Alex" required>
+                    <input type="text" id="manual_nombre" class="form-control bg-tekfix-card border-0" placeholder="Ej: Funda iPhone 15 Pro Max - Local Alex" required>
                 </div>
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold"><i class="fa-solid fa-arrow-down text-danger me-1"></i>Costo de Compra</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light border-0">$</span>
-                            <input type="number" step="1" min="0" id="manual_costo" class="form-control bg-light border-0" placeholder="Lo que se le paga al vecino" required>
+                            <span class="input-group-text bg-tekfix-card border-0">$</span>
+                            <input type="number" step="1" min="0" id="manual_costo" class="form-control bg-tekfix-card border-0" placeholder="Lo que se le paga al vecino" required>
                         </div>
-                        <small class="form-text text-muted">Precio al que te lo vende el otro local</small>
+                        <small class="form-text text-tekfix-sec">Precio al que te lo vende el otro local</small>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold"><i class="fa-solid fa-arrow-up text-success me-1"></i>Precio de Venta</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light border-0 text-success fw-bold">$</span>
-                            <input type="number" step="1" min="0" id="manual_precio_venta" class="form-control bg-light border-0" placeholder="Lo que se cobra al cliente" required>
+                            <span class="input-group-text bg-tekfix-card border-0 text-success fw-bold">$</span>
+                            <input type="number" step="1" min="0" id="manual_precio_venta" class="form-control bg-tekfix-card border-0" placeholder="Lo que se cobra al cliente" required>
                         </div>
-                        <small class="form-text text-muted">Precio al que se le vende al cliente final</small>
+                        <small class="form-text text-tekfix-sec">Precio al que se le vende al cliente final</small>
                     </div>
                 </div>
                 <div class="mb-0">
                     <label class="form-label fw-bold">Cantidad</label>
-                    <input type="number" id="manual_cantidad" class="form-control bg-light border-0 w-25" min="1" value="1" required>
+                    <input type="number" id="manual_cantidad" class="form-control bg-tekfix-card border-0 w-25" min="1" value="1" required>
                 </div>
             </div>
-            <div class="modal-footer border-0 bg-light">
+            <div class="modal-footer border-0 bg-tekfix-card">
                 <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary rounded-pill fw-bold px-4" id="btn_agregar_manual">
                     <i class="fa-solid fa-plus me-1"></i> Agregar al Carrito
@@ -262,19 +263,20 @@
 
         if (fechaInput.value === hoyStr || !fechaInput.value) {
             label.innerHTML = '📅 Hoy';
-            label.className = 'badge bg-light text-dark border rounded-pill px-3 py-1';
+            label.className = 'badge bg-tekfix-card text-tekfix-main border rounded-pill px-3 py-1';
         } else {
             const partes = fechaInput.value.split('-');
             const fechaFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
             label.innerHTML = `⚠️ ${fechaFormateada}`;
-            label.className = 'badge bg-warning bg-opacity-25 text-dark border border-warning rounded-pill px-3 py-1';
+            label.className = 'badge bg-warning bg-opacity-25 text-tekfix-main border border-warning rounded-pill px-3 py-1';
         }
     }
     const METODOS_DISPONIBLES = [
         { value: 'efectivo', label: '💵 Efectivo' },
         { value: 'nequi', label: '📱 Nequi' },
         { value: 'bancolombia', label: '🏦 Bancolombia' },
-        { value: 'daviplata', label: '📱 Daviplata' }
+        { value: 'daviplata', label: '📱 Daviplata' },
+        { value: 'tarjeta', label: '💳 Tarjeta' }
     ];
 
     // Capturar el ESCANER ("Enter" en el teclado sin enviar un formulario)
@@ -421,7 +423,7 @@
             barraEl.style.background = 'linear-gradient(90deg, #dc3545, #e74c5c)';
             document.querySelector('#saldo_restante_alert small').innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> Excedente:';
         } else {
-            saldoEl.style.color = 'var(--brand-blue)';
+            saldoEl.style.color = 'var(--tekfix-primary)';
             barraEl.style.background = 'linear-gradient(90deg, #A3D8DE, #7BC8D0)';
             document.querySelector('#saldo_restante_alert small').innerHTML = '<i class="fa-solid fa-scale-balanced me-1"></i> Saldo por cubrir:';
         }
@@ -441,11 +443,11 @@
             ).join('');
 
             div.innerHTML = `
-                <select class="form-select form-select-sm border-0 shadow-sm bg-light" style="cursor: pointer; flex: 1;" onchange="actualizarPagoParcial(${index}, 'metodo_pago', this.value)">
+                <select class="form-select form-select-sm border-0 shadow-sm bg-tekfix-card" style="cursor: pointer; flex: 1;" onchange="actualizarPagoParcial(${index}, 'metodo_pago', this.value)">
                     ${optionsHtml}
                 </select>
                 <div class="input-group input-group-sm" style="flex: 1;">
-                    <span class="input-group-text bg-light border-0">$</span>
+                    <span class="input-group-text bg-tekfix-card border-0">$</span>
                     <input type="number" class="form-control border-0 shadow-sm text-end" placeholder="Monto" value="${pago.monto > 0 ? Math.round(pago.monto) : ''}" 
                            oninput="actualizarPagoParcial(${index}, 'monto', this.value)" 
                            step="1" min="0">
@@ -604,8 +606,8 @@
 
         if (carrito.length === 0) {
             tbody.innerHTML = `<tr>
-                <td colspan="5" class="text-center py-5 text-muted" id="empty_cart_msg">
-                    <i class="fa-solid fa-cart-arrow-down fs-2 mb-2 d-block text-brand-pink opacity-50"></i>
+                <td colspan="5" class="text-center py-5 text-tekfix-sec" id="empty_cart_msg">
+                    <i class="fa-solid fa-cart-arrow-down fs-2 mb-2 d-block text-tekfix-primary opacity-50"></i>
                     La venta está vacía actualmente.
                 </td>
             </tr>`;
@@ -626,7 +628,7 @@
 
             let variantHtml = '';
             if (item.variantes && item.variantes.length > 0) {
-                variantHtml = `<select class="form-select form-select-sm mt-1 text-secondary bg-light border-0 shadow-sm" onchange="actualizarItem(${index}, 'variant_id', this.value)">`;
+                variantHtml = `<select class="form-select form-select-sm mt-1 text-secondary bg-tekfix-card border-0 shadow-sm" onchange="actualizarItem(${index}, 'variant_id', this.value)">`;
                 item.variantes.forEach(v => {
                     let selected = (v.id == item.variant_id) ? "selected" : "";
                     // Si tiene 0 despintar opción o alertarlo
@@ -642,11 +644,11 @@
             if (item.es_manual) {
                 skuLabel = `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2" style="font-size: 0.7rem;"><i class="fa-solid fa-handshake me-1"></i>EXTERNO</span>`;
             } else {
-                skuLabel = `<small class="text-muted">${item.sku}</small>`;
+                skuLabel = `<small class="text-tekfix-sec">${item.sku}</small>`;
             }
             tr.innerHTML = `
                 <td>
-                    <div class="fw-bold text-brand-black">${item.nombre}</div>
+                    <div class="fw-bold text-tekfix-main">${item.nombre}</div>
                     ${skuLabel}
                     ${variantHtml}
                 </td>
@@ -656,12 +658,12 @@
                 <td width="180">
                     ${item.es_manual ? `
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-end-0">$</span>
+                        <span class="input-group-text bg-tekfix-card border-end-0">$</span>
                         <input type="number" step="1" class="form-control text-end border-start-0 pe-2" value="${Math.round(item.precio_final)}" onchange="actualizarItem(${index}, 'precio_final', this.value)">
                     </div>
                     ` : `
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-end-0">$</span>
+                        <span class="input-group-text bg-tekfix-card border-end-0">$</span>
                         <input type="number" step="1" class="form-control text-end border-start-0 pe-2" value="${Math.round(item.precio_final)}" onchange="actualizarItem(${index}, 'precio_final', this.value)">
                         <button class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <span class="visually-hidden">Opciones</span>
@@ -681,12 +683,12 @@
                                 </div>
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><div class="px-3 py-1 small text-muted">Límite Permitido: ${formatoCOP(item.precio_limite)}</div></li>
+                            <li><div class="px-3 py-1 small text-tekfix-sec">Límite Permitido: ${formatoCOP(item.precio_limite)}</div></li>
                         </ul>
                     </div>
                     `}
                 </td>
-                <td class="text-end fw-bold text-brand-black" width="120">
+                <td class="text-end fw-bold text-tekfix-main" width="120">
                     ${formatoCOP(subtotal)}
                 </td>
                 <td class="text-center" width="70">
@@ -785,7 +787,7 @@
                 
                 // Si el navegador tiene un bloqueador de ventanas emergentes muy agresivo:
                 if (!reciboWindow) {
-                    alert('⚠️ Chrome bloqueó la pestaña emergente del recibo. Por favor, permite las ventanas emergentes (pop-ups) para cases.com en la barra superior.');
+                    alert('⚠️ Chrome bloqueó la pestaña emergente del recibo. Por favor, permite las ventanas emergentes (pop-ups) para Tekfix Oficial en la barra superior.');
                 }
                 
                 // Alerta nativa solicitada para feedback directo (Mantiene pausada la pantalla de la Caja)

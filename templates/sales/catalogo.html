@@ -4,23 +4,23 @@
 <div class="row mb-5">
     <div class="col-12">
         <!-- Titular Simple y Limpio, el color de marca A3D8DE acentúa el Logo -->
-        <h2 class="fw-bolder m-0" style="color: var(--brand-blue);">
+        <h2 class="fw-bolder m-0" style="color: var(--tekfix-primary);">
             <i class="fa-solid fa-book-open me-2"></i>Catálogo de Stock General
         </h2>
     </div>
 </div>
 
-<div class="card card-custom p-4 border mt-2 bg-white shadow-sm mb-4">
+<div class="card card-custom p-4 border mt-2 bg-tekfix-card shadow-sm mb-4">
     <!-- El Formulario usa Método GET Nativo para enviar 'q' por barra de direcciones URL -->
     <form method="GET" action="{{ url_for('sales_bp.catalogo') }}" class="row align-items-end g-3">
         <div class="col-md-9">
-            <label class="form-label fw-bold text-brand-black small"><i class="fa-solid fa-magnifying-glass me-1"></i> Búsqueda de Artículos</label>
+            <label class="form-label fw-bold text-tekfix-main small"><i class="fa-solid fa-magnifying-glass me-1"></i> Búsqueda de Artículos</label>
             <!-- Permite filtrado profundo en la BD por Substraer Coincidencias (ILIKE) -->
-            <input type="text" name="q" class="form-control bg-light border-0 py-2 shadow-sm" value="{{ q }}" placeholder="Busca escribiendo el SKU Oficial o el Nombre del accesorio..." autocomplete="off">
+            <input type="text" name="q" class="form-control bg-tekfix-card border-0 py-2 shadow-sm" value="{{ q }}" placeholder="Busca escribiendo el SKU Oficial o el Nombre del accesorio..." autocomplete="off">
         </div>
         <div class="col-md-3">
             <!-- Botón Dominante en Turquesa (Azul de Cases.com '#A3D8DE') -->
-            <button type="submit" class="btn btn-blue w-100 py-2 rounded-3 shadow-sm fw-bold">
+            <button type="submit" class="btn btn-tekfix-secondary w-100 py-2 rounded-3 shadow-sm fw-bold">
                 Buscar Existencias
             </button>
         </div>
@@ -44,24 +44,24 @@
     <div class="col">
         <div class="card h-100 border-0 shadow-sm {% if p.total_stock <= 0 %}opacity-50{% endif %}" style="border-radius: 12px; overflow: hidden;">
             {% if p.imagen %}
-                <img src="{{ url_for('static', filename='uploads/' ~ p.imagen) }}" class="card-img-top bg-light" alt="{{ p.nombre }}" style="height: 220px; object-fit: contain; padding: 1.5rem;">
+                <img src="{{ url_for('static', filename='uploads/' ~ p.imagen) }}" class="card-img-top bg-tekfix-card" alt="{{ p.nombre }}" style="height: 220px; object-fit: contain; padding: 1.5rem;">
             {% else %}
-                <div class="card-img-top bg-light d-flex align-items-center justify-content-center border-bottom border-light" style="height: 220px;">
-                    <i class="fa-solid fa-image fa-3x text-muted opacity-25"></i>
+                <div class="card-img-top bg-tekfix-card d-flex align-items-center justify-content-center border-bottom border-light" style="height: 220px;">
+                    <i class="fa-solid fa-image fa-3x text-tekfix-sec opacity-25"></i>
                 </div>
             {% endif %}
             
             <div class="card-body d-flex flex-column p-4">
                 <div class="d-flex justify-content-between align-items-start mb-1">
-                    <p class="text-muted small mb-0 fw-bold"><i class="fa-solid fa-barcode me-1"></i>{{ p.sku }}</p>
+                    <p class="text-tekfix-sec small mb-0 fw-bold"><i class="fa-solid fa-barcode me-1"></i>{{ p.sku }}</p>
                     {% if p.total_stock <= 0 %}
                         <span class="badge bg-danger rounded-pill px-2"><i class="fa-solid fa-ban"></i> Agotado</span>
                     {% endif %}
                 </div>
-                <h5 class="card-title fw-bolder text-brand-black mb-3">{{ p.nombre }}</h5>
+                <h5 class="card-title fw-bolder text-tekfix-main mb-3">{{ p.nombre }}</h5>
                 
                 {% if p.variantes %}
-                    <h6 class="fw-bold text-muted mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">SUBCATEGORÍAS DISPONIBLES:</h6>
+                    <h6 class="fw-bold text-tekfix-sec mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">SUBCATEGORÍAS DISPONIBLES:</h6>
                     <div class="table-responsive mb-auto">
                         <table class="table table-sm table-borderless align-middle mb-0">
                             <tbody style="font-size: 0.9rem;">
@@ -70,8 +70,8 @@
                                     {% if v.cantidad_stock > 0 %}
                                         {% set ns.active_variants = ns.active_variants + 1 %}
                                         <tr class="border-bottom border-light">
-                                            <td class="ps-0 text-secondary"><i class="fa-solid fa-caret-right text-brand-pink me-1" style="font-size: 0.7rem;"></i> {{ v.nombre_variante }}</td>
-                                            <td class="text-end fw-bold text-brand-black pe-0">${{ (v.precio_sugerido or p.precio_sugerido)|cop }}</td>
+                                            <td class="ps-0 text-secondary"><i class="fa-solid fa-caret-right text-tekfix-primary me-1" style="font-size: 0.7rem;"></i> {{ v.nombre_variante }}</td>
+                                            <td class="text-end fw-bold text-tekfix-main pe-0">${{ (v.precio_sugerido or p.precio_sugerido)|cop }}</td>
                                         </tr>
                                     {% endif %}
                                 {% endfor %}
@@ -83,20 +83,20 @@
                     </div>
                 {% else %}
                     <div class="mt-auto pt-3 border-top border-light d-flex justify-content-between align-items-end">
-                        <span class="text-muted fw-bold" style="font-size: 0.8rem; letter-spacing: 0.5px;">PRECIO GENERAL</span>
-                        <h4 class="fw-bolder m-0" style="color: var(--brand-pink);">${{ (p.precio_sugerido)|cop }}</h4>
+                        <span class="text-tekfix-sec fw-bold" style="font-size: 0.8rem; letter-spacing: 0.5px;">PRECIO GENERAL</span>
+                        <h4 class="fw-bolder m-0" style="color: var(--tekfix-hover);">${{ (p.precio_sugerido)|cop }}</h4>
                     </div>
                 {% endif %}
             </div>
             
             <!-- Franja Rango de Precio -->
             {% if p.variantes and p.rango_precios %}
-            <div class="card-footer bg-white border-top border-light pt-2 pb-3 px-4 text-end">
-                <span class="text-muted fw-bold me-1" style="font-size: 0.75rem;">VALORES:</span>
+            <div class="card-footer bg-tekfix-card border-top border-light pt-2 pb-3 px-4 text-end">
+                <span class="text-tekfix-sec fw-bold me-1" style="font-size: 0.75rem;">VALORES:</span>
                 {% if p.rango_precios is number %}
-                    <span class="fw-bolder fs-5 text-brand-black">${{ (p.rango_precios)|cop }}</span>
+                    <span class="fw-bolder fs-5 text-tekfix-main">${{ (p.rango_precios)|cop }}</span>
                 {% else %}
-                    <span class="fw-bold" style="color: var(--brand-pink); font-size: 1.1rem;">Desde ${{ (p.rango_precios[0])|cop }}</span>
+                    <span class="fw-bold" style="color: var(--tekfix-hover); font-size: 1.1rem;">Desde ${{ (p.rango_precios[0])|cop }}</span>
                 {% endif %}
             </div>
             {% endif %}
@@ -104,10 +104,10 @@
         </div>
     </div>
     {% else %}
-    <div class="col-12 text-center py-5 bg-white border rounded shadow-sm">
-        <i class="fa-solid fa-box-open fs-1 mb-3 text-muted opacity-25"></i>
-        <h4 class="text-brand-black fw-bold">No se hallaron resultados</h4>
-        <p class="text-muted mb-0">No pudimos localizar artículos físicos con esos atributos de búsqueda.</p>
+    <div class="col-12 text-center py-5 bg-tekfix-card border rounded shadow-sm">
+        <i class="fa-solid fa-box-open fs-1 mb-3 text-tekfix-sec opacity-25"></i>
+        <h4 class="text-tekfix-main fw-bold">No se hallaron resultados</h4>
+        <p class="text-tekfix-sec mb-0">No pudimos localizar artículos físicos con esos atributos de búsqueda.</p>
     </div>
     {% endfor %}
 </div>

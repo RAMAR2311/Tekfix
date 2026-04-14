@@ -2,32 +2,32 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold text-brand-black m-0">Inventario Central</h2>
+    <h2 class="fw-bold text-tekfix-main m-0">Inventario Central</h2>
     <div class="d-flex gap-2">
         <button type="button" class="btn btn-outline-success rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#importarModal">
             <i class="fa-solid fa-file-excel me-1"></i> Importar Masivo
         </button>
-        <a href="/inventory/nuevo" class="btn btn-blue rounded-pill px-4 fw-bold shadow-sm">
+        <a href="/inventory/nuevo" class="btn btn-tekfix-secondary rounded-pill px-4 fw-bold shadow-sm">
             <i class="fa-solid fa-plus me-1"></i> Nuevo Producto
         </a>
     </div>
 </div>
 
 <!-- Buscador Rápido de Inventario -->
-<div class="card card-custom p-3 mb-4 border-0 shadow-sm bg-white">
+<div class="card card-custom p-3 mb-4 border-0 shadow-sm bg-tekfix-card">
     <div class="row align-items-center">
         <div class="col-md-8 col-lg-6">
             <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden border">
-                <span class="input-group-text bg-white border-0 ps-4"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                <input type="text" id="inventarioSearch" class="form-control border-0 bg-white shadow-none ps-2" placeholder="Busca por SKU o Nombre del producto..." autocomplete="off">
-                <button class="btn btn-light border-0 px-3 text-muted" type="button" id="clearSearch" title="Limpiar búsqueda">
+                <span class="input-group-text bg-tekfix-card border-0 ps-4"><i class="fa-solid fa-magnifying-glass text-tekfix-sec"></i></span>
+                <input type="text" id="inventarioSearch" class="form-control border-0 bg-tekfix-card shadow-none ps-2" placeholder="Busca por SKU o Nombre del producto..." autocomplete="off">
+                <button class="btn btn-light border-0 px-3 text-tekfix-sec" type="button" id="clearSearch" title="Limpiar búsqueda">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
         </div>
         <div class="col-md-4 col-lg-6 text-md-end mt-3 mt-md-0">
-            <small class="text-muted fw-bold text-uppercase" style="font-size: 0.75rem;">
-                Mostrando <span id="visibleCount" class="text-brand-pink">{{ productos|length }}</span> de {{ productos|length }} productos
+            <small class="text-tekfix-sec fw-bold text-uppercase" style="font-size: 0.75rem;">
+                Mostrando <span id="visibleCount" class="text-tekfix-primary">{{ productos|length }}</span> de {{ productos|length }} productos
             </small>
         </div>
     </div>
@@ -35,8 +35,8 @@
 
 <div class="card card-custom p-0 overflow-hidden">
     <div class="table-responsive">
-        <table class="table table-hover table-custom mb-0">
-            <thead class="bg-light">
+        <table class="table table-hover table-custom table-dark mb-0">
+            <thead class="bg-tekfix-card">
                 <tr>
                     <th width="120" class="ps-4">SKU</th>
                     <th>PRODUCTO</th>
@@ -50,35 +50,35 @@
             <tbody>
                 {% for p in productos %}
                 <tr>
-                    <td class="text-muted"><small><strong>{{ p.sku }}</strong></small></td>
-                    <td class="fw-semibold text-brand-black">{{ p.nombre }}</td>
+                    <td class="text-tekfix-sec"><small><strong>{{ p.sku }}</strong></small></td>
+                    <td class="fw-semibold text-tekfix-main">{{ p.nombre }}</td>
                     <td>
                         <!-- Regla Estricta: Badge rojo si el stock <= 3 -->
                         {% if p.total_stock <= 3 %}
                             <span class="badge bg-danger rounded-pill px-3 py-2"><i class="fa-solid fa-triangle-exclamation me-1"></i> {{ p.total_stock }} (Stock Bajo)</span>
                         {% else %}
                             <!-- Badge en Rosa Pastel para stock normal -->
-                            <span class="badge bg-brand-pink text-dark rounded-pill px-3 py-2 border">{{ p.total_stock }} uds</span>
+                            <span class="badge bg-tekfix-card text-tekfix-main rounded-pill px-3 py-2 border">{{ p.total_stock }} uds</span>
                         {% endif %}
 
                         {% if p.variantes %}
-                            <div class="mt-2 text-muted" style="font-size: 0.85rem;">
+                            <div class="mt-2 text-tekfix-sec" style="font-size: 0.85rem;">
                                 {% for v in p.variantes %}
-                                    <span class="badge bg-light text-dark border me-1 mb-1">{{ v.nombre_variante }}: {{ v.cantidad_stock }}</span>
+                                    <span class="badge bg-tekfix-card text-tekfix-main border me-1 mb-1">{{ v.nombre_variante }}: {{ v.cantidad_stock }}</span>
                                 {% endfor %}
                             </div>
                         {% endif %}
                     </td>
-                    <td class="text-end fw-bold" style="color: var(--brand-pink);">${{ (p.precio_costo)|cop }}</td>
-                    <td class="text-end text-muted fw-bold">${{ (p.precio_minimo)|cop }}</td>
-                    <td class="text-end fw-bold text-brand-black pe-4">
+                    <td class="text-end fw-bold" style="color: var(--tekfix-hover);">${{ (p.precio_costo)|cop }}</td>
+                    <td class="text-end text-tekfix-sec fw-bold">${{ (p.precio_minimo)|cop }}</td>
+                    <td class="text-end fw-bold text-tekfix-main pe-4">
                         {% if p.rango_precios %}
                             {% if p.rango_precios is number %}
                                 ${{ (p.rango_precios)|cop }}
                             {% else %}
-                                <div class="small text-muted fw-normal" style="line-height:1;">Desde</div>
+                                <div class="small text-tekfix-sec fw-normal" style="line-height:1;">Desde</div>
                                 ${{ (p.rango_precios[0])|cop }}<br>
-                                <div class="small text-muted fw-normal mt-1" style="line-height:1;">hasta</div>
+                                <div class="small text-tekfix-sec fw-normal mt-1" style="line-height:1;">hasta</div>
                                 ${{ (p.rango_precios[1])|cop }}
                             {% endif %}
                         {% else %}
@@ -106,9 +106,9 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">
+                    <td colspan="6" class="text-center py-5 text-tekfix-sec">
                         <!-- Icono en Rosa Pastel -->
-                        <i class="fa-solid fa-box-open fs-1 mb-3 text-brand-pink"></i>
+                        <i class="fa-solid fa-box-open fs-1 mb-3 text-tekfix-primary"></i>
                         <p class="mb-0">El inventario está vacío.</p>
                     </td>
                 </tr>
@@ -123,47 +123,47 @@
 <div class="modal fade" id="variantesModal{{ p.id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0 bg-light">
-                <h5 class="modal-title fw-bold text-brand-black">Gestión de Variantes - {{ p.nombre }}</h5>
+            <div class="modal-header border-0 bg-tekfix-card">
+                <h5 class="modal-title fw-bold text-tekfix-main">Gestión de Variantes - {{ p.nombre }}</h5>
                 <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-4 text-start bg-light rounded-bottom">
+            <div class="modal-body p-4 text-start bg-tekfix-card rounded-bottom">
                 
                 <!-- Sección para Añadir Nueva Variante -->
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-body p-3">
-                        <h6 class="fw-bold mb-3 text-brand-black"><i class="fa-solid fa-plus-circle text-success me-2"></i>Añadir Subcategoría Nueva</h6>
+                        <h6 class="fw-bold mb-3 text-tekfix-main"><i class="fa-solid fa-plus-circle text-success me-2"></i>Añadir Subcategoría Nueva</h6>
                         <form method="POST" action="{{ url_for('inventory_bp.agregar_variante', id=p.id) }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <div class="row g-2 mb-3">
                                 <div class="col-md-9">
-                                    <label class="form-label small text-muted mb-1 fw-bold">Nombre o Atributo</label>
+                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Nombre o Atributo</label>
                                     <input type="text" name="nombre_variante" class="form-control form-control-sm" placeholder="Ej: Funda Silicona Negra" required>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small text-muted mb-1 fw-bold">Stock Inicial</label>
+                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Stock Inicial</label>
                                     <input type="number" name="cantidad_stock" class="form-control form-control-sm" placeholder="0" required min="0">
                                 </div>
                             </div>
                             <div class="row g-2 mb-3">
                                 <div class="col-md-4">
-                                    <label class="form-label small text-muted mb-1 fw-bold">P. Costo (Opcional)</label>
+                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">P. Costo (Opcional)</label>
                                     <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-light text-muted border-end-0">$</span>
+                                        <span class="input-group-text bg-tekfix-card text-tekfix-sec border-end-0">$</span>
                                         <input type="number" step="1" name="precio_costo" class="form-control border-start-0 ps-0" placeholder="{{ "%.0f"|format(p.precio_costo) }}">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label small text-muted mb-1 fw-bold">P. Mínimo (Opcional)</label>
+                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">P. Mínimo (Opcional)</label>
                                     <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-light text-muted border-end-0">$</span>
+                                        <span class="input-group-text bg-tekfix-card text-tekfix-sec border-end-0">$</span>
                                         <input type="number" step="1" name="precio_minimo" class="form-control border-start-0 ps-0" placeholder="{{ "%.0f"|format(p.precio_minimo) }}">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label small fw-bold mb-1" style="color: var(--brand-pink);">P. Sugerido (Opcional)</label>
+                                    <label class="form-label small fw-bold mb-1" style="color: var(--tekfix-hover);">P. Sugerido (Opcional)</label>
                                     <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-light text-muted border-end-0">$</span>
+                                        <span class="input-group-text bg-tekfix-card text-tekfix-sec border-end-0">$</span>
                                         <input type="number" step="1" name="precio_sugerido" class="form-control border-start-0 ps-0 border-pink border-1" placeholder="{{ "%.0f"|format(p.precio_sugerido) }}">
                                     </div>
                                 </div>
@@ -173,11 +173,11 @@
                     </div>
                 </div>
                 
-                <h6 class="fw-bold mb-3 text-brand-black"><i class="fa-solid fa-boxes-stacked text-primary me-2"></i>Variantes Registradas</h6>
+                <h6 class="fw-bold mb-3 text-tekfix-main"><i class="fa-solid fa-boxes-stacked text-primary me-2"></i>Variantes Registradas</h6>
                 {% if p.variantes %}
                 <div class="d-flex flex-column gap-3">
                     {% for v in p.variantes %}
-                    <div class="card border border-light shadow-sm bg-white rounded-3">
+                    <div class="card border border-light shadow-sm bg-tekfix-card rounded-3">
                         <div class="card-body p-3">
                             <form method="POST" action="{{ url_for('inventory_bp.editar_variante', id=v.id) }}">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -185,43 +185,43 @@
                                 <div class="row g-2 align-items-center mb-3">
                                     <div class="col-8">
                                         <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-light border-0 text-muted"><i class="fa-solid fa-tag"></i></span>
-                                            <input type="text" name="nombre_variante" class="form-control fw-bold border-light bg-light" value="{{ v.nombre_variante }}" required>
+                                            <span class="input-group-text bg-tekfix-card border-0 text-tekfix-sec"><i class="fa-solid fa-tag"></i></span>
+                                            <input type="text" name="nombre_variante" class="form-control fw-bold border-light bg-tekfix-card" value="{{ v.nombre_variante }}" required>
                                         </div>
                                     </div>
                                     <div class="col-4">
                                         <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-light border-0 text-muted"><i class="fa-solid fa-cubes"></i></span>
-                                            <input type="number" name="cantidad_stock" class="form-control text-center fw-bold text-primary border-light bg-light" value="{{ v.cantidad_stock }}" required>
+                                            <span class="input-group-text bg-tekfix-card border-0 text-tekfix-sec"><i class="fa-solid fa-cubes"></i></span>
+                                            <input type="number" name="cantidad_stock" class="form-control text-center fw-bold text-primary border-light bg-tekfix-card" value="{{ v.cantidad_stock }}" required>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="row g-2 align-items-end">
                                     <div class="col-4">
-                                        <label class="form-label text-muted mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">COSTO REAL</label>
+                                        <label class="form-label text-tekfix-sec mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">COSTO REAL</label>
                                         <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-transparent border-end-0 text-muted px-2">$</span>
+                                            <span class="input-group-text bg-transparent border-end-0 text-tekfix-sec px-2">$</span>
                                             <input type="number" step="1" name="precio_costo" class="form-control border-start-0 ps-0 text-secondary" value="{{ "%.0f"|format(v.precio_costo|float) if v.precio_costo else "%.0f"|format(p.precio_costo|float) }}">
                                         </div>
                                     </div>
                                     <div class="col-4">
-                                        <label class="form-label text-muted mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">P. MÍNIMO DEV.</label>
+                                        <label class="form-label text-tekfix-sec mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">P. MÍNIMO DEV.</label>
                                         <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-transparent border-end-0 text-muted px-2">$</span>
+                                            <span class="input-group-text bg-transparent border-end-0 text-tekfix-sec px-2">$</span>
                                             <input type="number" step="1" name="precio_minimo" class="form-control border-start-0 ps-0 text-secondary" value="{{ "%.0f"|format(v.precio_minimo|float) if v.precio_minimo else "%.0f"|format(p.precio_minimo|float) }}">
                                         </div>
                                     </div>
                                     <div class="col-4">
-                                        <label class="form-label mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px; color: var(--brand-pink);">P. SUGERIDO</label>
+                                        <label class="form-label mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px; color: var(--tekfix-hover);">P. SUGERIDO</label>
                                         <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-transparent border-end-0 fw-bold px-2" style="color: var(--brand-pink);">$</span>
-                                            <input type="number" step="1" name="precio_sugerido" class="form-control border-start-0 ps-0 fw-bold" style="color: var(--brand-pink);" value="{{ "%.0f"|format(v.precio_sugerido|float) if v.precio_sugerido else "%.0f"|format(p.precio_sugerido|float) }}">
+                                            <span class="input-group-text bg-transparent border-end-0 fw-bold px-2" style="color: var(--tekfix-hover);">$</span>
+                                            <input type="number" step="1" name="precio_sugerido" class="form-control border-start-0 ps-0 fw-bold" style="color: var(--tekfix-hover);" value="{{ "%.0f"|format(v.precio_sugerido|float) if v.precio_sugerido else "%.0f"|format(p.precio_sugerido|float) }}">
                                         </div>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mt-3 pt-2">
-                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 hover-danger px-2" title="Eliminar Permanente" onclick="if(confirm('¿Eliminar la subcategoría {{ v.nombre_variante }} del inventario? Esta acción es irreversible.')) { document.getElementById('delVarForm{{ v.id }}').submit(); }">
+                                    <button type="button" class="btn btn-sm btn-outline-light border-0 hover-danger px-2" title="Eliminar Permanente" onclick="if(confirm('¿Eliminar la subcategoría {{ v.nombre_variante }} del inventario? Esta acción es irreversible.')) { document.getElementById('delVarForm{{ v.id }}').submit(); }">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                     <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-4" title="Guardar Cambios">
@@ -238,9 +238,9 @@
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="text-center p-4 border rounded bg-white mt-1 shadow-sm">
-                    <i class="fa-solid fa-boxes-stacked fs-3 text-muted mb-2 opacity-50"></i>
-                    <p class="text-muted small mb-0">Este producto actualmente utiliza <strong>stock plano</strong> y tarifas genéricas.<br>Añade variantes arriba para dividir su rango comercial.</p>
+                <div class="text-center p-4 border rounded bg-tekfix-card mt-1 shadow-sm">
+                    <i class="fa-solid fa-boxes-stacked fs-3 text-tekfix-sec mb-2 opacity-50"></i>
+                    <p class="text-tekfix-sec small mb-0">Este producto actualmente utiliza <strong>stock plano</strong> y tarifas genéricas.<br>Añade variantes arriba para dividir su rango comercial.</p>
                 </div>
                 {% endif %}
             </div>
@@ -255,7 +255,7 @@
         <div class="modal-content border-0 shadow">
             <form method="POST" action="{{ url_for('inventory_bp.importar_inventario') }}" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="modal-header border-0 bg-light">
+                <div class="modal-header border-0 bg-tekfix-card">
                     <h5 class="modal-title fw-bold text-success" id="importarModalLabel">
                         <i class="fa-solid fa-cloud-arrow-up me-2"></i>Carga Masiva de Productos
                     </h5>
@@ -271,11 +271,11 @@
 
                     <div class="text-start mb-2">
                         <label class="form-label fw-bold">2. Subir archivo rellenado</label>
-                        <input type="file" name="archivo" accept=".xlsx, .csv" class="form-control bg-light border-0 shadow-sm" required>
-                        <small class="text-muted d-block mt-2"><i class="fa-solid fa-circle-info text-info me-1"></i>Si el código SKU ya existe, su cantidad será <strong>SUMADA</strong> al inventario actual y se pisarán los precios.</small>
+                        <input type="file" name="archivo" accept=".xlsx, .csv" class="form-control bg-tekfix-card border-0 shadow-sm" required>
+                        <small class="text-tekfix-sec d-block mt-2"><i class="fa-solid fa-circle-info text-info me-1"></i>Si el código SKU ya existe, su cantidad será <strong>SUMADA</strong> al inventario actual y se pisarán los precios.</small>
                     </div>
                 </div>
-                <div class="modal-footer border-0 bg-light rounded-bottom">
+                <div class="modal-footer border-0 bg-tekfix-card rounded-bottom">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-success rounded-pill fw-bold px-4 shadow-sm">
                         <i class="fa-solid fa-gear me-1"></i> Subir y Procesar
@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Crear fila de "No hay resultados" si no existe
     const noResultsRow = document.createElement('tr');
     noResultsRow.className = 'no-results d-none';
-    noResultsRow.innerHTML = `<td colspan="7" class="text-center py-5 text-muted">
+    noResultsRow.innerHTML = `<td colspan="7" class="text-center py-5 text-tekfix-sec">
         <i class="fa-solid fa-magnifying-glass-minus fs-1 mb-3 opacity-25"></i>
         <p class="mb-0">No se encontraron productos que coincidan con tu búsqueda.</p>
     </td>`;

@@ -3,15 +3,15 @@
 {% block content %}
 <div class="row mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center mb-4">
-        <!-- Título con acento Azul Turquesa según reglas de Branding (.text-brand-blue es #A3D8DE) -->
-        <h2 class="fw-bolder m-0" style="color: var(--brand-blue);">
+        <!-- Título con acento Azul Turquesa según reglas de Branding (.text-tekfix-sec es #A3D8DE) -->
+        <h2 class="fw-bolder m-0" style="color: var(--tekfix-primary);">
             <i class="fa-solid fa-clock-rotate-left me-2"></i>Historial de Operaciones
         </h2>
         <div class="d-flex align-items-center gap-2 d-print-none">
-            <button onclick="window.print()" class="btn px-4 rounded-pill fw-bold text-dark border shadow-sm" style="background-color: #F9C8D3; border-color: #ebaebc;">
+            <button onclick="window.print()" class="btn px-4 rounded-pill fw-bold text-tekfix-main border shadow-sm" style="background-color: #F9C8D3; border-color: #ebaebc;">
                 <i class="fa-solid fa-print me-1"></i> Imprimir a PDF
             </button>
-            <a href="/admin/dashboard" class="btn btn-light rounded-pill px-4 fw-bold text-muted border shadow-sm">
+            <a href="/admin/dashboard" class="btn btn-light rounded-pill px-4 fw-bold text-tekfix-sec border shadow-sm">
                 <i class="fa-solid fa-arrow-left me-1"></i> Panel 
             </a>
         </div>
@@ -19,59 +19,68 @@
 
     <!-- Encabezado de Impresión / PDF -->
     <div class="col-12 d-none d-print-block text-center mb-4 pb-3 border-bottom">
-        <h1 class="fw-bold text-brand-black mb-1"><i class="fa-solid fa-chart-line me-2"></i> cases.com</h1>
-        <h4 class="text-muted fw-semibold">REPORTE CONSOLIDADO DE VENTAS</h4>
+        <h1 class="fw-bold text-tekfix-main mb-1"><i class="fa-solid fa-chart-line me-2"></i> Tekfix Oficial</h1>
+        <h4 class="text-tekfix-sec fw-semibold">REPORTE CONSOLIDADO DE VENTAS</h4>
         <p class="mb-0 text-secondary">
             Período Analizado: <strong>{{ fecha_inicio if fecha_inicio else 'Inicios' }}</strong> hasta <strong>{{ fecha_fin if fecha_fin else 'Hoy' }}</strong>
         </p>
         {% if current_user.rol != 'admin' %}
-            <p class="mb-0 text-brand-black fw-bold">Usuario Solicitante: {{ current_user.nombre }}</p>
+            <p class="mb-0 text-tekfix-main fw-bold">Usuario Solicitante: {{ current_user.nombre }}</p>
         {% endif %}
     </div>
 
     <!-- UI: Resumen Financiero Dinámico (Tarjetas) -->
-    <div class="col-6 col-md-3 mb-3">
-        <div class="card card-custom h-100" style="border-left: 6px solid var(--brand-blue) !important;">
-            <div class="card-body py-3 ps-3">
-                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</p>
-                <h4 class="fw-bolder m-0" style="color: var(--brand-blue);">${{ (total_efectivo)|cop }}</h4>
+    <div class="col-6 col-md-2 mb-3">
+        <div class="card card-custom h-100" style="border-left: 6px solid var(--tekfix-primary) !important;">
+            <div class="card-body py-2 ps-3">
+                <p class="text-tekfix-sec fw-bold text-uppercase mb-1" style="font-size: 0.70rem;"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</p>
+                <h5 class="fw-bolder m-0" style="color: var(--tekfix-primary);">${{ (total_efectivo)|cop }}</h5>
             </div>
         </div>
     </div>
     
-    <div class="col-6 col-md-3 mb-3">
+    <div class="col-6 col-md-2 mb-3">
         <div class="card card-custom h-100" style="border-left: 6px solid #6f42c1 !important;">
-            <div class="card-body py-3 ps-3">
-                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-mobile-button me-1"></i> Nequi</p>
-                <h4 class="fw-bolder m-0" style="color: #6f42c1;">${{ (total_nequi)|cop }}</h4>
+            <div class="card-body py-2 ps-3">
+                <p class="text-tekfix-sec fw-bold text-uppercase mb-1" style="font-size: 0.70rem;"><i class="fa-solid fa-mobile-button me-1"></i> Nequi</p>
+                <h5 class="fw-bolder m-0" style="color: #6f42c1;">${{ (total_nequi)|cop }}</h5>
             </div>
         </div>
     </div>
 
     <div class="col-6 col-md-3 mb-3">
         <div class="card card-custom h-100" style="border-left: 6px solid #fd7e14 !important;">
-            <div class="card-body py-3 ps-3">
-                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-building-columns me-1"></i> Bancolombia</p>
-                <h4 class="fw-bolder m-0" style="color: #fd7e14;">${{ (total_bancolombia)|cop }}</h4>
+            <div class="card-body py-2 ps-3">
+                <p class="text-tekfix-sec fw-bold text-uppercase mb-1" style="font-size: 0.70rem;"><i class="fa-solid fa-building-columns me-1"></i> Bancolombia</p>
+                <h5 class="fw-bolder m-0" style="color: #fd7e14;">${{ (total_bancolombia)|cop }}</h5>
             </div>
         </div>
     </div>
 
-    <div class="col-6 col-md-3 mb-3">
+    <div class="col-6 col-md-2 mb-3">
         <div class="card card-custom h-100" style="border-left: 6px solid #dc3545 !important;">
-            <div class="card-body py-3 ps-3">
-                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-mobile-screen me-1"></i> Daviplata</p>
-                <h4 class="fw-bolder m-0" style="color: #dc3545;">${{ (total_daviplata)|cop }}</h4>
+            <div class="card-body py-2 ps-3">
+                <p class="text-tekfix-sec fw-bold text-uppercase mb-1" style="font-size: 0.70rem;"><i class="fa-solid fa-mobile-screen me-1"></i> Daviplata</p>
+                <h5 class="fw-bolder m-0" style="color: #dc3545;">${{ (total_daviplata)|cop }}</h5>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-6 col-md-2 mb-3">
+        <div class="card card-custom h-100" style="border-left: 6px solid #17a2b8 !important;">
+            <div class="card-body py-2 ps-3">
+                <p class="text-tekfix-sec fw-bold text-uppercase mb-1" style="font-size: 0.70rem;"><i class="fa-solid fa-credit-card me-1"></i> Tarjeta</p>
+                <h5 class="fw-bolder m-0" style="color: #17a2b8;">${{ (total_tarjeta)|cop }}</h5>
             </div>
         </div>
     </div>
 
     {% if total_transferencia_legacy > 0 %}
     <div class="col-12 mb-3">
-        <div class="card card-custom h-100" style="border-left: 6px solid var(--brand-pink) !important;">
+        <div class="card card-custom h-100" style="border-left: 6px solid var(--tekfix-hover) !important;">
             <div class="card-body py-3 ps-3">
-                <p class="text-muted fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-clock-rotate-left me-1"></i> Transf. Históricas</p>
-                <h4 class="fw-bolder m-0" style="color: var(--brand-pink);">${{ (total_transferencia_legacy)|cop }}</h4>
+                <p class="text-tekfix-sec fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-clock-rotate-left me-1"></i> Transf. Históricas</p>
+                <h4 class="fw-bolder m-0" style="color: var(--tekfix-hover);">${{ (total_transferencia_legacy)|cop }}</h4>
             </div>
         </div>
     </div>
@@ -84,24 +93,24 @@
         </button>
         
         <div class="collapse mt-3" id="filtrosCollapse">
-            <div class="card card-custom p-4 bg-light">
+            <div class="card card-custom p-4 bg-tekfix-card">
                 <form method="GET" action="{{ url_for('sales_bp.historial') }}" class="row align-items-end g-3">
                     <div class="col-md-4">
-                        <label class="form-label fw-bold text-brand-black small">Desde (Día)</label>
+                        <label class="form-label fw-bold text-tekfix-main small">Desde (Día)</label>
                         <input type="date" name="fecha_inicio" class="form-control border-0 shadow-sm" value="{{ fecha_inicio or '' }}">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-bold text-brand-black small">Hasta (Límite)</label>
+                        <label class="form-label fw-bold text-tekfix-main small">Hasta (Límite)</label>
                         <input type="date" name="fecha_fin" class="form-control border-0 shadow-sm" value="{{ fecha_fin or '' }}">
                     </div>
                     <div class="col-md-4">
                         <!-- El botón manda la alerta GET en color predominante Turquesa -->
-                        <button type="submit" class="btn btn-blue w-100 rounded-3 shadow-sm fw-bold">
+                        <button type="submit" class="btn btn-tekfix-secondary w-100 rounded-3 shadow-sm fw-bold">
                             <i class="fa-solid fa-magnifying-glass me-2"></i>Aplicar Filtros
                         </button>
                         {% if fecha_inicio or fecha_fin %}
                         <div class="text-center mt-2">
-                            <a href="{{ url_for('sales_bp.historial') }}" class="text-muted small text-decoration-none border-bottom border-secondary">Borrar Rango Analítico</a>
+                            <a href="{{ url_for('sales_bp.historial') }}" class="text-tekfix-sec small text-decoration-none border-bottom border-secondary">Borrar Rango Analítico</a>
                         </div>
                         {% endif %}
                     </div>
@@ -113,8 +122,8 @@
 
 <div class="card card-custom p-0 overflow-hidden">
     <div class="table-responsive">
-        <table class="table table-hover table-striped table-custom mb-0">
-            <thead class="bg-light">
+        <table class="table table-hover table-striped table-custom table-dark mb-0">
+            <thead class="bg-tekfix-card">
                 <tr>
                     <th width="120">N° TIPO</th>
                     <th>FECHA DE COBRO</th>
@@ -127,15 +136,15 @@
             <tbody>
                 {% for venta in ventas %}
                 <tr>
-                    <td class="fw-bold text-brand-black align-middle">Ticket #{{ "%05d"|format(venta.id) }}</td>
-                    <td class="align-middle text-muted"><i class="fa-regular fa-calendar text-brand-pink me-1"></i> {{ venta.fecha_venta.strftime('%Y-%m-%d a las %H:%M') }}</td>
-                    <td class="align-middle fw-semibold text-brand-black">
-                        <i class="fa-solid fa-user-circle text-muted me-1"></i> {{ venta.vendedor.nombre }}
+                    <td class="fw-bold text-tekfix-main align-middle">Ticket #{{ "%05d"|format(venta.id) }}</td>
+                    <td class="align-middle text-tekfix-sec"><i class="fa-regular fa-calendar text-tekfix-primary me-1"></i> {{ venta.fecha_venta.strftime('%Y-%m-%d a las %H:%M') }}</td>
+                    <td class="align-middle fw-semibold text-tekfix-main">
+                        <i class="fa-solid fa-user-circle text-tekfix-sec me-1"></i> {{ venta.vendedor.nombre }}
                     </td>
                     <td class="text-center align-middle">
                         {% if venta.pagos|length > 1 %}
                             <!-- Pago Mixto: badge especial con tooltip de desglose -->
-                            <span class="badge bg-light text-dark border border-warning border-opacity-50 rounded-pill px-3 py-2" 
+                            <span class="badge bg-tekfix-card text-tekfix-main border border-warning border-opacity-50 rounded-pill px-3 py-2" 
                                   data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="left"
                                   title="{% for p in venta.pagos %}{{ p.metodo_pago|capitalize }}: ${{ (p.monto)|cop }}{% if not loop.last %}&lt;br&gt;{% endif %}{% endfor %}"
                                   style="cursor: help;">
@@ -144,27 +153,27 @@
                         {% elif venta.pagos|length == 1 %}
                             {% set metodo = venta.pagos[0].metodo_pago %}
                             {% if metodo == 'efectivo' %}
-                                <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
+                                <span class="badge bg-tekfix-card text-success border border-success border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
                             {% else %}
-                                <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> {{ metodo|capitalize }}</span>
+                                <span class="badge bg-tekfix-card text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> {{ metodo|capitalize }}</span>
                             {% endif %}
                         {% else %}
                             {% if venta.metodo_pago == 'efectivo' %}
-                                <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
+                                <span class="badge bg-tekfix-card text-success border border-success border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
                             {% elif venta.metodo_pago == 'mixto' %}
-                                <span class="badge bg-light text-dark border border-warning border-opacity-50 rounded-pill px-3 py-2"><i class="fa-solid fa-arrows-split-up-and-left me-1" style="color: #fd7e14;"></i> Pago Mixto</span>
+                                <span class="badge bg-tekfix-card text-tekfix-main border border-warning border-opacity-50 rounded-pill px-3 py-2"><i class="fa-solid fa-arrows-split-up-and-left me-1" style="color: #fd7e14;"></i> Pago Mixto</span>
                             {% else %}
-                                <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> {{ venta.metodo_pago|capitalize }}</span>
+                                <span class="badge bg-tekfix-card text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> {{ venta.metodo_pago|capitalize }}</span>
                             {% endif %}
                         {% endif %}
                     </td>
-                    <td class="text-end align-middle fw-bolder text-brand-black fs-5">
+                    <td class="text-end align-middle fw-bolder text-tekfix-main fs-5">
                         ${{ (venta.monto_total)|cop }}
                     </td>
                     <td class="text-center align-middle">
                         <div class="d-flex flex-column gap-2">
                             <!-- Botón Secundario Rosa Pastel -->
-                            <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=venta.id) }}" target="_blank" class="btn btn-pink btn-sm rounded-pill px-3 fw-bold shadow-sm w-100">
+                            <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=venta.id) }}" target="_blank" class="btn btn-tekfix btn-sm rounded-pill px-3 fw-bold shadow-sm w-100">
                                 <i class="fa-solid fa-receipt me-1"></i> Ver Recibo
                             </a>
                             
@@ -183,9 +192,9 @@
                 {% else %}
                 <tr>
                     <td colspan="6" class="text-center py-5">
-                        <i class="fa-solid fa-cash-register fs-1 mb-3" style="color: var(--brand-pink);"></i>
-                        <h4 class="text-brand-black fw-bold">Libro de Cajas en Blanco</h4>
-                        <p class="text-muted mb-0">Acualmente no hay facturas ni transacciones emitidas.</p>
+                        <i class="fa-solid fa-cash-register fs-1 mb-3" style="color: var(--tekfix-hover);"></i>
+                        <h4 class="text-tekfix-main fw-bold">Libro de Cajas en Blanco</h4>
+                        <p class="text-tekfix-sec mb-0">Acualmente no hay facturas ni transacciones emitidas.</p>
                     </td>
                 </tr>
                 {% endfor %}

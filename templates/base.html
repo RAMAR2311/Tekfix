@@ -3,137 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cases.com - CRM & POS</title>
+    <title>Tekfix Oficial - CRM & POS</title>
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/cases.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/Tekfix.png') }}">
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* REGLA DE BRANDING ESTRICTA Y COLORES */
+        /* REGLA DE BRANDING TEKFIX (Dark Premium) */
         :root {
-            --brand-pink: #F9C8D3;   /* Rosa Pastel */
-            --brand-blue: #A3D8DE;   /* Azul Turquesa */
-            --brand-black: #1A1A1A;  /* Negro */
-            --brand-white: #FFFFFF;  /* Blanco */
-            
-            --brand-bg: #F8F9FA;     /* Fondo gris súper claro para dar profundidad al blanco */
+            --tekfix-bg: #1A1818;          /* Antracita profundo */
+            --tekfix-primary: #DDB856;     /* Dorado medio */
+            --tekfix-hover: #F9E491;       /* Dorado brillante */
+            --tekfix-border: #A37E2C;      /* Dorado oscuro */
+            --tekfix-text-sec: #C5C5C5;    /* Gris plata */
+            --tekfix-text-main: #FFFFFF;   /* Blanco puro */
+            --tekfix-card-bg: #252323;     /* Fondo de tarjetas */
         }
 
         body {
-            background-color: var(--brand-bg);
-            color: var(--brand-black);
+            background-color: var(--tekfix-bg);
+            color: var(--tekfix-text-main);
             font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Variables Utilitarias */
-        .bg-brand-blue { background-color: var(--brand-blue) !important; color: var(--brand-black); }
-        .bg-brand-pink { background-color: var(--brand-pink) !important; color: var(--brand-black); }
-        .bg-brand-white { background-color: var(--brand-white) !important; }
-        .text-brand-black { color: var(--brand-black) !important; }
-        .text-brand-pink { color: var(--brand-pink) !important; }
+        /* Variables Utilitarias Auxiliares */
+        .bg-tekfix-primary { background-color: var(--tekfix-primary) !important; color: var(--tekfix-bg); }
+        .bg-tekfix-card { background-color: var(--tekfix-card-bg) !important; }
+        .text-tekfix-main { color: var(--tekfix-text-main) !important; }
+        .text-tekfix-primary { color: var(--tekfix-primary) !important; }
+        .text-tekfix-sec { color: var(--tekfix-text-sec) !important; }
 
-        /* Navbar E-commerce Vibe (Ahora en Rosa Pastel) */
+        /* Navbar Tekfix */
         .navbar-custom {
-            background-color: var(--brand-pink);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            background-color: var(--tekfix-bg);
+            border-bottom: 1px solid var(--tekfix-border);
             padding: 1rem 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
         }
         
         .navbar-custom .navbar-brand {
             font-weight: 800;
-            color: var(--brand-black);
+            color: var(--tekfix-primary) !important;
             font-size: 1.75rem;
             letter-spacing: -0.5px;
         }
 
         .navbar-custom .nav-link {
-            color: var(--brand-black);
+            color: var(--tekfix-text-sec);
             font-weight: 500;
             margin-left: 1rem;
-            transition: opacity 0.2s;
+            transition: color 0.2s;
         }
 
         .navbar-custom .nav-link:hover {
-            opacity: 0.7;
+            color: var(--tekfix-hover);
         }
 
         /* Botones Pro */
-        .btn-pink {
-            background-color: var(--brand-pink);
-            color: var(--brand-black);
+        .btn-tekfix {
+            background-color: var(--tekfix-primary);
+            color: var(--tekfix-bg);
             font-weight: 600;
             border: none;
             transition: all 0.2s ease-in-out;
         }
-        .btn-pink:hover {
-            background-color: #f0aebb;
+        .btn-tekfix:hover {
+            background-color: var(--tekfix-hover);
+            color: var(--tekfix-bg);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(249, 200, 211, 0.4);
+            box-shadow: 0 4px 12px rgba(249, 228, 145, 0.3);
         }
 
-        .btn-blue {
-            background-color: var(--brand-blue);
-            color: var(--brand-black);
+        .btn-tekfix-secondary {
+            background-color: transparent;
+            color: var(--tekfix-primary);
             font-weight: 600;
-            border: none;
+            border: 1px solid var(--tekfix-primary);
             transition: all 0.2s ease-in-out;
         }
-        .btn-blue:hover {
-            background-color: #8bc3c9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(163, 216, 222, 0.4);
+        .btn-tekfix-secondary:hover {
+            background-color: rgba(221, 184, 86, 0.1);
+            color: var(--tekfix-hover);
+            border-color: var(--tekfix-hover);
         }
 
-        /* Superficies Claras y Limpias */
+        /* Superficies Claras y Limpias -> Ahora Oscuras y Premium */
         .card-custom {
-            background-color: var(--brand-white);
-            border: none;
+            background-color: var(--tekfix-card-bg);
+            color: var(--tekfix-text-main);
+            border: 1px solid var(--tekfix-border);
             border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
 
         /* Tablas */
-        .table-custom {
-            background-color: var(--brand-white);
+        .table-custom table-dark {
+            background-color: var(--tekfix-card-bg);
+            color: var(--tekfix-text-main);
             border-radius: 12px;
         }
-        .table-custom thead th {
-            color: var(--brand-black);
-            /* Borde inferior de la tabla ahora en rosa pastel para hacer juego con el navbar */
-            border-bottom: 2px solid var(--brand-pink);
+        .table-custom table-dark thead th {
+            color: var(--tekfix-primary);
+            border-bottom: 2px solid var(--tekfix-primary);
+            background-color: transparent;
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.5px;
             padding: 1.25rem 1rem;
         }
-        .table-custom tbody td {
+        .table-custom table-dark tbody td {
+            color: var(--tekfix-text-main);
+            border-bottom: 1px solid rgba(163, 126, 44, 0.2); 
+            background-color: transparent;
             padding: 1.25rem 1rem;
             vertical-align: middle;
         }
 
+        /* Hover general para filas de tabla (opcional) */
+        .table-hover tbody tr:hover td {
+            background-color: rgba(221, 184, 86, 0.05); /* very light gold */
+        }
+
         /* Sidebar Offcanvas Estilos */
+        .offcanvas { background-color: var(--tekfix-bg) !important; border-right: 1px solid var(--tekfix-border) !important; }
+        .offcanvas-header { background-color: var(--tekfix-card-bg) !important; border-bottom: 1px solid var(--tekfix-border) !important; }
+        .offcanvas-title { color: var(--tekfix-primary) !important; }
+        
+        /* Ajuste de Botón de cierre en Navbar/Sidebar Oscuros */
+        .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+        
         .offcanvas-body .nav-link {
+            color: var(--tekfix-text-sec) !important;
             transition: all 0.2s ease-in-out;
         }
-        .offcanvas-body .nav-link:hover {
-            background-color: rgba(163, 216, 222, 0.15); /* bg-brand-blue transparente */
+        .offcanvas-body .nav-link:hover, .offcanvas-body .nav-link.active {
+            color: var(--tekfix-hover) !important;
+            background-color: rgba(221, 184, 86, 0.1);
             transform: translateX(4px);
-            border-left: 3px solid var(--brand-pink) !important;
+            border-left: 3px solid var(--tekfix-primary) !important;
+            border-radius: 0 8px 8px 0 !important; /* Para que luzca mejor con el border left */
+        }
+        
+        /* Fix for card headers if they exist */
+        .card-header {
+            border-bottom: 1px solid rgba(163, 126, 44, 0.2);
+            background-color: rgba(0,0,0,0.1);
+        }
+        
+        /* Fix inputs en dark mode */
+        .form-control, .form-select {
+            background-color: var(--tekfix-bg);
+            border: 1px solid var(--tekfix-border);
+            color: var(--tekfix-text-main);
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: var(--tekfix-bg);
+            border-color: var(--tekfix-primary);
+            color: var(--tekfix-text-main);
+            box-shadow: 0 0 0 0.25rem rgba(221, 184, 86, 0.25);
+        }
+        .form-control::placeholder {
+            color: var(--tekfix-text-sec);
+            opacity: 0.6;
         }
     </style>
 </head>
 <body>
-    <!-- Navbar cases.com -->
+    <!-- Navbar Tekfix -->
     <nav class="navbar navbar-custom mb-5 position-relative">
         <div class="container-fluid px-3 d-flex justify-content-between align-items-center">
             
             {% if current_user.is_authenticated %}
             <!-- Botón Hamburguesa (Izquierda) -->
             <button class="navbar-toggler border-0 shadow-none p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
-                <i class="fa-solid fa-bars fs-3 text-brand-black"></i>
+                <i class="fa-solid fa-bars fs-3 text-tekfix-primary"></i>
             </button>
             {% else %}
             <!-- Spacer if not authenticated -->
@@ -142,8 +188,7 @@
 
             <!-- Brand Logo (Centro) -->
             <a class="navbar-brand d-flex align-items-center fw-bold m-0 position-absolute start-50 translate-middle-x" href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='img/cases.png') }}" alt="cases.com" style="height: 38px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));" class="me-2">
-                cases.com
+                <img src="{{ url_for('static', filename='img/Tekfix.png') }}" alt="Tekfix Logo" style="height: 30px; object-fit: contain;">
             </a>
 
             <!-- Spacer derecho para equilibrar flex -->
@@ -154,8 +199,8 @@
     {% if current_user.is_authenticated %}
     <!-- Offcanvas Menú Lateral (Sidebar) -->
     <div class="offcanvas offcanvas-start border-0 shadow" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel" style="width: 280px;">
-        <div class="offcanvas-header bg-brand-pink border-bottom">
-            <h5 class="offcanvas-title fw-bold text-brand-black" id="offcanvasNavbarLabel">
+        <div class="offcanvas-header bg-tekfix-card border-bottom">
+            <h5 class="offcanvas-title fw-bold text-tekfix-main" id="offcanvasNavbarLabel">
                 <i class="fa-solid fa-user-circle me-2"></i>{{ current_user.rol | capitalize }}
             </h5>
             <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -165,66 +210,64 @@
                 {% if current_user.rol == 'admin' %}
                     <!-- Enlaces Únicos para el Administrador de la Tienda -->
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/dashboard"><i class="fa-solid fa-chart-pie text-muted me-2" style="width:20px; text-align:center;"></i> Dashboard</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/dashboard"><i class="fa-solid fa-chart-pie text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/inventory"><i class="fa-solid fa-box text-muted me-2" style="width:20px; text-align:center;"></i> Inventario Tienda</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/inventory"><i class="fa-solid fa-box text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Inventario Tienda</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/nueva"><i class="fa-solid fa-cash-register text-muted me-2" style="width:20px; text-align:center;"></i> Caja Terminal</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/nueva"><i class="fa-solid fa-cash-register text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Caja Terminal</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/vendedores"><i class="fa-solid fa-users text-muted me-2" style="width:20px; text-align:center;"></i> Personal</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/vendedores"><i class="fa-solid fa-users text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Personal</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/gastos"><i class="fa-solid fa-money-bill-transfer me-2" style="color: var(--brand-blue); width:20px; text-align:center;"></i> Gastos</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/gastos"><i class="fa-solid fa-money-bill-transfer me-2" style="color: var(--tekfix-primary); width:20px; text-align:center;"></i> Gastos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-bold border-bottom" href="/sales/catalogo"><i class="fa-solid fa-book-open text-brand-pink me-2" style="width:20px; text-align:center;"></i> Catálogo Físico</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-bold border-bottom" href="/sales/catalogo"><i class="fa-solid fa-book-open text-tekfix-primary me-2" style="width:20px; text-align:center;"></i> Catálogo Físico</a>
                     </li>
                     <li class="nav-item mt-2">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-bold bg-light border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-brand-blue me-2" style="width:20px; text-align:center;"></i> Arqueo de Caja</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-bold bg-tekfix-card border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Arqueo de Caja</a>
                     </li>
                 {% elif current_user.rol == 'vendedor' %}
                     <!-- Vistas Estrictamente Operativas (Cajeros) -->
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/catalogo"><i class="fa-solid fa-book-open text-muted me-2" style="width:20px; text-align:center;"></i> Catálogo Rápido</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/catalogo"><i class="fa-solid fa-book-open text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Catálogo Rápido</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/nueva"><i class="fa-solid fa-cash-register text-brand-pink me-2" style="width:20px; text-align:center;"></i> Módulo de Caja</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/nueva"><i class="fa-solid fa-cash-register text-tekfix-primary me-2" style="width:20px; text-align:center;"></i> Módulo de Caja</a>
                     </li>
+
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/maneos"><i class="fa-solid fa-handshake me-2" style="color: var(--brand-blue); width:20px; text-align:center;"></i> Maneos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="/gastos"><i class="fa-solid fa-money-bill-transfer text-success me-2" style="width:20px; text-align:center;"></i> Gastos</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/gastos"><i class="fa-solid fa-money-bill-transfer text-success me-2" style="width:20px; text-align:center;"></i> Gastos</a>
                     </li>
                     <li class="nav-item mt-2">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-bold bg-light border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-brand-blue me-2" style="width:20px; text-align:center;"></i> Arqueo</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-bold bg-tekfix-card border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Arqueo</a>
                     </li>
                 {% elif current_user.rol == 'bodega' %}
                     <!-- Vistas Exclusivas para el Encargado de Bodega -->
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.dashboard') }}"><i class="fa-solid fa-boxes-stacked text-brand-blue me-2" style="width:20px; text-align:center;"></i> Bodega</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.dashboard') }}"><i class="fa-solid fa-boxes-stacked text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Bodega</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('inventory_bp.index') }}"><i class="fa-solid fa-box text-brand-pink me-2" style="width:20px; text-align:center;"></i> Mi Inventario (Bodega)</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('inventory_bp.index') }}"><i class="fa-solid fa-box text-tekfix-primary me-2" style="width:20px; text-align:center;"></i> Mi Inventario (Bodega)</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.clientes') }}"><i class="fa-solid fa-address-book text-muted me-2" style="width:20px; text-align:center;"></i> Directorio Clientes</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.clientes') }}"><i class="fa-solid fa-address-book text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Directorio Clientes</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.nuevo_cliente') }}"><i class="fa-solid fa-user-plus text-muted me-2" style="width:20px; text-align:center;"></i> Registrar Cliente</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.nuevo_cliente') }}"><i class="fa-solid fa-user-plus text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Registrar Cliente</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-brand-black rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.nueva_factura') }}"><i class="fa-solid fa-file-invoice text-brand-pink me-2" style="width:20px; text-align:center;"></i> Subir Factura</a>
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.nueva_factura') }}"><i class="fa-solid fa-file-invoice text-tekfix-primary me-2" style="width:20px; text-align:center;"></i> Subir Factura</a>
                     </li>
                 {% endif %}
             </ul>
             
             <!-- Interfaz de Desconexión / Fin de Turno al final del sidebar -->
             <div class="px-3 pb-4 mt-auto">
-                <a class="btn btn-outline-danger w-100 rounded-pill fw-bold" href="{{ url_for('auth_bp.logout') }}">
+                <a class="btn btn-outline-light w-100 rounded-pill fw-bold" href="{{ url_for('auth_bp.logout') }}">
                     <i class="fa-solid fa-sign-out-alt me-2"></i> Salir del Sistema
                 </a>
             </div>

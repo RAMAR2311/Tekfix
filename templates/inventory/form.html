@@ -5,7 +5,7 @@
     <div class="col-md-8">
         <div class="d-flex align-items-center mb-4">
             <a href="/inventory" class="btn btn-light rounded-circle me-3 border-0"><i class="fa-solid fa-arrow-left"></i></a>
-            <h2 class="fw-bold text-brand-black mb-0">{% if producto %}Editar Producto{% else %}Crear Producto{% endif %}</h2>
+            <h2 class="fw-bold text-tekfix-main mb-0">{% if producto %}Editar Producto{% else %}Crear Producto{% endif %}</h2>
         </div>
 
         <div class="card card-custom p-5">
@@ -14,59 +14,59 @@
                 
                 <div class="row g-4">
                     <div class="col-md-4">
-                        <label class="form-label fw-bold text-brand-black">SKU / Código</label>
-                        <input type="text" class="form-control bg-light border-0" name="sku" required placeholder="Ej: FUNDA-XXX" value="{{ producto.sku if producto else '' }}">
+                        <label class="form-label fw-bold text-tekfix-main">SKU / Código</label>
+                        <input type="text" class="form-control bg-tekfix-card border-0" name="sku" required placeholder="Ej: FUNDA-XXX" value="{{ producto.sku if producto else '' }}">
                     </div>
                     <div class="col-md-8">
-                        <label class="form-label fw-bold text-brand-black">Nombre del Producto</label>
-                        <input type="text" class="form-control bg-light border-0" name="nombre" required placeholder="Acme Case Pro" value="{{ producto.nombre if producto else '' }}">
+                        <label class="form-label fw-bold text-tekfix-main">Nombre del Producto</label>
+                        <input type="text" class="form-control bg-tekfix-card border-0" name="nombre" required placeholder="Acme Case Pro" value="{{ producto.nombre if producto else '' }}">
                     </div>
                     
                     <div class="col-md-3 mt-4">
-                        <label class="form-label fw-bold text-brand-black text-truncate">Existencias</label>
-                        <input type="number" class="form-control bg-light border-0" name="cantidad_stock" required min="0" value="{{ producto.cantidad_stock if producto else '' }}">
+                        <label class="form-label fw-bold text-tekfix-main text-truncate">Existencias</label>
+                        <input type="number" class="form-control bg-tekfix-card border-0" name="cantidad_stock" required min="0" value="{{ producto.cantidad_stock if producto else '' }}">
                     </div>
                     <div class="col-md-3 mt-4">
-                        <label class="form-label fw-bold text-brand-black text-truncate">Costo Compra</label>
+                        <label class="form-label fw-bold text-tekfix-main text-truncate">Costo Compra</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-0">$</span>
-                            <input type="number" step="1" class="form-control bg-light border-0" name="precio_costo" required value="{{ producto.precio_costo if producto else '' }}">
+                            <span class="input-group-text bg-tekfix-card border-0">$</span>
+                            <input type="number" step="1" class="form-control bg-tekfix-card border-0" name="precio_costo" required value="{{ producto.precio_costo if producto else '' }}">
                         </div>
                     </div>
                     <div class="col-md-3 mt-4">
-                        <label class="form-label fw-bold text-brand-black text-truncate">Precio Mínimo</label>
+                        <label class="form-label fw-bold text-tekfix-main text-truncate">Precio Mínimo</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-0">$</span>
-                            <input type="number" step="1" class="form-control bg-light border-0" name="precio_minimo" required value="{{ producto.precio_minimo if producto else '' }}">
+                            <span class="input-group-text bg-tekfix-card border-0">$</span>
+                            <input type="number" step="1" class="form-control bg-tekfix-card border-0" name="precio_minimo" required value="{{ producto.precio_minimo if producto else '' }}">
                         </div>
                     </div>
                     <div class="col-md-3 mt-4">
-                        <label class="form-label fw-bold text-brand-black text-truncate">Precio Sugerido</label>
+                        <label class="form-label fw-bold text-tekfix-main text-truncate">Precio Sugerido</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-0">$</span>
-                            <input type="number" step="1" class="form-control bg-light border-0" name="precio_sugerido" required value="{{ producto.precio_sugerido if producto else '' }}">
+                            <span class="input-group-text bg-tekfix-card border-0">$</span>
+                            <input type="number" step="1" class="form-control bg-tekfix-card border-0" name="precio_sugerido" required value="{{ producto.precio_sugerido if producto else '' }}">
                         </div>
                     </div>
                     
                     <div class="col-md-6 mt-4">
-                        <label class="form-label fw-bold text-brand-black">Imagen del Producto (Opcional)</label>
-                        <input type="file" class="form-control bg-light border-0" name="imagen" accept="image/*">
+                        <label class="form-label fw-bold text-tekfix-main">Imagen del Producto (Opcional)</label>
+                        <input type="file" class="form-control bg-tekfix-card border-0" name="imagen" accept="image/*">
                         {% if producto and producto.imagen %}
-                            <small class="text-muted d-block mt-2">Imagen actual: <a href="{{ url_for('static', filename='uploads/' ~ producto.imagen) }}" target="_blank">{{ producto.imagen }}</a></small>
+                            <small class="text-tekfix-sec d-block mt-2">Imagen actual: <a href="{{ url_for('static', filename='uploads/' ~ producto.imagen) }}" target="_blank">{{ producto.imagen }}</a></small>
                         {% endif %}
                     </div>
                     <div class="col-md-6 mt-4">
-                        <label class="form-label fw-bold text-brand-black">Observación (Opcional)</label>
-                        <textarea class="form-control bg-light border-0" name="observacion" rows="3" placeholder="Notas sobre el producto...">{{ producto.observacion if producto and producto.observacion else '' }}</textarea>
+                        <label class="form-label fw-bold text-tekfix-main">Observación (Opcional)</label>
+                        <textarea class="form-control bg-tekfix-card border-0" name="observacion" rows="3" placeholder="Notas sobre el producto...">{{ producto.observacion if producto and producto.observacion else '' }}</textarea>
                     </div>
                 </div>
 
                 <hr class="my-5 border-light">
                 
                 <div class="text-end">
-                    <a href="/inventory" class="btn btn-link text-muted text-decoration-none fw-bold me-3">Cancelar</a>
+                    <a href="/inventory" class="btn btn-link text-tekfix-sec text-decoration-none fw-bold me-3">Cancelar</a>
                     <!-- Botón Guardar en Azul Turquesa -->
-                    <button type="submit" class="btn btn-blue px-5 py-2 rounded-pill">
+                    <button type="submit" class="btn btn-tekfix-secondary px-5 py-2 rounded-pill">
                         Guardar Producto
                     </button>
                 </div>

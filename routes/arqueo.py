@@ -22,12 +22,12 @@ def calcular_totales_dia(ventas_del_dia):
             for pago in v.pagos:
                 if pago.metodo_pago == 'efectivo':
                     total_efectivo += pago.monto
-                else:  # nequi, bancolombia, daviplata, transferencia
+                else:  # nequi, bancolombia, daviplata, transferencia, tarjeta
                     total_transferencia += pago.monto
         else:  # Retrocompatibilidad con ventas antiguas
             if v.metodo_pago == 'efectivo':
                 total_efectivo += v.monto_total
-            elif v.metodo_pago in ['transferencia', 'nequi', 'bancolombia', 'daviplata']:
+            elif v.metodo_pago in ['transferencia', 'nequi', 'bancolombia', 'daviplata', 'tarjeta']:
                 total_transferencia += v.monto_total
     
     return total_efectivo, total_transferencia

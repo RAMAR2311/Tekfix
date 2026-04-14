@@ -3,11 +3,11 @@
 {% block content %}
 <div class="row mb-5">
     <div class="col-12 d-flex justify-content-between align-items-center">
-        <!-- Título con acento Azul Turquesa según reglas de Branding (.text-brand-blue es #A3D8DE) -->
-        <h2 class="fw-bolder m-0" style="color: var(--brand-blue);">
+        <!-- Título con acento Azul Turquesa según reglas de Branding (.text-tekfix-sec es #A3D8DE) -->
+        <h2 class="fw-bolder m-0" style="color: var(--tekfix-primary);">
             <i class="fa-solid fa-users-gear me-2"></i>Gestión de Personal
         </h2>
-        <a href="/admin/dashboard" class="btn btn-light rounded-pill px-4 fw-bold text-muted border shadow-sm">
+        <a href="/admin/dashboard" class="btn btn-light rounded-pill px-4 fw-bold text-tekfix-sec border shadow-sm">
             <i class="fa-solid fa-arrow-left me-1"></i> Panel Principal
         </a>
     </div>
@@ -17,34 +17,34 @@
     <!-- Columna Izquierda: Formulario (Card en Blanco Sólido) -->
     <div class="col-md-4">
         <div class="card card-custom p-4 h-100">
-            <h5 class="fw-bold text-brand-black mb-4"><i class="fa-solid fa-id-badge me-2 text-brand-pink"></i> Alta de Nuevo Vendedor</h5>
+            <h5 class="fw-bold text-tekfix-main mb-4"><i class="fa-solid fa-id-badge me-2 text-tekfix-primary"></i> Alta de Nuevo Vendedor</h5>
             <form method="POST">
                 <!-- Autenticador Estricto para el Servidor Jinja -->
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 
                 <div class="mb-3">
-                    <label class="form-label text-brand-black fw-semibold small">Nombre Completo</label>
-                    <input type="text" name="nombre" class="form-control bg-light border-0 py-2" required placeholder="Ej. Ana Pérez">
+                    <label class="form-label text-tekfix-main fw-semibold small">Nombre Completo</label>
+                    <input type="text" name="nombre" class="form-control bg-tekfix-card border-0 py-2" required placeholder="Ej. Ana Pérez">
                 </div>
                 
                 <div class="mb-3">
-                    <label class="form-label text-brand-black fw-semibold small">Correo Empresarial (Login)</label>
-                    <input type="email" name="email" class="form-control bg-light border-0 py-2" required placeholder="ventas@cases.com">
+                    <label class="form-label text-tekfix-main fw-semibold small">Correo Empresarial (Login)</label>
+                    <input type="email" name="email" class="form-control bg-tekfix-card border-0 py-2" required placeholder="ventas@Tekfix Oficial">
                 </div>
                 
                 <div class="mb-3">
-                    <label class="form-label text-brand-black fw-semibold small">Celular / Móvil de Contacto</label>
-                    <input type="text" name="telefono" class="form-control bg-light border-0 py-2" placeholder="Ej. 300 123 4567">
+                    <label class="form-label text-tekfix-main fw-semibold small">Celular / Móvil de Contacto</label>
+                    <input type="text" name="telefono" class="form-control bg-tekfix-card border-0 py-2" placeholder="Ej. 300 123 4567">
                 </div>
                 
                 <div class="mb-4">
-                    <label class="form-label text-brand-black fw-semibold small">Contraseña (PIN)</label>
-                    <input type="password" name="password" class="form-control bg-light border-0 py-2" required placeholder="••••••••">
+                    <label class="form-label text-tekfix-main fw-semibold small">Contraseña (PIN)</label>
+                    <input type="password" name="password" class="form-control bg-tekfix-card border-0 py-2" required placeholder="••••••••">
                 </div>
                 
                 <div class="d-grid mt-auto">
                     <!-- Sólida Llamada a la Acción (Azul Turquesa según Identidad Gráfica) -->
-                    <button type="submit" class="btn btn-blue py-3 fw-bold text-brand-black rounded-3 shadow-sm text-uppercase">
+                    <button type="submit" class="btn btn-tekfix-secondary py-3 fw-bold text-tekfix-main rounded-3 shadow-sm text-uppercase">
                         <i class="fa-solid fa-user-plus me-1"></i> Otorgar Acceso
                     </button>
                 </div>
@@ -54,14 +54,14 @@
 
     <!-- Columna Derecha: Tabla Administrativa -->
     <div class="col-md-8">
-        <div class="card card-custom p-0 overflow-hidden h-100 table-custom">
+        <div class="card card-custom p-0 overflow-hidden h-100 table-custom table-dark">
             <!-- Título de cabecera adherido a la tabla -->
-            <div class="bg-light p-4 border-bottom">
-                 <h5 class="fw-bold text-brand-black m-0 mt-2">Plantilla de Vendedores Activos en Sistema</h5>
+            <div class="bg-tekfix-card p-4 border-bottom">
+                 <h5 class="fw-bold text-tekfix-main m-0 mt-2">Plantilla de Vendedores Activos en Sistema</h5>
             </div>
             <div class="table-responsive p-0">
                 <table class="table table-hover align-middle m-0">
-                    <thead class="bg-light">
+                    <thead class="bg-tekfix-card">
                         <tr>
                             <th class="ps-4">NOMBRE DE EMPLEADO</th>
                             <th>EMAIL (CREDENCIAL DE ACCESO)</th>
@@ -72,16 +72,16 @@
                     <tbody>
                         {% for vendedor in vendedores %}
                         <tr>
-                            <td class="fw-bold text-brand-black ps-4">{{ vendedor.nombre }}</td>
-                            <td class="text-muted">{{ vendedor.email }}</td>
-                            <td class="text-muted">{{ vendedor.telefono or '-- No registrado --' }}</td>
+                            <td class="fw-bold text-tekfix-main ps-4">{{ vendedor.nombre }}</td>
+                            <td class="text-tekfix-sec">{{ vendedor.email }}</td>
+                            <td class="text-tekfix-sec">{{ vendedor.telefono or '-- No registrado --' }}</td>
                             <td class="text-center pe-4">
                                 <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2 w-100">Activo</span>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="4" class="text-center py-5 text-muted">
+                            <td colspan="4" class="text-center py-5 text-tekfix-sec">
                                 <i class="fa-solid fa-users-slash fs-1 mb-3 opacity-25"></i>
                                 <p class="mb-0">Aún no has dado de alta a ningún Vendedor/Cajero.</p>
                             </td>
