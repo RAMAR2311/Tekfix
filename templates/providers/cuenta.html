@@ -141,28 +141,28 @@
 <!-- Modal Registrar Factura (Deuda) -->
 <div class="modal fade" id="modalFactura" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-content border-0 shadow-lg rounded-4 bg-tekfix-card">
             <div class="modal-header border-bottom-0 pb-0">
-                <h5 class="fw-bold text-tekfix-main"><i class="fa-solid fa-plus me-2 text-tekfix-primary"></i>Ingresar Factura</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="fw-bold text-white"><i class="fa-solid fa-plus me-2 text-tekfix-primary"></i>Ingresar Factura</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ url_for('providers_bp.registrar_factura', id=proveedor.id) }}" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-tekfix-main small">Monto Total de la Factura (*)</label>
+                        <label class="form-label fw-bold text-white small">Monto Total de la Factura (*)</label>
                         <input type="number" step="0.01" name="monto_total" class="form-control form-control-lg bg-tekfix-card border-0 text-white fw-bold fs-5" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-tekfix-main small">Número de Factura (Opcional)</label>
+                        <label class="form-label fw-bold text-white small">Número de Factura (Opcional)</label>
                         <input type="text" name="numero_factura" class="form-control bg-tekfix-card border-0 text-white">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-tekfix-main small">Concepto / Mercancía (Opcional)</label>
+                        <label class="form-label fw-bold text-white small">Concepto / Mercancía (Opcional)</label>
                         <textarea name="descripcion" class="form-control bg-tekfix-card border-0 text-white" rows="2"></textarea>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label fw-bold text-tekfix-main small">Adjuntar Fotografía o PDF</label>
+                        <label class="form-label fw-bold text-white small">Adjuntar Fotografía o PDF</label>
                         <input class="form-control bg-tekfix-card border-0 text-secondary" type="file" name="comprobante" accept=".jpg,.jpeg,.png,.pdf">
                     </div>
                 </div>
@@ -178,10 +178,10 @@
 <!-- Modal Registrar Abono (Pago) -->
 <div class="modal fade" id="modalAbono" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-content border-0 shadow-lg rounded-4 bg-tekfix-card">
             <div class="modal-header border-bottom-0 pb-0">
                 <h5 class="fw-bold text-success"><i class="fa-solid fa-money-bill-transfer me-2"></i>Pagar de la Cuenta</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ url_for('providers_bp.registrar_abono', id=proveedor.id) }}" method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -192,11 +192,11 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-tekfix-main small">Valor del Abono / Pago (*)</label>
+                        <label class="form-label fw-bold text-white small">Valor del Abono / Pago (*)</label>
                         <input type="number" step="0.01" name="monto_abonado" class="form-control form-control-lg bg-tekfix-card border-0 text-success fw-bold fs-4" autofocus required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-tekfix-main small">Observación / Método de Pago</label>
+                        <label class="form-label fw-bold text-white small">Observación / Método de Pago</label>
                         <input type="text" name="observacion" class="form-control bg-tekfix-card border-0 text-white" placeholder="Ej: Transferencia Nequi" required>
                     </div>
                 </div>

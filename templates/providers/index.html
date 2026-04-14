@@ -57,24 +57,24 @@
 <!-- Modal Nuevo Proveedor -->
 <div class="modal fade" id="modalNuevoProveedor" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-content border-0 shadow-lg rounded-4 bg-tekfix-card">
             <div class="modal-header border-bottom-0 pb-0">
-                <h5 class="fw-bold text-tekfix-main"><i class="fa-solid fa-user-plus me-2 text-tekfix-primary"></i>Alta de Proveedor</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="fw-bold text-white"><i class="fa-solid fa-user-plus me-2 text-tekfix-primary"></i>Alta de Proveedor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ url_for('providers_bp.crear') }}" method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-tekfix-main small">Nombre o Referencia</label>
+                        <label class="form-label fw-bold text-white small">Nombre o Referencia</label>
                         <input type="text" name="nombre" class="form-control form-control-lg bg-tekfix-card border-0 text-white" placeholder="Ej: Juan Pérez" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-tekfix-main small">Empresa (Opcional)</label>
+                        <label class="form-label fw-bold text-white small">Empresa (Opcional)</label>
                         <input type="text" name="empresa" class="form-control form-control-lg bg-tekfix-card border-0 text-white" placeholder="Ej: Tech Suplidor SAS">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-tekfix-main small">Teléfono</label>
+                        <label class="form-label fw-bold text-white small">Teléfono</label>
                         <input type="text" name="telefono" class="form-control form-control-lg bg-tekfix-card border-0 text-white" placeholder="Ej: 3001234567">
                     </div>
                 </div>

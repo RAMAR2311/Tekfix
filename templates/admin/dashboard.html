@@ -16,21 +16,21 @@
 <!-- Modal Generar Balance Financiero -->
 <div class="modal fade" id="modalBalance" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg rounded-4">
+    <div class="modal-content border-0 shadow-lg rounded-4 bg-tekfix-card">
       <div class="modal-header border-bottom-0 pb-0">
-        <h5 class="fw-bold text-tekfix-main"><i class="fa-solid fa-file-invoice-dollar me-2" style="color: var(--tekfix-primary);"></i>Balance Financiero</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="fw-bold text-white"><i class="fa-solid fa-file-invoice-dollar me-2" style="color: var(--tekfix-primary);"></i>Balance Financiero</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form action="{{ url_for('admin_bp.balance_financiero') }}" method="GET">
           <div class="modal-body">
               <p class="text-tekfix-sec small">Selecciona el rango de fechas para cruzar las ventas e ingresos totales contra el Costo Directo y los Gastos Registrados.</p>
               <div class="mb-3">
-                  <label class="form-label fw-bold text-tekfix-main small">Fecha de Inicio</label>
-                  <input type="date" name="fecha_inicio" class="form-control" required>
+                  <label class="form-label fw-bold text-white small">Fecha de Inicio</label>
+                  <input type="date" name="fecha_inicio" class="form-control bg-dark border-0 text-white" required>
               </div>
               <div class="mb-4">
-                  <label class="form-label fw-bold text-tekfix-main small">Fecha de Fin</label>
-                  <input type="date" name="fecha_fin" class="form-control" required>
+                  <label class="form-label fw-bold text-white small">Fecha de Fin</label>
+                  <input type="date" name="fecha_fin" class="form-control bg-dark border-0 text-white" required>
               </div>
           </div>
           <div class="modal-footer border-top-0 pt-0">
@@ -42,81 +42,90 @@
   </div>
 </div>
 
-<!-- Layout de Tarjetas (Fila de 4 Elementos) -->
+<!-- Layout de Tarjetas -->
 <div class="row g-3 mb-4">
-    <!-- 1. Tarjeta: Ingresos Totales (Botones/Textos Azul Turquesa / .btn-tekfix-secondary) -->
-    <div class="col-md-3">
+    <!-- 1. Tarjeta: Ingresos Totales -->
+    <div class="col-md-4 col-xl-2">
         <div class="card card-custom h-100 p-4">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <i class="fa-solid fa-sack-dollar fs-1" style="color: var(--tekfix-primary);"></i>
             </div>
-            <h5 class="text-tekfix-main fw-bold">Total Ventas</h5>
-            <h3 class="fw-bolder" style="color: var(--tekfix-primary);">${{ (total_ventas)|cop }}</h3>
-            <div class="mt-auto pt-4">
-                <a href="{{ url_for('sales_bp.historial') }}" class="btn btn-tekfix-secondary w-100 rounded-pill"><i class="fa-solid fa-file-invoice-dollar me-2"></i> Ver Ventas</a>
+            <h5 class="text-tekfix-main fw-bold small">Total Ventas</h5>
+            <h4 class="fw-bolder" style="color: var(--tekfix-primary);">${{ (total_ventas)|cop }}</h4>
+            <div class="mt-auto pt-3">
+                <a href="{{ url_for('sales_bp.historial') }}" class="btn btn-sm btn-tekfix-secondary w-100 rounded-pill"><i class="fa-solid fa-eye me-1"></i> Ventas</a>
             </div>
         </div>
     </div>
 
-    <!-- 2. Tarjeta: Productos en Catálogo -->
-    <div class="col-md-3">
+    <!-- 2. Tarjeta: Catálogo -->
+    <div class="col-md-4 col-xl-2">
         <div class="card card-custom h-100 p-4">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <i class="fa-solid fa-cubes fs-1" style="color: var(--tekfix-hover);"></i>
             </div>
-            <h5 class="text-tekfix-main fw-bold">Catálogo</h5>
-            <h3 class="fw-bolder text-tekfix-main">{{ total_productos }} uds.</h3>
-            <div class="mt-auto pt-4">
-                <a href="/inventory/" class="btn btn-tekfix w-100 rounded-pill text-tekfix-main"><i class="fa-solid fa-sliders me-2"></i> Inventario</a>
+            <h5 class="text-tekfix-main fw-bold small">Catálogo</h5>
+            <h4 class="fw-bolder text-tekfix-main">{{ total_productos }} uds.</h4>
+            <div class="mt-auto pt-3">
+                <a href="/inventory/" class="btn btn-sm btn-tekfix w-100 rounded-pill text-tekfix-main"><i class="fa-solid fa-sliders me-1"></i> Stock</a>
             </div>
         </div>
     </div>
 
-    <!-- 3. Tarjeta: Alertas de Stock -->
-    <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border border-danger border-2">
+    <!-- 3. Tarjeta: Alertas Stock -->
+    <div class="col-md-4 col-xl-2">
+        <div class="card card-custom h-100 p-4 border border-danger">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <i class="fa-solid fa-triangle-exclamation fs-1 text-danger"></i>
             </div>
-            <h5 class="text-tekfix-main fw-bold">Alertas Stock</h5>
-            <h3 class="fw-bolder text-danger">{{ productos_bajo_stock }} items</h3>
-            <p class="text-tekfix-sec small m-0 mb-3 text-truncate">Existencias limitadas o en falta.</p>
-
-            <div class="mt-auto pt-2">
-                <a href="/inventory/" class="btn btn-outline-light w-100 rounded-pill fw-bold"><i class="fa-solid fa-eye me-2"></i> Urgencias</a>
+            <h5 class="text-tekfix-main fw-bold small">Alertas</h5>
+            <h4 class="fw-bolder text-danger">{{ productos_bajo_stock }} items</h4>
+            <div class="mt-auto pt-3">
+                <a href="/inventory/" class="btn btn-sm btn-outline-danger w-100 rounded-pill"><i class="fa-solid fa-eye me-1"></i> Urgencias</a>
             </div>
         </div>
     </div>
 
-    <!-- 4. Tarjeta KPI: Mermas y Pérdidas -->
-    <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border" style="border-color: #dc3545 !important;">
+    <!-- 4. Tarjeta: Mermas -->
+    <div class="col-md-4 col-xl-2">
+        <div class="card card-custom h-100 p-4 border border-danger">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <i class="fa-solid fa-heart-crack fs-1 text-danger"></i>
             </div>
-            <h5 class="text-tekfix-main fw-bold">Mermas del Mes</h5>
-            <h3 class="fw-bolder text-danger">${{ (total_perdidas)|cop }} <span class="fs-6 text-tekfix-sec">({{ porcentaje_perdidas }}%)</span></h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Impacto deducido contra los ingresos operativos mensuales.</p>
-            <div class="mt-auto pt-2">
-                <a href="{{ url_for('admin_bp.perdidas') }}" class="btn btn-danger text-white w-100 rounded-pill fw-bold" style="background-color: var(--tekfix-bg); border-color: #dc3545;"><i class="fa-solid fa-expand me-2"></i> Ver Detalle</a>
+            <h5 class="text-tekfix-main fw-bold small">Mermas Mes</h5>
+            <h4 class="fw-bolder text-danger">${{ (total_perdidas)|cop }}</h4>
+            <div class="mt-auto pt-3">
+                <a href="{{ url_for('admin_bp.perdidas') }}" class="btn btn-sm btn-danger w-100 rounded-pill"><i class="fa-solid fa-expand me-1"></i> Detalle</a>
             </div>
         </div>
     </div>
 
-    <!-- 5. Tarjeta KPI: Proveedores (Cuentas por Pagar) -->
-    <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border" style="border-color: #ffc107 !important;">
+    <!-- 5. Tarjeta: Proveedores -->
+    <div class="col-md-4 col-xl-2">
+        <div class="card card-custom h-100 p-4 border border-warning">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <i class="fa-solid fa-address-book fs-1 text-warning"></i>
             </div>
-            <h5 class="text-tekfix-main fw-bold">Proveedores</h5>
-            <h3 class="fw-bolder text-warning">-${{ (deuda_proveedores)|cop }} <span class="fs-6 text-tekfix-sec">({{ total_proveedores }} prov)</span></h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Deuda activa con proveedores logísticos.</p>
-            <div class="mt-auto pt-2">
-                <a href="{{ url_for('providers_bp.index') }}" class="btn btn-warning text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-money-check-dollar me-2"></i> Saldar Cuentas</a>
+            <h5 class="text-tekfix-main fw-bold small">Proveedores</h5>
+            <h4 class="fw-bolder text-warning">-${{ (deuda_proveedores)|cop }}</h4>
+            <div class="mt-auto pt-3">
+                <a href="{{ url_for('providers_bp.index') }}" class="btn btn-sm btn-warning text-dark w-100 rounded-pill fw-bold"><i class="fa-solid fa-money-check me-1"></i> Saldar</a>
             </div>
         </div>
     </div>
 
+    <!-- 6. Tarjeta: Garantías -->
+    <div class="col-md-4 col-xl-2">
+        <div class="card card-custom h-100 p-4 border" style="border-color: #DDB856 !important;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <i class="fa-solid fa-shield-halved fs-1" style="color: #DDB856;"></i>
+            </div>
+            <h5 class="text-tekfix-main fw-bold small">Garantías</h5>
+            <h4 class="fw-bolder" style="color: #DDB856;">{{ total_garantias_mes }} uds</h4>
+            <div class="mt-auto pt-3">
+                <a href="{{ url_for('warranties_bp.index') }}" class="btn btn-sm w-100 rounded-pill fw-bold" style="background-color: #DDB856; color: #1A1818;"><i class="fa-solid fa-wrench me-1"></i> Casos</a>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

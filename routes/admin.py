@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, abort, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, Loss, Provider, ProviderInvoice, ProviderPayment, obtener_hora_bogota
+from models import db, Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, Loss, Provider, ProviderInvoice, ProviderPayment, Warranty, obtener_hora_bogota
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 from decorators import admin_required
@@ -71,6 +71,10 @@ def dashboard():
     total_deuda_abonos = db.session.query(func.sum(ProviderPayment.monto_abonado)).scalar() or 0.0
     deuda_proveedores = float(total_deuda_facturas) - float(total_deuda_abonos)
     total_proveedores = Provider.query.count()
+
+    # Cálculos modulo Garantías
+    total_garantias_mes = Warranty.query.filter(Warranty.created_at >= mes_actual).count()
+    garantias_pendientes = Warranty.query.filter(Warranty.resolution == 'Pendiente').count()
         
     return render_template('admin/dashboard.html', 
                            total_productos=total_productos,
@@ -80,7 +84,9 @@ def dashboard():
                            total_perdidas=perdidas_valor,
                            porcentaje_perdidas=porcentaje_perdidas,
                            deuda_proveedores=deuda_proveedores,
-                           total_proveedores=total_proveedores)
+                           total_proveedores=total_proveedores,
+                           total_garantias_mes=total_garantias_mes,
+                           garantias_pendientes=garantias_pendientes)
 
 # --- ENDPOINTS MODULO PERDIDAS ---
 @admin_bp.route('/perdidas')
