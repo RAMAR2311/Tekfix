@@ -38,12 +38,14 @@ def create_app():
     from routes.auth import auth_bp
     from routes.arqueo import arqueo_bp
     from routes.gastos import gastos_bp
+    from routes.providers import providers_bp
     
     app.register_blueprint(sales_bp, url_prefix='/sales')
     app.register_blueprint(inventory_bp, url_prefix='/inventory')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(arqueo_bp, url_prefix='/arqueo')
     app.register_blueprint(gastos_bp, url_prefix='/gastos')
+    app.register_blueprint(providers_bp, url_prefix='/providers')
     
     # Registro de Blueprint Admin
     from routes.admin import admin_bp

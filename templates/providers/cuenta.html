@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-tekfix-main mb-0"><i class="fa-solid fa-file-invoice-dollar text-tekfix-primary me-2"></i> {{ proveedor.nombre }}</h2>
+        <p class="text-tekfix-sec mb-0">{% if proveedor.empresa %}{{ proveedor.empresa }} | {% endif %}Tel: {{ proveedor.telefono or 'N/A' }}</p>
+    </div>
+    <div>
+        <a href="{{ url_for('providers_bp.index') }}" class="btn btn-outline-light rounded-pill px-4 fw-bold">
+            <i class="fa-solid fa-arrow-left me-2"></i>Atrás
+        </a>
+    </div>
+</div>
+
+<!-- Tarjetas Financieras (KPIs de la Cuenta) -->
+{% set deuda_activa = (saldo_pendiente > 0) %}
+<div class="row g-3 mb-5">
+    <div class="col-md-4">
+        <div class="card card-custom h-100 p-4 border-0">
+            <h5 class="text-tekfix-main fw-bold">Total Facturado</h5>
+            <h2 class="fw-bolder text-tekfix-sec">${{ (total_facturado)|cop }}</h2>
+            <small class="text-tekfix-sec">Sumatoria de todas las facturas cargadas.</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-custom h-100 p-4 border-0">
+            <h5 class="text-tekfix-main fw-bold">Total Abonos</h5>
+            <h2 class="fw-bolder text-success">${{ (total_abonos)|cop }}</h2>
+            <small class="text-tekfix-sec">Dinero pagado efectivamente.</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-custom h-100 p-4 border text-center {% if deuda_activa %}bg-danger bg-opacity-10 border-danger{% else %}bg-success bg-opacity-10 border-success{% endif %}">
+            <h5 class="fw-bold {% if deuda_activa %}text-danger{% else %}text-success{% endif %}">Saldo Pendiente</h5>
+            <h2 class="fw-bolder {% if deuda_activa %}text-danger{% else %}text-success{% endif %}" style="font-size: 2.5rem; letter-spacing: -1px;">
+                ${{ (saldo_pendiente)|cop }}
+            </h2>
+            {% if deuda_activa %}
+                <small class="text-danger fw-bold"><i class="fa-solid fa-circle-exclamation me-1"></i>Tienes deuda activa (por pagar)</small>
+            {% else %}
+                <small class="text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i>Paz y Salvo</small>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Layout de Columnas: Facturas vs Abonos -->
+<div class="row g-4 mb-4">
+    
+    <!-- Columna Izquierda: Facturas -->
+    <div class="col-xl-7">
+        <div class="card card-custom p-0 overflow-hidden h-100 table-dark">
+            <div class="bg-tekfix-card p-4 border-bottom d-flex justify-content-between align-items-center">
+                 <h5 class="fw-bold text-tekfix-main m-0"><i class="fa-solid fa-folder-open me-2"></i>Facturas Registradas</h5>
+                 <button class="btn btn-sm btn-outline-light rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#modalFactura">
+                     <i class="fa-solid fa-plus me-1"></i> Cargar Factura
+                 </button>
+            </div>
+            <div class="table-responsive p-0">
+                <table class="table table-hover align-middle m-0 text-tekfix-sec">
+                    <thead class="bg-dark text-tekfix-main small">
+                        <tr>
+                            <th class="ps-4">Fecha</th>
+                            <th>No. Factura</th>
+                            <th>Anotación</th>
+                            <th class="pe-4 text-end">Monto Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in facturas %}
+                        <tr>
+                            <td class="ps-4">{{ f.fecha_factura.strftime('%d/%m/%y') }}</td>
+                            <td class="fw-bold text-white">
+                                {% if f.comprobante %}
+                                    <a href="/static/uploads/providers/{{ f.comprobante }}" target="_blank" class="text-tekfix-primary text-decoration-none">
+                                        <i class="fa-solid fa-paperclip me-1"></i>{{ f.numero_factura or 'Sin Número' }}
+                                    </a>
+                                {% else %}
+                                    {{ f.numero_factura or 'S/N' }}
+                                    <i class="fa-solid fa-file-invoice ms-2 text-secondary" title="Sin archivo adjunto"></i>
+                                {% endif %}
+                            </td>
+                            <td><small>{{ f.descripcion or '---' }}</small></td>
+                            <td class="pe-4 text-end fw-bold text-white">${{ (f.monto_total)|cop }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5">
+                                <i class="fa-solid fa-ghost fs-2 mb-3 text-secondary opacity-50"></i>
+                                <p class="mb-0 text-tekfix-sec">Sin facturas. <a href="#" data-bs-toggle="modal" data-bs-target="#modalFactura" class="text-tekfix-primary">Carga una cuenta para empezar.</a></p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Abonos -->
+    <div class="col-xl-5">
+        <div class="card card-custom p-0 overflow-hidden h-100 table-dark">
+            <div class="bg-tekfix-card p-4 border-bottom d-flex justify-content-between align-items-center">
+                 <h5 class="fw-bold text-success m-0"><i class="fa-solid fa-money-bill-wave me-2"></i>Abonos Realizados</h5>
+                 <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#modalAbono">
+                     <i class="fa-solid fa-plus me-1"></i> Pagar Abono
+                 </button>
+            </div>
+            <div class="table-responsive p-0">
+                <table class="table table-hover align-middle m-0 text-tekfix-sec">
+                    <thead class="bg-dark text-tekfix-main small">
+                        <tr>
+                            <th class="ps-4">Fecha</th>
+                            <th>Abono</th>
+                            <th class="pe-4 text-end">Ref / Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in abonos %}
+                        <tr>
+                            <td class="ps-4"><small>{{ a.fecha_pago.strftime('%d/%m/%y %H:%M') }}</small></td>
+                            <td class="fw-bold text-success">+ ${{ (a.monto_abonado)|cop }}</td>
+                            <td class="pe-4 text-end fst-italic"><small>{{ a.observacion or 'Abono general' }}</small></td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center py-5">
+                                <i class="fa-solid fa-piggy-bank fs-2 mb-3 text-success opacity-50"></i>
+                                <p class="mb-0 text-tekfix-sec">Aún no se reportan pagos a este proveedor.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Registrar Factura (Deuda) -->
+<div class="modal fade" id="modalFactura" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="fw-bold text-tekfix-main"><i class="fa-solid fa-plus me-2 text-tekfix-primary"></i>Ingresar Factura</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('providers_bp.registrar_factura', id=proveedor.id) }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-tekfix-main small">Monto Total de la Factura (*)</label>
+                        <input type="number" step="0.01" name="monto_total" class="form-control form-control-lg bg-tekfix-card border-0 text-white fw-bold fs-5" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-tekfix-main small">Número de Factura (Opcional)</label>
+                        <input type="text" name="numero_factura" class="form-control bg-tekfix-card border-0 text-white">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-tekfix-main small">Concepto / Mercancía (Opcional)</label>
+                        <textarea name="descripcion" class="form-control bg-tekfix-card border-0 text-white" rows="2"></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-bold text-tekfix-main small">Adjuntar Fotografía o PDF</label>
+                        <input class="form-control bg-tekfix-card border-0 text-secondary" type="file" name="comprobante" accept=".jpg,.jpeg,.png,.pdf">
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-tekfix rounded-pill px-4 fw-bold text-tekfix-main">Cargar Cuenta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Registrar Abono (Pago) -->
+<div class="modal fade" id="modalAbono" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="fw-bold text-success"><i class="fa-solid fa-money-bill-transfer me-2"></i>Pagar de la Cuenta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('providers_bp.registrar_abono', id=proveedor.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-body">
+                    <div class="alert alert-dark text-tekfix-sec small border-0 d-flex align-items-center">
+                        <i class="fa-solid fa-info-circle me-3 fs-3 text-secondary"></i>
+                        Este abono afectará el 'Saldo Pendiente', reduciendo tu deuda actual con la compañía {{ proveedor.nombre }}.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-tekfix-main small">Valor del Abono / Pago (*)</label>
+                        <input type="number" step="0.01" name="monto_abonado" class="form-control form-control-lg bg-tekfix-card border-0 text-success fw-bold fs-4" autofocus required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-tekfix-main small">Observación / Método de Pago</label>
+                        <input type="text" name="observacion" class="form-control bg-tekfix-card border-0 text-white" placeholder="Ej: Transferencia Nequi" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Aplicar Abono</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

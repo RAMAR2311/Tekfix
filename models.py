@@ -253,3 +253,38 @@ class AbonoBodega(db.Model):
     fecha_abono = db.Column(db.DateTime, default=obtener_hora_bogota)
 
     usuario = db.relationship('User', backref='abonos_registrados', lazy=True)
+
+# ====== MÓDULO PROVEEDORES (CUENTAS POR PAGAR) ======
+class Provider(db.Model):
+    __tablename__ = 'providers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(150), nullable=False)
+    empresa = db.Column(db.String(150), nullable=True)
+    telefono = db.Column(db.String(50), nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+    # Relaciones nativas con facturas y abonos
+    facturas = db.relationship('ProviderInvoice', backref='provider', lazy=True, cascade='all, delete-orphan')
+    abonos = db.relationship('ProviderPayment', backref='provider', lazy=True, cascade='all, delete-orphan')
+
+class ProviderInvoice(db.Model):
+    __tablename__ = 'provider_invoices'
+
+    id = db.Column(db.Integer, primary_key=True)
+    provider_id = db.Column(db.Integer, db.ForeignKey('providers.id'), nullable=False)
+    monto_total = db.Column(db.Numeric(10, 2), nullable=False)
+    numero_factura = db.Column(db.String(100), nullable=True)
+    descripcion = db.Column(db.String(255), nullable=True)
+    comprobante = db.Column(db.String(255), nullable=True) # Archivo subido
+    fecha_factura = db.Column(db.DateTime, default=obtener_hora_bogota)
+
+class ProviderPayment(db.Model):
+    __tablename__ = 'provider_payments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    provider_id = db.Column(db.Integer, db.ForeignKey('providers.id'), nullable=False)
+    monto_abonado = db.Column(db.Numeric(10, 2), nullable=False)
+    observacion = db.Column(db.String(255), nullable=True)
+    fecha_pago = db.Column(db.DateTime, default=obtener_hora_bogota)
+# ====================================================
