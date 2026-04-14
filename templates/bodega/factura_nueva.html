@@ -104,7 +104,7 @@
         
         if (!sku) return;
 
-        fetch(`/bodega/api/producto/${sku}`)
+        fetch(`/bodega/api/producto/${encodeURIComponent(sku)}`)
             .then(res => {
                 if (!res.ok) throw new Error("Producto no existe en la bodega o no hay stock.");
                 return res.json();

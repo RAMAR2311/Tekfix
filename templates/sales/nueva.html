@@ -13,12 +13,17 @@
         <!-- Panel de Escaneo -->
         <div class="card card-custom p-4 mb-4">
             <label class="form-label fw-bold text-brand-black">Buscar o Escanear Código</label>
-            <div class="input-group input-group-lg shadow-sm border-0 rounded-3 overflow-hidden">
-                <span class="input-group-text bg-white border-0"><i class="fa-solid fa-barcode text-muted"></i></span>
-                <input type="text" class="form-control border-0" id="sku_input" placeholder="Ingresa SKU exacto..." autofocus>
-                <!-- Botón Secundario Rosa Pastel -->
-                <button class="btn btn-pink px-4" type="button" id="btn_add_product">
-                    <i class="fa-solid fa-check ms-1"></i> Agregar
+            <div class="d-flex gap-2">
+                <div class="input-group input-group-lg shadow-sm border-0 rounded-3 overflow-hidden flex-grow-1">
+                    <span class="input-group-text bg-white border-0"><i class="fa-solid fa-barcode text-muted"></i></span>
+                    <input type="text" class="form-control border-0" id="sku_input" placeholder="Ingresa SKU exacto..." autofocus>
+                    <!-- Botón Secundario Rosa Pastel -->
+                    <button class="btn btn-pink px-4" type="button" id="btn_add_product">
+                        <i class="fa-solid fa-check ms-1"></i> Agregar
+                    </button>
+                </div>
+                <button class="btn btn-outline-primary rounded-3 px-3 shadow-sm" type="button" data-bs-toggle="modal" data-bs-target="#modalProductoManual" title="Agregar producto de otro local">
+                    <i class="fa-solid fa-plus me-1"></i><i class="fa-solid fa-handshake"></i>
                 </button>
             </div>
         </div>
@@ -31,7 +36,7 @@
                         <tr>
                             <th>Producto Seleccionado</th>
                             <th class="text-center" width="130">Cantidad</th>
-                            <th class="text-end" width="120">Precio U.</th>
+                            <th class="text-end" width="160">Precio U.</th>
                             <th class="text-end" width="120">Subtotal</th>
                             <th class="text-center" width="70"></th>
                         </tr>
@@ -64,15 +69,43 @@
             
             <div class="d-flex justify-content-between mb-4">
                 <span class="text-muted fw-bold align-self-center">Total a Cobrar:</span>
-                <span class="fw-bolder fs-1 text-brand-black" id="total_amount">$0.00</span>
+                <span class="fw-bolder fs-1 text-brand-black" id="total_amount">$0</span>
             </div>
+
+            {% if current_user.rol == 'admin' %}
+            <!-- Selector de Fecha de Venta (colapsable) exclusivo para Admin -->
+            <div class="mb-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <small class="text-muted fw-semibold"><i class="fa-regular fa-calendar me-1"></i> Fecha de Venta:</small>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" id="btn_toggle_fecha" onclick="toggleFechaVenta()">
+                        <span id="fecha_display_label" class="badge bg-light text-dark border rounded-pill px-3 py-1" style="font-size: 0.8rem; cursor: pointer;">
+                            📅 Hoy
+                        </span>
+                    </button>
+                </div>
+                <div id="fecha_venta_container" style="display: none; margin-top: 8px;">
+                    <input type="date" id="fecha_venta_input" class="form-control form-control-sm bg-light border-0 shadow-sm" value="">
+                    <small class="form-text text-muted"><i class="fa-solid fa-circle-info text-primary me-1"></i>Cambia la fecha para registrar ventas de días anteriores.</small>
+                </div>
+            </div>
+            {% endif %}
 
             <hr class="mb-4">
 
-            <!-- Método de Pago Seleccionable -->
-            <div class="mb-4">
-                <label for="metodo-pago" class="form-label fw-bold text-brand-black small text-uppercase">Método de Pago</label>
-                <select id="metodo-pago" class="form-select form-select-lg border-0 shadow-sm bg-light" style="cursor: pointer;">
+            <!-- Toggle: Pago Único vs Pago Dividido -->
+            <div class="mb-3">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <label class="form-label fw-bold text-brand-black small text-uppercase m-0">Método de Pago</label>
+                    <div class="form-check form-switch ms-auto">
+                        <input class="form-check-input" type="checkbox" id="toggle_pago_mixto" style="cursor: pointer; width: 3rem; height: 1.5rem;">
+                        <label class="form-check-label fw-bold small text-muted" for="toggle_pago_mixto" style="cursor: pointer;">Dividir Pago</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modo 1: Pago Único (por defecto) -->
+            <div id="pago_unico_section">
+                <select id="metodo-pago" class="form-select form-select-lg border-0 shadow-sm bg-light mb-3" style="cursor: pointer;">
                     <option value="efectivo">💵 Efectivo</option>
                     <option value="nequi">📱 Nequi</option>
                     <option value="bancolombia">🏦 Bancolombia</option>
@@ -80,8 +113,32 @@
                 </select>
             </div>
 
+            <!-- Modo 2: Pago Dividido/Mixto (oculto por defecto) -->
+            <div id="pago_mixto_section" style="display: none;">
+                <!-- Indicador visual del saldo restante -->
+                <div class="alert border-0 shadow-sm py-2 px-3 mb-3" id="saldo_restante_alert" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="fw-bold text-muted text-uppercase"><i class="fa-solid fa-scale-balanced me-1"></i> Saldo por cubrir:</small>
+                        <span class="fw-bolder fs-5" id="saldo_restante" style="color: var(--brand-blue);">$0</span>
+                    </div>
+                    <!-- Barra de progreso visual -->
+                    <div class="progress mt-2" style="height: 6px; border-radius: 10px;">
+                        <div class="progress-bar" id="barra_progreso_pago" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #A3D8DE, #7BC8D0); border-radius: 10px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+
+                <!-- Lista dinámica de pagos parciales -->
+                <div id="pagos_list" class="d-flex flex-column gap-2 mb-3">
+                    <!-- Se inyecta dinámicamente -->
+                </div>
+
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill fw-bold w-100" id="btn_agregar_pago">
+                    <i class="fa-solid fa-plus me-1"></i> Agregar otro método de pago
+                </button>
+            </div>
+
             <!-- Botón de Cobro Masivo Azul Turquesa -->
-            <div class="d-grid gap-2 mt-2">
+            <div class="d-grid gap-2 mt-4">
                 <button type="button" class="btn btn-blue btn-lg rounded-3 py-3 shadow-sm text-uppercase" id="btn_process_sale">
                     <i class="fa-solid fa-credit-card me-2"></i> Procesar Cobro
                 </button>
@@ -93,10 +150,132 @@
     </div>
 </div>
 
+<!-- Estilos para animaciones del pago mixto -->
+<style>
+    #pago_mixto_section .pago-item {
+        animation: slideDown 0.25s ease-out;
+    }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .form-check-input:checked {
+        background-color: var(--brand-blue) !important;
+        border-color: var(--brand-blue) !important;
+    }
+    #saldo_restante_alert.saldo-cubierto {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%) !important;
+    }
+    #saldo_restante_alert.saldo-excedido {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%) !important;
+    }
+</style>
+
+<!-- Modal Producto Manual (Prestado de otro local) -->
+<div class="modal fade" id="modalProductoManual" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title fw-bold text-primary"><i class="fa-solid fa-handshake me-2"></i>Producto Manual (Externo)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert py-2 px-3 rounded-3 mb-4" style="background: #e8f4fd; border: 1px dashed #90c4e8;">
+                    <small class="text-muted"><i class="fa-solid fa-circle-info text-primary me-1"></i>Usa esta opción para productos <strong>prestados de otros locales</strong>. No se descuenta stock propio.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nombre del Producto</label>
+                    <input type="text" id="manual_nombre" class="form-control bg-light border-0" placeholder="Ej: Funda iPhone 15 Pro Max - Local Alex" required>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold"><i class="fa-solid fa-arrow-down text-danger me-1"></i>Costo de Compra</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0">$</span>
+                            <input type="number" step="1" min="0" id="manual_costo" class="form-control bg-light border-0" placeholder="Lo que se le paga al vecino" required>
+                        </div>
+                        <small class="form-text text-muted">Precio al que te lo vende el otro local</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold"><i class="fa-solid fa-arrow-up text-success me-1"></i>Precio de Venta</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0 text-success fw-bold">$</span>
+                            <input type="number" step="1" min="0" id="manual_precio_venta" class="form-control bg-light border-0" placeholder="Lo que se cobra al cliente" required>
+                        </div>
+                        <small class="form-text text-muted">Precio al que se le vende al cliente final</small>
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <label class="form-label fw-bold">Cantidad</label>
+                    <input type="number" id="manual_cantidad" class="form-control bg-light border-0 w-25" min="1" value="1" required>
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-light">
+                <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary rounded-pill fw-bold px-4" id="btn_agregar_manual">
+                    <i class="fa-solid fa-plus me-1"></i> Agregar al Carrito
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Motor Javascript Vanilla para procesar Cajas Dinámicas sin recargar -->
 <script>
     let carrito = [];
+    let pagosMixtos = []; // Array de {metodo_pago, monto}
     const csrf_token = "{{ csrf_token() }}";
+
+    // Inicializar fecha de venta con la fecha de hoy (Solo Admin)
+    (function() {
+        const fechaInput = document.getElementById('fecha_venta_input');
+        if (!fechaInput) return; // Si no es admin, no existe en el DOM
+        
+        const hoy = new Date();
+        const yyyy = hoy.getFullYear();
+        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dd = String(hoy.getDate()).padStart(2, '0');
+        
+        fechaInput.value = `${yyyy}-${mm}-${dd}`;
+        fechaInput.max = `${yyyy}-${mm}-${dd}`; // No permitir fechas futuras
+        fechaInput.addEventListener('change', actualizarLabelFecha);
+    })();
+
+    function toggleFechaVenta() {
+        const container = document.getElementById('fecha_venta_container');
+        if (container) {
+            container.style.display = container.style.display === 'none' ? 'block' : 'none';
+        }
+    }
+
+    function actualizarLabelFecha() {
+        const fechaInput = document.getElementById('fecha_venta_input');
+        const label = document.getElementById('fecha_display_label');
+        if (!fechaInput || !label) return;
+
+        const hoy = new Date();
+        const yyyy = hoy.getFullYear();
+        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dd = String(hoy.getDate()).padStart(2, '0');
+        const hoyStr = `${yyyy}-${mm}-${dd}`;
+
+        if (fechaInput.value === hoyStr || !fechaInput.value) {
+            label.innerHTML = '📅 Hoy';
+            label.className = 'badge bg-light text-dark border rounded-pill px-3 py-1';
+        } else {
+            const partes = fechaInput.value.split('-');
+            const fechaFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+            label.innerHTML = `⚠️ ${fechaFormateada}`;
+            label.className = 'badge bg-warning bg-opacity-25 text-dark border border-warning rounded-pill px-3 py-1';
+        }
+    }
+    const METODOS_DISPONIBLES = [
+        { value: 'efectivo', label: '💵 Efectivo' },
+        { value: 'nequi', label: '📱 Nequi' },
+        { value: 'bancolombia', label: '🏦 Bancolombia' },
+        { value: 'daviplata', label: '📱 Daviplata' }
+    ];
 
     // Capturar el ESCANER ("Enter" en el teclado sin enviar un formulario)
     document.getElementById('sku_input').addEventListener('keypress', function(e) {
@@ -110,8 +289,176 @@
     document.getElementById('btn_clear_cart').addEventListener('click', () => {
         carrito = [];
         renderizarCarrito();
+        resetPagosMixtos();
     });
     document.getElementById('btn_process_sale').addEventListener('click', procesarPago);
+
+    // Botón para agregar producto manual (prestado de otro local)
+    document.getElementById('btn_agregar_manual').addEventListener('click', function() {
+        const nombre = document.getElementById('manual_nombre').value.trim();
+        const costo = parseFloat(document.getElementById('manual_costo').value) || 0;
+        const precioVenta = parseFloat(document.getElementById('manual_precio_venta').value) || 0;
+        const cantidad = parseInt(document.getElementById('manual_cantidad').value) || 1;
+
+        if (!nombre) return alert('Debes ingresar un nombre para el producto.');
+        if (precioVenta <= 0) return alert('El precio de venta debe ser mayor a $0.');
+        if (costo < 0) return alert('El costo no puede ser negativo.');
+
+        carrito.push({
+            id: null,
+            sku: 'MANUAL',
+            nombre: nombre,
+            cantidad: cantidad,
+            precio_final: precioVenta,
+            precio_limite: 0,
+            precio_minimo: costo,
+            precio_sugerido: precioVenta,
+            cantidad_stock: 9999,
+            variantes: [],
+            variant_id: null,
+            es_manual: true,
+            precio_costo: costo
+        });
+
+        renderizarCarrito();
+
+        // Cerrar modal y limpiar campos
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalProductoManual'));
+        modal.hide();
+        document.getElementById('manual_nombre').value = '';
+        document.getElementById('manual_costo').value = '';
+        document.getElementById('manual_precio_venta').value = '';
+        document.getElementById('manual_cantidad').value = '1';
+    });
+
+    // Toggle entre Pago Único y Pago Mixto
+    document.getElementById('toggle_pago_mixto').addEventListener('change', function() {
+        const unicoSec = document.getElementById('pago_unico_section');
+        const mixtoSec = document.getElementById('pago_mixto_section');
+        
+        if (this.checked) {
+            unicoSec.style.display = 'none';
+            mixtoSec.style.display = 'block';
+            // Inicializar con un primer pago parcial
+            if (pagosMixtos.length === 0) {
+                agregarPagoParcial();
+            }
+            actualizarSaldoRestante();
+        } else {
+            unicoSec.style.display = 'block';
+            mixtoSec.style.display = 'none';
+        }
+    });
+
+    document.getElementById('btn_agregar_pago').addEventListener('click', agregarPagoParcial);
+
+    function agregarPagoParcial() {
+        pagosMixtos.push({ metodo_pago: 'efectivo', monto: 0 });
+        renderizarPagosMixtos();
+    }
+
+    function eliminarPagoParcial(index) {
+        if (pagosMixtos.length <= 1) {
+            alert('Debe existir al menos un método de pago.');
+            return;
+        }
+        pagosMixtos.splice(index, 1);
+        renderizarPagosMixtos();
+    }
+
+    function actualizarPagoParcial(index, campo, valor) {
+        if (campo === 'metodo_pago') {
+            pagosMixtos[index].metodo_pago = valor;
+        }
+        if (campo === 'monto') {
+            pagosMixtos[index].monto = parseFloat(valor) || 0;
+        }
+        actualizarSaldoRestante();
+    }
+
+    function resetPagosMixtos() {
+        pagosMixtos = [];
+        const toggle = document.getElementById('toggle_pago_mixto');
+        if (toggle.checked) {
+            agregarPagoParcial();
+        }
+        renderizarPagosMixtos();
+        actualizarSaldoRestante();
+    }
+
+    function obtenerGranTotal() {
+        return carrito.reduce((sum, item) => sum + (item.cantidad * item.precio_final), 0);
+    }
+    
+    const formatoCOP = (num) => "$" + Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    function actualizarSaldoRestante() {
+        const granTotal = obtenerGranTotal();
+        const sumaPagos = pagosMixtos.reduce((sum, p) => sum + (p.monto || 0), 0);
+        const saldo = granTotal - sumaPagos;
+        
+        const saldoEl = document.getElementById('saldo_restante');
+        const alertEl = document.getElementById('saldo_restante_alert');
+        const barraEl = document.getElementById('barra_progreso_pago');
+        
+        saldoEl.innerText = formatoCOP(Math.abs(saldo));
+        
+        // Calcular progreso
+        const porcentaje = granTotal > 0 ? Math.min((sumaPagos / granTotal) * 100, 100) : 0;
+        barraEl.style.width = porcentaje + '%';
+        
+        // Estados visuales
+        alertEl.classList.remove('saldo-cubierto', 'saldo-excedido');
+        if (saldo === 0 && granTotal > 0) {
+            alertEl.classList.add('saldo-cubierto');
+            saldoEl.style.color = '#28a745';
+            barraEl.style.background = 'linear-gradient(90deg, #28a745, #34ce57)';
+            document.querySelector('#saldo_restante_alert small').innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> ¡Pago completo!';
+        } else if (saldo < 0) {
+            alertEl.classList.add('saldo-excedido');
+            saldoEl.style.color = '#dc3545';
+            saldoEl.innerText = '+' + formatoCOP(Math.abs(saldo));
+            barraEl.style.background = 'linear-gradient(90deg, #dc3545, #e74c5c)';
+            document.querySelector('#saldo_restante_alert small').innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> Excedente:';
+        } else {
+            saldoEl.style.color = 'var(--brand-blue)';
+            barraEl.style.background = 'linear-gradient(90deg, #A3D8DE, #7BC8D0)';
+            document.querySelector('#saldo_restante_alert small').innerHTML = '<i class="fa-solid fa-scale-balanced me-1"></i> Saldo por cubrir:';
+        }
+    }
+
+    function renderizarPagosMixtos() {
+        const container = document.getElementById('pagos_list');
+        container.innerHTML = '';
+
+        pagosMixtos.forEach((pago, index) => {
+            const div = document.createElement('div');
+            div.className = 'pago-item d-flex gap-2 align-items-center';
+            
+            // Select del método
+            let optionsHtml = METODOS_DISPONIBLES.map(m => 
+                `<option value="${m.value}" ${m.value === pago.metodo_pago ? 'selected' : ''}>${m.label}</option>`
+            ).join('');
+
+            div.innerHTML = `
+                <select class="form-select form-select-sm border-0 shadow-sm bg-light" style="cursor: pointer; flex: 1;" onchange="actualizarPagoParcial(${index}, 'metodo_pago', this.value)">
+                    ${optionsHtml}
+                </select>
+                <div class="input-group input-group-sm" style="flex: 1;">
+                    <span class="input-group-text bg-light border-0">$</span>
+                    <input type="number" class="form-control border-0 shadow-sm text-end" placeholder="Monto" value="${pago.monto > 0 ? Math.round(pago.monto) : ''}" 
+                           oninput="actualizarPagoParcial(${index}, 'monto', this.value)" 
+                           step="1" min="0">
+                </div>
+                <button type="button" class="btn btn-sm text-danger px-2" onclick="eliminarPagoParcial(${index})" title="Quitar este pago">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        });
+
+        actualizarSaldoRestante();
+    }
 
     async function buscarYAgregarProducto() {
         const inputStr = document.getElementById('sku_input');
@@ -120,7 +467,7 @@
 
         try {
             // Mandar solicitud JSON rápida a nuestra ruta Flask
-            const response = await fetch(`/sales/api/producto/${sku}`);
+            const response = await fetch(`/sales/api/producto/${encodeURIComponent(sku)}`);
             if (!response.ok) {
                 alert(`Error: El SKU '${sku}' no existe en la base de datos.`);
                 inputStr.value = '';
@@ -192,17 +539,20 @@
                 return;
             }
             
-            // Validar stock de la variante si existe, si no del producto base
-            let max_stock = item.cantidad_stock;
-            if (item.variantes && item.variantes.length > 0) {
-                const varSel = item.variantes.find(v => v.id == item.variant_id);
-                if(varSel) max_stock = varSel.stock;
-            }
+            // Los productos manuales no tienen stock real que validar
+            if (!item.es_manual) {
+                // Validar stock de la variante si existe, si no del producto base
+                let max_stock = item.cantidad_stock;
+                if (item.variantes && item.variantes.length > 0) {
+                    const varSel = item.variantes.find(v => v.id == item.variant_id);
+                    if(varSel) max_stock = varSel.stock;
+                }
 
-            if (nuevaCantidad > max_stock) {
-                alert(`La empresa no cuenta con Stock suficiente en esta variante/producto. Inventario Máximo: ${max_stock}`);
-                renderizarCarrito();
-                return;
+                if (nuevaCantidad > max_stock) {
+                    alert(`La empresa no cuenta con Stock suficiente en esta variante/producto. Inventario Máximo: ${max_stock}`);
+                    renderizarCarrito();
+                    return;
+                }
             }
             item.cantidad = nuevaCantidad;
         }
@@ -261,11 +611,12 @@
             </tr>`;
             totalAmountEl.innerText = '$0';
             totalItemsEl.innerText = '0';
+            // Actualizar saldo restante si estamos en modo mixto
+            if (document.getElementById('toggle_pago_mixto').checked) {
+                actualizarSaldoRestante();
+            }
             return;
         }
-
-        // Función para formato COP
-        const formatoCOP = (num) => "$" + Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
         // Iterar los productos virtuales agregados y dibujar cascarones DOM
         carrito.forEach((item, index) => {
@@ -287,20 +638,53 @@
 
             const tr = document.createElement('tr');
             // Celdas DOM
+            let skuLabel = '';
+            if (item.es_manual) {
+                skuLabel = `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2" style="font-size: 0.7rem;"><i class="fa-solid fa-handshake me-1"></i>EXTERNO</span>`;
+            } else {
+                skuLabel = `<small class="text-muted">${item.sku}</small>`;
+            }
             tr.innerHTML = `
                 <td>
                     <div class="fw-bold text-brand-black">${item.nombre}</div>
-                    <small class="text-muted">${item.sku}</small>
+                    ${skuLabel}
                     ${variantHtml}
                 </td>
                 <td width="130">
                     <input type="number" class="form-control form-control-sm text-center" value="${item.cantidad}" onchange="actualizarItem(${index}, 'cantidad', this.value)">
                 </td>
-                <td width="140">
+                <td width="180">
+                    ${item.es_manual ? `
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light">$</span>
-                        <input type="number" step="1" class="form-control text-end" value="${Math.round(item.precio_final)}" onchange="actualizarItem(${index}, 'precio_final', this.value)">
+                        <span class="input-group-text bg-light border-end-0">$</span>
+                        <input type="number" step="1" class="form-control text-end border-start-0 pe-2" value="${Math.round(item.precio_final)}" onchange="actualizarItem(${index}, 'precio_final', this.value)">
                     </div>
+                    ` : `
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-end-0">$</span>
+                        <input type="number" step="1" class="form-control text-end border-start-0 pe-2" value="${Math.round(item.precio_final)}" onchange="actualizarItem(${index}, 'precio_final', this.value)">
+                        <button class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="visually-hidden">Opciones</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <li><h6 class="dropdown-header">Precios Definidos</h6></li>
+                            <li><a class="dropdown-item py-2" href="#" onclick="event.preventDefault(); actualizarItem(${index}, 'precio_final', ${item.precio_minimo})">
+                                <div class="d-flex justify-content-between">
+                                    <span>💸 Precio Mínimo</span>
+                                    <span class="fw-bold ms-3">${formatoCOP(item.precio_minimo)}</span>
+                                </div>
+                            </a></li>
+                            <li><a class="dropdown-item py-2 text-primary" href="#" onclick="event.preventDefault(); actualizarItem(${index}, 'precio_final', ${item.precio_sugerido})">
+                                <div class="d-flex justify-content-between">
+                                    <span>🏷️ Precio Sugerido</span>
+                                    <span class="fw-bold ms-3">${formatoCOP(item.precio_sugerido)}</span>
+                                </div>
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><div class="px-3 py-1 small text-muted">Límite Permitido: ${formatoCOP(item.precio_limite)}</div></li>
+                        </ul>
+                    </div>
+                    `}
                 </td>
                 <td class="text-end fw-bold text-brand-black" width="120">
                     ${formatoCOP(subtotal)}
@@ -315,6 +699,11 @@
         // Actualizar el DOM maestro Total
         totalAmountEl.innerText = formatoCOP(granTotal);
         totalItemsEl.innerText = totalItems;
+
+        // Actualizar saldo restante si estamos en modo mixto
+        if (document.getElementById('toggle_pago_mixto').checked) {
+            actualizarSaldoRestante();
+        }
     }
 
     // Evento Transaccional JSON de Salida
@@ -323,17 +712,59 @@
             return alert('Agregue un número de serie válido. El carrito está vacío.');
         }
 
-        const metodoPago = document.getElementById('metodo-pago').value;
+        const esMixto = document.getElementById('toggle_pago_mixto').checked;
+
+        // Construir el payload de pagos
+        let pagosPayload = [];
+
+        if (esMixto) {
+            // Validar pagos mixtos
+            const granTotal = obtenerGranTotal();
+            let sumaPagos = 0;
+
+            for (let i = 0; i < pagosMixtos.length; i++) {
+                const p = pagosMixtos[i];
+                if (!p.monto || p.monto <= 0) {
+                    return alert(`El pago #${i + 1} (${p.metodo_pago}) tiene un monto inválido. Todos los pagos deben tener un monto mayor a $0.`);
+                }
+                sumaPagos += p.monto;
+                pagosPayload.push({
+                    metodo_pago: p.metodo_pago,
+                    monto: Math.round(p.monto)
+                });
+            }
+
+            // Validar que la suma sea correcta
+            if (Math.round(sumaPagos) !== Math.round(granTotal)) {
+                const diff = Math.round(granTotal) - Math.round(sumaPagos);
+                return alert(`⚠️ La suma de los pagos ($${formatoCOP(sumaPagos).replace('$','')}) no coincide con el total de la venta ($${formatoCOP(granTotal).replace('$','')}). Falta: $${formatoCOP(Math.abs(diff)).replace('$','')}`);
+            }
+        } else {
+            const metodoPago = document.getElementById('metodo-pago').value;
+            pagosPayload.push({
+                metodo_pago: metodoPago,
+                monto: Math.round(obtenerGranTotal())
+            });
+        }
 
         // Estructura de Diccionario aceptada estrictamente por Backend 
         const payload = {
-            items: carrito.map(item => ({
-                product_id: item.id,
-                variant_id: item.variant_id,
-                cantidad: item.cantidad,
-                precio_final: item.precio_final
-            })),
-            metodo_pago: metodoPago
+            items: carrito.map(item => {
+                const base = {
+                    product_id: item.id,
+                    variant_id: item.variant_id,
+                    cantidad: item.cantidad,
+                    precio_final: item.precio_final
+                };
+                if (item.es_manual) {
+                    base.es_manual = true;
+                    base.nombre_manual = item.nombre;
+                    base.precio_costo = item.precio_costo;
+                }
+                return base;
+            }),
+            pagos: pagosPayload,
+            fecha_venta: document.getElementById('fecha_venta_input') ? document.getElementById('fecha_venta_input').value : null
         };
 
         try {
@@ -358,13 +789,16 @@
                 }
                 
                 // Alerta nativa solicitada para feedback directo (Mantiene pausada la pantalla de la Caja)
-                alert(`✅ ¡Cobro en Caja Procesado! El inventario ha sido descontado correctamente. ID: ${data.sale_id}`);
+                const tipoMsg = esMixto ? '(Pago Dividido)' : '';
+                alert(`✅ ¡Cobro en Caja Procesado ${tipoMsg}! El inventario ha sido descontado correctamente. ID: ${data.sale_id}`);
                 
                 // Purgar carrito para el próximo comprador
                 carrito = [];
+                pagosMixtos = [];
                 
                 // Reinicia dinámicamente el CSS/Contador de caja visual a $0.00
                 renderizarCarrito(); 
+                resetPagosMixtos();
                 
             } else {
                 alert(`Error devuelto del sistema de validación Backend: ${data.error}`);

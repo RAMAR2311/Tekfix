@@ -1,14 +1,36 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, Sale, ArqueoCaja, Expense
+from models import db, Sale, SalePayment, ArqueoCaja, Expense
 from decorators import admin_required
 from datetime import datetime, date
+from decimal import Decimal
 import pytz
 
 arqueo_bp = Blueprint('arqueo_bp', __name__)
 
 def obtener_hora_bogota():
     return datetime.now(pytz.timezone('America/Bogota')).replace(tzinfo=None)
+
+def calcular_totales_dia(ventas_del_dia):
+    """Calcula los totales de efectivo y transferencias del día.
+    Usa SalePayment si está disponible, de lo contrario usa metodo_pago legacy."""
+    total_efectivo = Decimal('0')
+    total_transferencia = Decimal('0')
+    
+    for v in ventas_del_dia:
+        if v.pagos:  # Ventas nuevas con tabla sale_payments
+            for pago in v.pagos:
+                if pago.metodo_pago == 'efectivo':
+                    total_efectivo += pago.monto
+                else:  # nequi, bancolombia, daviplata, transferencia
+                    total_transferencia += pago.monto
+        else:  # Retrocompatibilidad con ventas antiguas
+            if v.metodo_pago == 'efectivo':
+                total_efectivo += v.monto_total
+            elif v.metodo_pago in ['transferencia', 'nequi', 'bancolombia', 'daviplata']:
+                total_transferencia += v.monto_total
+    
+    return total_efectivo, total_transferencia
 
 @arqueo_bp.route('/nuevo', methods=['GET', 'POST'])
 @login_required
@@ -21,11 +43,9 @@ def nuevo():
         fecha_seleccionada = obtener_hora_bogota().date()
         fecha_str = fecha_seleccionada.strftime('%Y-%m-%d')
 
-    # Calcular ventas del día
+    # Calcular ventas del día usando el sistema híbrido (SalePayment + legacy)
     ventas_del_dia = Sale.query.filter(db.func.date(Sale.fecha_venta) == fecha_seleccionada).all()
-    
-    total_efectivo = sum(v.monto_total for v in ventas_del_dia if v.metodo_pago == 'efectivo')
-    total_transferencia = sum(v.monto_total for v in ventas_del_dia if v.metodo_pago in ['transferencia', 'nequi', 'bancolombia', 'daviplata'])
+    total_efectivo, total_transferencia = calcular_totales_dia(ventas_del_dia)
 
     # Calcular gastos automáticos del día
     gastos_diarios_registros = Expense.query.filter(

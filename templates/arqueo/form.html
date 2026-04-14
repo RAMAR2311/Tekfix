@@ -48,7 +48,16 @@
                             </div>
                         </div>
 
-                        <div class="alert mt-4 rounded-3 p-3 text-center" style="background-color: #F9C8D3; color: #4a4a4a; border: 1px solid #ebaebc;">
+                        <!-- Venta Total del Día -->
+                        <div class="alert mt-3 rounded-3 p-3 text-center" style="background-color: #d4edda; color: #155724; border: 1px solid #b1dfbb;">
+                            <span class="d-block mb-1 fw-semibold" style="font-size: 0.85rem;"><i class="fa-solid fa-chart-line me-1"></i> Venta Total del Día</span>
+                            <span class="fs-3 fw-bold">
+                                ${{ ((total_efectivo|int + total_transferencia|int))|cop }}
+                            </span>
+                            <span class="d-block mt-1 opacity-75" style="font-size: 0.7rem;">Efectivo + Transferencias</span>
+                        </div>
+
+                        <div class="alert mt-3 rounded-3 p-3 text-center" style="background-color: #F9C8D3; color: #4a4a4a; border: 1px solid #ebaebc;">
                             <span class="d-block mb-1 opacity-75 fw-semibold" style="font-size: 0.9rem;">Efectivo Esperado en Caja</span>
                             <span class="fs-3 fw-bold align-middle d-flex justify-content-center align-items-center">
                                 $ <span id="efectivo_esperado" class="ms-1">0</span>

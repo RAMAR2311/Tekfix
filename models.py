@@ -84,16 +84,43 @@ class Sale(db.Model):
     metodo_pago = db.Column(db.String(50), nullable=False, default='efectivo')
     
     detalles = db.relationship('SaleDetail', backref='venta', lazy=True, cascade="all, delete-orphan")
+    pagos = db.relationship('SalePayment', backref='venta', lazy=True, cascade="all, delete-orphan")
+
+    @property
+    def metodo_pago_display(self):
+        """Retorna un resumen legible del método de pago.
+        Si es pago único, retorna el nombre del método.
+        Si es mixto, retorna 'Pago Mixto' con desglose."""
+        if not self.pagos:
+            # Retrocompatibilidad con ventas antiguas que solo tienen metodo_pago
+            return self.metodo_pago.capitalize() if self.metodo_pago else 'Efectivo'
+        if len(self.pagos) == 1:
+            return self.pagos[0].metodo_pago.capitalize()
+        return 'Pago Mixto'
+
+class SalePayment(db.Model):
+    """Modelo para soportar pagos mixtos/parciales por venta.
+    Permite registrar múltiples métodos de pago en una sola venta.
+    Ej: $50.000 en efectivo + $30.000 por Nequi = $80.000 total."""
+    __tablename__ = 'sale_payments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    sale_id = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=False)
+    metodo_pago = db.Column(db.String(50), nullable=False)  # efectivo, nequi, bancolombia, daviplata
+    monto = db.Column(db.Numeric(10, 2), nullable=False)
 
 class SaleDetail(db.Model):
     __tablename__ = 'sale_details'
     
     id = db.Column(db.Integer, primary_key=True)
     sale_id = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     variant_id = db.Column(db.Integer, db.ForeignKey('product_variants.id'), nullable=True)
     cantidad_vendida = db.Column(db.Integer, nullable=False)
     precio_venta_final = db.Column(db.Numeric(10, 2), nullable=False)
+    # Campos para productos manuales (prestados de otros locales)
+    nombre_manual = db.Column(db.String(200), nullable=True)
+    precio_costo_manual = db.Column(db.Numeric(10, 2), nullable=True)
 
     variante = db.relationship('ProductVariant', backref='ventas_rel', lazy=True)
 
@@ -126,6 +153,7 @@ class Maneo(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    variant_id = db.Column(db.Integer, db.ForeignKey('product_variants.id'), nullable=True)
     local_vecino = db.Column(db.String(150), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False)
     estado = db.Column(db.String(50), nullable=False, default='PENDIENTE') # PENDIENTE, FACTURADO, DEVUELTO
@@ -133,6 +161,7 @@ class Maneo(db.Model):
     fecha_resolucion = db.Column(db.DateTime, nullable=True)
 
     producto = db.relationship('Product', backref='maneos', lazy=True)
+    variante = db.relationship('ProductVariant', backref='maneos_rel', lazy=True)
 
 class Expense(db.Model):
     __tablename__ = 'expenses'

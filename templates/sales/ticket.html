@@ -133,7 +133,13 @@
         <p class="info">Expedido: {{ venta.fecha_venta.strftime('%d/%m/%Y %H:%M') }}</p>
         <p class="info">Cajero Asignado: {{ venta.vendedor.nombre }}</p>
         <p class="info" style="font-weight: bold; text-transform: uppercase;">
-            Método de Pago: {{ venta.metodo_pago }}
+            {% if venta.pagos|length > 1 %}
+                Método de Pago: PAGO DIVIDIDO
+            {% elif venta.pagos|length == 1 %}
+                Método de Pago: {{ venta.pagos[0].metodo_pago|upper }}
+            {% else %}
+                Método de Pago: {{ venta.metodo_pago|upper }}
+            {% endif %}
         </p>
     </div>
 
@@ -151,7 +157,11 @@
                 <td class="col-qty">{{ detalle.cantidad_vendida }}</td>
                 <!-- Cortar la longitud del título si es gigantesco para no descuadrar la ticketera -->
                 <td class="col-prod">
-                    {{ detalle.producto.nombre[:25] }}{% if detalle.producto.nombre|length > 25 %}...{% endif %}
+                    {% if detalle.nombre_manual %}
+                        {{ detalle.nombre_manual[:25] }}{% if detalle.nombre_manual|length > 25 %}...{% endif %}
+                    {% else %}
+                        {{ detalle.producto.nombre[:25] }}{% if detalle.producto.nombre|length > 25 %}...{% endif %}
+                    {% endif %}
                 </td>
                 <td class="col-sub">${{ (detalle.precio_venta_final * detalle.cantidad_vendida)|cop }}</td>
             </tr>
@@ -164,6 +174,19 @@
             <span>TOTAL:</span>
             <span>${{ (venta.monto_total)|cop }}</span>
         </div>
+        
+        {% if venta.pagos|length > 1 %}
+        <!-- Desglose de pagos mixtos -->
+        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc;">
+            <p style="font-weight: 700; font-size: 0.9rem; margin-bottom: 8px; text-align: center;">DESGLOSE DE PAGOS:</p>
+            {% for pago in venta.pagos %}
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 3px 0;">
+                <span style="text-transform: capitalize;">{{ pago.metodo_pago }}:</span>
+                <span style="font-weight: 700;">${{ (pago.monto)|cop }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 
     <div class="footer">

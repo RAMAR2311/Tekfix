@@ -159,7 +159,7 @@ def nueva_factura():
     productos_disp = Product.query.filter_by(tipo_inventario='bodega').filter(Product.cantidad_stock > 0).order_by(Product.nombre).all()
     return render_template('bodega/factura_nueva.html', clientes=clientes, productos=productos_disp)
 
-@bodega_bp.route('/api/producto/<string:sku>', methods=['GET'])
+@bodega_bp.route('/api/producto/<path:sku>', methods=['GET'])
 @login_required
 @bodega_required
 def api_buscar_producto_bodega(sku):

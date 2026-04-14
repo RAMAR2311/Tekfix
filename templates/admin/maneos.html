@@ -11,18 +11,27 @@
 <!-- Formulario para Nuevo Maneo -->
 <div class="card card-custom p-4 mb-4">
     <h5 class="text-brand-black fw-bold mb-3"><i class="fa-solid fa-box-open text-brand-blue me-2"></i>Registrar Nuevo Maneo</h5>
-    <form method="POST" action="{{ url_for('admin_bp.maneos_prestar') }}">
+    <form method="POST" action="{{ url_for('admin_bp.maneos_prestar') }}" id="formNuevoManeo">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="hidden" name="variant_id" id="variant_id_hidden" value="">
         <div class="row g-3 align-items-end">
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <label class="form-label fw-bold text-brand-black">Producto a Prestar / Entregar (SKU)</label>
-                <input type="text" name="sku" class="form-control bg-light border-0" autofocus placeholder="Escanea o digita el SKU..." required>
+                <input type="text" name="sku" id="maneo_sku_input" class="form-control bg-light border-0" autofocus placeholder="Escanea o digita el SKU..." required>
             </div>
-            <div class="col-md-3">
+            <!-- Selector de Subcategoría (aparece dinámicamente) -->
+            <div class="col-md-3" id="variant_selector_col" style="display: none;">
+                <label class="form-label fw-bold text-brand-black"><i class="fa-solid fa-layer-group text-primary me-1"></i>Subcategoría</label>
+                <select id="variant_selector" class="form-select bg-light border-0" onchange="onVariantChange()">
+                    <option value="">— Producto general —</option>
+                </select>
+                <small class="text-muted" id="variant_stock_info"></small>
+            </div>
+            <div class="col-md-2">
                 <label class="form-label fw-bold text-brand-black">Local Vecino / Persona</label>
                 <input type="text" name="local_vecino" class="form-control bg-light border-0" placeholder="Ej: Fundas Alex" required>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <label class="form-label fw-bold text-brand-black">Cantidad</label>
                 <input type="number" name="cantidad" class="form-control bg-light border-0" min="1" value="1" required>
             </div>
@@ -52,7 +61,12 @@
                 <tr>
                     <td class="ps-4 text-muted"><small>{{ m.fecha_prestamo.strftime('%d/%m/%Y %H:%M') }}</small></td>
                     <td class="fw-bold text-brand-black"><i class="fa-solid fa-store text-muted me-2"></i>{{ m.local_vecino }}</td>
-                    <td><span class="text-brand-black fw-semibold">{{ m.producto.nombre }}</span> <small class="text-muted">({{ m.producto.sku }})</small></td>
+                    <td>
+                        <span class="text-brand-black fw-semibold">{{ m.producto.nombre }}</span> <small class="text-muted">({{ m.producto.sku }})</small>
+                        {% if m.variante %}
+                            <br><span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-2 mt-1" style="font-size: 0.75rem;"><i class="fa-solid fa-layer-group me-1"></i>{{ m.variante.nombre_variante }}</span>
+                        {% endif %}
+                    </td>
                     <td class="text-center fw-bold">{{ m.cantidad }} uds</td>
                     <td class="text-center">
                         {% if m.estado == 'PENDIENTE' %}
@@ -83,7 +97,9 @@
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body p-4">
-                                                    <p>Registrarás la venta del producto <strong>{{ m.producto.nombre }}</strong> entregado a <strong>{{ m.local_vecino }}</strong>.</p>
+                                                    <p>Registrarás la venta del producto <strong>{{ m.producto.nombre }}</strong>
+                                                        {% if m.variante %}<span class="badge bg-primary bg-opacity-10 text-primary border rounded-pill ms-1">{{ m.variante.nombre_variante }}</span>{% endif %}
+                                                        entregado a <strong>{{ m.local_vecino }}</strong>.</p>
                                                     
                                                     <div class="row w-100 g-2 mt-2">
                                                         <div class="col-md-6">
@@ -97,7 +113,11 @@
                                                             <label class="form-label fw-bold">Precio Unitario</label>
                                                             <div class="input-group">
                                                                 <span class="input-group-text border-0 bg-light text-success fw-bold">$</span>
-                                                                <input type="number" step="1" min="{{ "%.0f"|format(m.producto.precio_minimo) }}" class="form-control bg-light border-0" name="precio_venta" value="{{ "%.0f"|format(m.producto.precio_sugerido) }}" required>
+                                                                {% if m.variante and m.variante.precio_sugerido %}
+                                                                    <input type="number" step="1" min="{{ "%.0f"|format((m.variante.precio_minimo or m.producto.precio_minimo)|float) }}" class="form-control bg-light border-0" name="precio_venta" value="{{ "%.0f"|format((m.variante.precio_sugerido or m.producto.precio_sugerido)|float) }}" required>
+                                                                {% else %}
+                                                                    <input type="number" step="1" min="{{ "%.0f"|format(m.producto.precio_minimo) }}" class="form-control bg-light border-0" name="precio_venta" value="{{ "%.0f"|format(m.producto.precio_sugerido) }}" required>
+                                                                {% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -124,12 +144,40 @@
                                 </div>
                                 
                                 <!-- Botón Devolver -->
-                                <form method="POST" action="{{ url_for('admin_bp.maneos_devolver', id=m.id) }}" class="d-inline" onsubmit="return confirm('¿Seguro que deseas devolver este producto al inventario?');">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill" title="Devolver a Inventario">
-                                        <i class="fa-solid fa-rotate-left"></i> Devolver
-                                    </button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-toggle="modal" data-bs-target="#devolverModal{{ m.id }}" title="Devolver a Inventario">
+                                    <i class="fa-solid fa-rotate-left"></i> Devolver
+                                </button>
+                                <!-- Modal Devolver -->
+                                <div class="modal fade text-start" id="devolverModal{{ m.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-sm">
+                                        <div class="modal-content border-0 shadow">
+                                            <form method="POST" action="{{ url_for('admin_bp.maneos_devolver', id=m.id) }}">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <div class="modal-header border-0 bg-light">
+                                                    <h5 class="modal-title fw-bold text-secondary"><i class="fa-solid fa-rotate-left me-2"></i>Devolver Unidades</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body p-4">
+                                                    <p class="mb-3">¿Cuántas unidades de <strong>{{ m.producto.nombre }}</strong>
+                                                        {% if m.variante %}<span class="badge bg-primary bg-opacity-10 text-primary border rounded-pill ms-1">{{ m.variante.nombre_variante }}</span>{% endif %}
+                                                        devuelve <strong>{{ m.local_vecino }}</strong>?
+                                                    </p>
+                                                    <div class="input-group input-group-lg mb-3">
+                                                        <input type="number" name="cantidad_devuelta" class="form-control bg-light border-0 text-center fw-bold" min="1" max="{{ m.cantidad }}" value="{{ m.cantidad }}" required>
+                                                        <span class="input-group-text border-0 bg-light text-muted fw-bold">/ {{ m.cantidad }} uds</span>
+                                                    </div>
+                                                    <div class="alert py-2 px-3 rounded-3 mb-0" style="background: #f0f4ff; border: 1px dashed #b0c4de;">
+                                                        <small class="text-muted"><i class="fa-solid fa-circle-info text-primary me-1"></i>Si devuelves menos de {{ m.cantidad }}, las unidades restantes quedarán <strong>pendientes de cobrar</strong>.</small>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-0">
+                                                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-secondary rounded-pill fw-bold px-4"><i class="fa-solid fa-rotate-left me-1"></i> Confirmar Devolución</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         {% else %}
                             <span class="text-muted small"><i class="fa-solid fa-check text-success"></i> Completado</span>
@@ -148,4 +196,82 @@
         </table>
     </div>
 </div>
+
+<!-- Script para cargar subcategorías dinámicamente al digitar el SKU -->
+<script>
+    let debounceTimer = null;
+    const skuInput = document.getElementById('maneo_sku_input');
+    const variantCol = document.getElementById('variant_selector_col');
+    const variantSelect = document.getElementById('variant_selector');
+    const variantHidden = document.getElementById('variant_id_hidden');
+    const variantStockInfo = document.getElementById('variant_stock_info');
+
+    skuInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const sku = skuInput.value.trim();
+            if (sku.length > 0) {
+                buscarVariantes(sku);
+            } else {
+                ocultarVariantes();
+            }
+        }, 400);
+    });
+
+    // También al presionar Enter (por si usa escáner)
+    skuInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            // No prevenir submit, pero sí buscar variantes antes
+            const sku = skuInput.value.trim();
+            if (sku.length > 0) {
+                buscarVariantes(sku);
+            }
+        }
+    });
+
+    async function buscarVariantes(sku) {
+        try {
+            const response = await fetch(`/sales/api/producto/${encodeURIComponent(sku)}`);
+            if (!response.ok) {
+                ocultarVariantes();
+                return;
+            }
+            const producto = await response.json();
+
+            if (producto.variantes && producto.variantes.length > 0) {
+                // Mostrar el selector de variantes
+                variantSelect.innerHTML = '<option value="">— Producto general —</option>';
+                producto.variantes.forEach(v => {
+                    const stockLabel = v.stock > 0 ? `(Stock: ${v.stock})` : '(Sin stock)';
+                    variantSelect.innerHTML += `<option value="${v.id}" data-stock="${v.stock}">${v.nombre} ${stockLabel}</option>`;
+                });
+                variantCol.style.display = 'block';
+                variantHidden.value = '';
+                variantStockInfo.textContent = '';
+            } else {
+                ocultarVariantes();
+            }
+        } catch (err) {
+            ocultarVariantes();
+        }
+    }
+
+    function ocultarVariantes() {
+        variantCol.style.display = 'none';
+        variantSelect.innerHTML = '<option value="">— Producto general —</option>';
+        variantHidden.value = '';
+        variantStockInfo.textContent = '';
+    }
+
+    function onVariantChange() {
+        const selectedOption = variantSelect.options[variantSelect.selectedIndex];
+        variantHidden.value = variantSelect.value;
+        
+        if (variantSelect.value && selectedOption.dataset.stock) {
+            variantStockInfo.innerHTML = `<i class="fa-solid fa-cubes text-primary me-1"></i> Stock disponible: <strong>${selectedOption.dataset.stock}</strong> uds`;
+        } else {
+            variantStockInfo.textContent = '';
+        }
+    }
+</script>
 {% endblock %}

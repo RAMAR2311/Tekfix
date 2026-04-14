@@ -46,25 +46,34 @@
             <!-- Resumen Consolidado de Totales -->
             <h5 class="fw-bold text-brand-black mb-3">📍 Resumen General del Período Recaudado</h5>
             <div class="row g-3 mb-5 resumen-totales">
-                <div class="col-sm-6 col-md-3">
+                <div class="col-sm-6 col-md">
+                    <div class="card p-3 border rounded shadow-sm text-center h-100" style="background-color: #d4edda; border-left: 4px solid #28a745 !important;">
+                        <small class="fw-bold text-uppercase d-block mb-1" style="color: #155724;">Venta Total</small>
+                        <h4 class="mb-0 fw-bold" style="color: #155724;">
+                            ${{ (resumen.total_efectivo + resumen.total_transferencia)|cop }}
+                        </h4>
+                        <small class="d-block mt-1 opacity-75" style="font-size:0.7rem; color: #155724;">Efectivo + Transferencias</small>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md">
                     <div class="card p-3 border rounded shadow-sm bg-light text-center h-100">
                         <small class="text-secondary fw-bold text-uppercase d-block mb-1">Efectivo Sistema (Ventas)</small>
                         <h4 class="mb-0 text-success fw-bold">${{ (resumen.total_efectivo)|cop }}</h4>
                     </div>
                 </div>
-                <div class="col-sm-6 col-md-3">
+                <div class="col-sm-6 col-md">
                     <div class="card p-3 border rounded shadow-sm bg-light text-center h-100">
                         <small class="text-secondary fw-bold text-uppercase d-block mb-1">Bancos / Transf. Sistema</small>
                         <h4 class="mb-0 text-info fw-bold">${{ (resumen.total_transferencia)|cop }}</h4>
                     </div>
                 </div>
-                <div class="col-sm-6 col-md-3">
+                <div class="col-sm-6 col-md">
                     <div class="card p-3 border rounded shadow-sm bg-light text-center h-100">
                         <small class="text-secondary fw-bold text-uppercase d-block mb-1">Gastos Operativos Retirados</small>
                         <h4 class="mb-0 text-danger fw-bold">$-{{ (resumen.total_gastos)|cop }}</h4>
                     </div>
                 </div>
-                <div class="col-sm-6 col-md-3">
+                <div class="col-sm-6 col-md">
                     <div class="card p-3 border rounded shadow-sm bg-light text-center h-100" style="border-left: 4px solid #A3D8DE !important;">
                         <small class="text-secondary fw-bold d-block mb-1">CAJA FÍSICA ESPERADA FINAL</small>
                         <h4 class="mb-0 text-dark fw-bold">${{ (resumen.efectivo_esperado)|cop }}</h4>
@@ -145,18 +154,37 @@
                             <td class="text-center text-secondary fw-bold">#{{ "%05d"|format(v.id) }}</td>
                             <td class="text-center text-muted">{{ v.fecha_venta.strftime('%H:%M') }}</td>
                             <td class="text-center">
-                                <span class="badge bg-light text-dark border rounded-pill px-3 py-1">
-                                    {{ v.metodo_pago|capitalize }}
-                                </span>
+                                {% if v.pagos|length > 1 %}
+                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-1" style="border-color: #fd7e14 !important;">
+                                        Mixto
+                                    </span>
+                                    <div style="font-size: 0.7rem; margin-top: 3px; color: #888;">
+                                        {% for p in v.pagos %}
+                                            {{ p.metodo_pago|capitalize }}: ${{ (p.monto)|cop }}{% if not loop.last %}<br>{% endif %}
+                                        {% endfor %}
+                                    </div>
+                                {% elif v.pagos|length == 1 %}
+                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-1">
+                                        {{ v.pagos[0].metodo_pago|capitalize }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-1">
+                                        {{ v.metodo_pago|capitalize }}
+                                    </span>
+                                {% endif %}
                             </td>
                             <td>
                                 <ul class="mb-0 ps-3" style="font-size: 0.85rem;">
                                     {% for detalle in v.detalles %}
                                     <li>
                                         <strong>{{ detalle.cantidad_vendida }}x</strong> 
-                                        {{ detalle.producto.nombre }} 
-                                        {% if detalle.variant_id %}
-                                            <span class="text-muted">(Var: {{ detalle.variante.nombre_variante }})</span>
+                                        {% if detalle.nombre_manual %}
+                                            {{ detalle.nombre_manual }} <span class="badge bg-primary bg-opacity-10 text-primary border rounded-pill px-1" style="font-size: 0.65rem;">Externo</span>
+                                        {% else %}
+                                            {{ detalle.producto.nombre }} 
+                                            {% if detalle.variant_id %}
+                                                <span class="text-muted">(Var: {{ detalle.variante.nombre_variante }})</span>
+                                            {% endif %}
                                         {% endif %}
                                     </li>
                                     {% endfor %}

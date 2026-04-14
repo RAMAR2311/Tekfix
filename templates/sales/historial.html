@@ -133,10 +133,29 @@
                         <i class="fa-solid fa-user-circle text-muted me-1"></i> {{ venta.vendedor.nombre }}
                     </td>
                     <td class="text-center align-middle">
-                        {% if venta.metodo_pago == 'efectivo' %}
-                            <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
+                        {% if venta.pagos|length > 1 %}
+                            <!-- Pago Mixto: badge especial con tooltip de desglose -->
+                            <span class="badge bg-light text-dark border border-warning border-opacity-50 rounded-pill px-3 py-2" 
+                                  data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="left"
+                                  title="{% for p in venta.pagos %}{{ p.metodo_pago|capitalize }}: ${{ (p.monto)|cop }}{% if not loop.last %}&lt;br&gt;{% endif %}{% endfor %}"
+                                  style="cursor: help;">
+                                <i class="fa-solid fa-arrows-split-up-and-left me-1" style="color: #fd7e14;"></i> Pago Mixto
+                            </span>
+                        {% elif venta.pagos|length == 1 %}
+                            {% set metodo = venta.pagos[0].metodo_pago %}
+                            {% if metodo == 'efectivo' %}
+                                <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
+                            {% else %}
+                                <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> {{ metodo|capitalize }}</span>
+                            {% endif %}
                         {% else %}
-                            <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> {{ venta.metodo_pago|capitalize }}</span>
+                            {% if venta.metodo_pago == 'efectivo' %}
+                                <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
+                            {% elif venta.metodo_pago == 'mixto' %}
+                                <span class="badge bg-light text-dark border border-warning border-opacity-50 rounded-pill px-3 py-2"><i class="fa-solid fa-arrows-split-up-and-left me-1" style="color: #fd7e14;"></i> Pago Mixto</span>
+                            {% else %}
+                                <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> {{ venta.metodo_pago|capitalize }}</span>
+                            {% endif %}
                         {% endif %}
                     </td>
                     <td class="text-end align-middle fw-bolder text-brand-black fs-5">
@@ -283,4 +302,14 @@
     }
 }
 </style>
+
+<!-- Inicializar Tooltips Bootstrap para Desglose de Pagos Mixtos -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (el) {
+            return new bootstrap.Tooltip(el);
+        });
+    });
+</script>
 {% endblock %}
