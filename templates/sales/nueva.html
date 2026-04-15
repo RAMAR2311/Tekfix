@@ -227,6 +227,7 @@
     let carrito = [];
     let pagosMixtos = []; // Array de {metodo_pago, monto}
     const csrf_token = "{{ csrf_token() }}";
+    const userRol = "{{ current_user.rol }}";
 
     // Inicializar fecha de venta con la fecha de hoy (Solo Admin)
     (function() {
@@ -516,7 +517,9 @@
                     precio_minimo: initial_minimo,
                     cantidad_stock: producto.cantidad_stock,
                     variantes: producto.variantes,
-                    variant_id: initial_variant_id
+                    variant_id: initial_variant_id,
+                    precio_unlocked: false,
+                    autorizacion: null
                 });
             }
 
@@ -655,7 +658,7 @@
                 <td width="130">
                     <input type="number" class="form-control form-control-sm text-center" value="${item.cantidad}" onchange="actualizarItem(${index}, 'cantidad', this.value)">
                 </td>
-                <td width="180">
+                <td width="200">
                     ${item.es_manual ? `
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-tekfix-card border-end-0">$</span>
@@ -664,10 +667,16 @@
                     ` : `
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-tekfix-card border-end-0">$</span>
-                        <input type="number" step="1" class="form-control text-end border-start-0 pe-2" value="${Math.round(item.precio_final)}" onchange="actualizarItem(${index}, 'precio_final', this.value)">
+                        <input type="number" step="1" class="form-control text-end border-start-0 pe-2" value="${Math.round(item.precio_final)}" onchange="actualizarItem(${index}, 'precio_final', this.value)" ${(userRol === 'vendedor' && !item.precio_unlocked) ? 'readonly style="background-color: #f1f3f5;" data-bs-toggle="tooltip" title="Solo edición autorizada por administrador"' : ''}>
+                        ${(userRol === 'vendedor' && !item.precio_unlocked) ? `
+                        <button class="btn btn-outline-secondary" type="button" onclick="solicitarClaveDescuento(${index})">
+                            <i class="fa-solid fa-lock" style="color: var(--tekfix-primary);"></i>
+                        </button>
+                        ` : `
                         <button class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <span class="visually-hidden">Opciones</span>
                         </button>
+                        `}
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                             <li><h6 class="dropdown-header">Precios Definidos</h6></li>
                             <li><a class="dropdown-item py-2" href="#" onclick="event.preventDefault(); actualizarItem(${index}, 'precio_final', ${item.precio_minimo})">
@@ -706,6 +715,41 @@
         if (document.getElementById('toggle_pago_mixto').checked) {
             actualizarSaldoRestante();
         }
+        
+        // Refrescar tooltips de bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    }
+
+    function solicitarClaveDescuento(index) {
+        const codigo = prompt("Ingresa la Clave Dinámica del Administrador:");
+        if (!codigo) return;
+        
+        fetch('/sales/api/validar-clave', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrf_token
+            },
+            body: JSON.stringify({ codigo: codigo.trim() })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                carrito[index].precio_unlocked = true;
+                carrito[index].autorizacion = codigo.trim();
+                renderizarCarrito();
+                alert("¡Edición de precio desbloqueada exitosamente!");
+            } else {
+                alert("Código inválido, expirado o ya utilizado.");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error conectando con el servidor de autorización.");
+        });
     }
 
     // Evento Transaccional JSON de Salida
@@ -756,7 +800,8 @@
                     product_id: item.id,
                     variant_id: item.variant_id,
                     cantidad: item.cantidad,
-                    precio_final: item.precio_final
+                    precio_final: item.precio_final,
+                    autorizacion: item.autorizacion || null
                 };
                 if (item.es_manual) {
                     base.es_manual = true;

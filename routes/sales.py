@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, flash, redirect, render_template, abort, url_for
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, Expense, obtener_hora_bogota
+from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, Expense, DynamicKey, obtener_hora_bogota
 from decorators import admin_required
 from decimal import Decimal
 from datetime import datetime, timedelta
@@ -8,6 +8,21 @@ from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
 sales_bp = Blueprint('sales_bp', __name__)
+
+@sales_bp.route('/api/validar-clave', methods=['POST'])
+@login_required
+def validar_clave():
+    data = request.get_json()
+    codigo = data.get('codigo', '').strip().upper()
+    
+    clave = DynamicKey.query.filter_by(key_code=codigo).first()
+    
+    if clave and clave.is_valid():
+        clave.is_used = True
+        db.session.commit()
+        return jsonify({'success': True})
+    
+    return jsonify({'success': False}), 400
 
 @sales_bp.route('/nueva', methods=['GET', 'POST'])
 @login_required # Importante: Te bloqueará el acceso si no hay current_user logeado (Flask-Login)
@@ -121,7 +136,13 @@ def procesar_venta():
                     precio_limite_autorizado = producto.precio_costo if current_user.rol == 'admin' else producto.precio_minimo
 
                 if precio_venta_final < precio_limite_autorizado:
-                    raise ValueError(f"No autorizado: El precio ({precio_venta_final}) del producto '{producto.nombre}' está por debajo del límite permitido ({precio_limite_autorizado}).")
+                    auth = item.get('autorizacion')
+                    if auth:
+                        clave = DynamicKey.query.filter_by(key_code=auth).first()
+                        if not clave or not clave.is_used:
+                            raise ValueError(f"Código de autorización inválido para el producto '{producto.nombre}'.")
+                    else:
+                        raise ValueError(f"No autorizado: El precio ({precio_venta_final}) del producto '{producto.nombre}' está por debajo del límite permitido ({precio_limite_autorizado}).")
 
                 detalle = SaleDetail(
                     sale_id=nueva_venta.id,

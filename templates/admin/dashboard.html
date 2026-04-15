@@ -6,12 +6,82 @@
         <h2 class="fw-bold text-tekfix-main mb-0">Dashboard Operativo</h2>
         <p class="text-tekfix-sec">¡Bienvenido al panel central, {{ current_user.nombre }}!</p>
     </div>
-    <div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn rounded-pill fw-bold shadow-sm px-4" style="background-color: var(--tekfix-hover); color: var(--tekfix-bg);" onclick="generarClaveDescuento()">
+            <i class="fa-solid fa-key me-2"></i>Generar Código
+        </button>
         <button type="button" class="btn btn-tekfix-secondary rounded-pill fw-bold shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#modalBalance">
             <i class="fa-solid fa-scale-balanced me-2"></i>Generar Balance
         </button>
     </div>
 </div>
+
+<!-- Modal Dinámico para Código de Autorización -->
+<div class="modal fade" id="modalDynamicKey" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered text-center">
+    <div class="modal-content border-0 shadow-lg rounded-4 bg-tekfix-card" style="border-top: 5px solid var(--tekfix-primary) !important;">
+      <div class="modal-body py-5">
+        <h5 class="fw-bold text-tekfix-sec mb-4">Código de Autorización</h5>
+        <div class="d-inline-block py-3 px-5 rounded-3 mb-4" style="background-color: var(--tekfix-hover);">
+            <h1 class="display-3 fw-bolder m-0" id="codigoGeneradoLabel" style="letter-spacing: 0.15em; color: var(--tekfix-bg) !important;">------</h1>
+        </div>
+        <p class="text-tekfix-main mb-0 fs-5">Expira en: <span id="contadorExpira" class="fw-bolder text-danger">10:00</span> minutos</p>
+        <p class="small text-danger mt-3 mb-0" style="opacity: 0.8;"><i class="fa-solid fa-triangle-exclamation me-1"></i>Válido para 1 solo uso en el Sistema (Caja).</p>
+      </div>
+      <div class="modal-footer border-top-0 pt-0 justify-content-center">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-5 fw-bold" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let temporizadorClave;
+function generarClaveDescuento() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}';
+    
+    fetch('{{ url_for("admin_bp.generar_clave") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('codigoGeneradoLabel').innerText = data.codigo;
+            iniciarContador(10 * 60);
+            
+            var modal = new bootstrap.Modal(document.getElementById('modalDynamicKey'));
+            modal.show();
+        } else {
+            alert('Error generando código');
+        }
+    })
+    .catch(error => alert('Error de conexión'));
+}
+
+function iniciarContador(segundos) {
+    clearInterval(temporizadorClave);
+    let restante = segundos;
+    const label = document.getElementById('contadorExpira');
+    
+    temporizadorClave = setInterval(() => {
+        let mins = Math.floor(restante / 60);
+        let secs = restante % 60;
+        label.innerText = `${mins}:${secs < 10 ? '0'+secs : secs}`;
+        
+        if (restante <= 0) {
+            clearInterval(temporizadorClave);
+            label.innerText = "0:00 (Expirado)";
+            document.getElementById('codigoGeneradoLabel').style.color = "var(--tekfix-sec)";
+            document.getElementById('codigoGeneradoLabel').style.textDecoration = "line-through";
+        }
+        restante--;
+    }, 1000);
+}
+</script>
 
 <!-- Modal Generar Balance Financiero -->
 <div class="modal fade" id="modalBalance" tabindex="-1" aria-hidden="true">

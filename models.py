@@ -23,6 +23,22 @@ class User(UserMixin, db.Model):
     ajustes_stock = db.relationship('StockAdjustment', backref='admin', lazy=True)
     arqueos = db.relationship('ArqueoCaja', backref='cajero', lazy=True)
 
+class DynamicKey(db.Model):
+    __tablename__ = 'dynamic_keys'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    key_code = db.Column(db.String(6), nullable=False, unique=True, index=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    is_used = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=obtener_hora_bogota)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    
+    admin = db.relationship('User', backref='claves_generadas', lazy=True)
+
+    def is_valid(self):
+        ahora = obtener_hora_bogota()
+        return not self.is_used and self.expires_at > ahora
+
 class Product(db.Model):
     __tablename__ = 'products'
     

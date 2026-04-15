@@ -1,11 +1,35 @@
 from flask import Blueprint, render_template, abort, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, Loss, Provider, ProviderInvoice, ProviderPayment, Warranty, obtener_hora_bogota
+from models import db, Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, Loss, Provider, ProviderInvoice, ProviderPayment, Warranty, DynamicKey, obtener_hora_bogota
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 from decorators import admin_required
+import string, random
+from datetime import timedelta
 
 admin_bp = Blueprint('admin_bp', __name__)
+
+@admin_bp.route('/generar-clave', methods=['POST'])
+@login_required
+@admin_required
+def generar_clave():
+    # Generar un código alfanumérico random de 6 caracteres
+    codigo = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    
+    # Expiración: 10 minutos
+    ahora = obtener_hora_bogota()
+    expira = ahora + timedelta(minutes=10)
+    
+    nueva_clave = DynamicKey(
+        key_code=codigo,
+        admin_id=current_user.id,
+        created_at=ahora,
+        expires_at=expira
+    )
+    db.session.add(nueva_clave)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'codigo': codigo})
 
 @admin_bp.route('/vendedores', methods=['GET', 'POST'])
 @login_required
