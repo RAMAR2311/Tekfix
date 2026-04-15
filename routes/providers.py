@@ -127,3 +127,20 @@ def registrar_abono(id):
     db.session.commit()
     flash(f'Abono de ${monto_abonado} registrado exitosamente a favor de {proveedor.nombre}.', 'success')
     return redirect(url_for('providers_bp.cuenta', id=id))
+
+@providers_bp.route('/eliminar/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_proveedor(id):
+    proveedor = Provider.query.get_or_404(id)
+    nombre = proveedor.nombre
+    
+    try:
+        db.session.delete(proveedor)
+        db.session.commit()
+        flash(f'Proveedor "{nombre}" y todo su historial eliminados correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al intentar eliminar el proveedor: {str(e)}', 'danger')
+        
+    return redirect(url_for('providers_bp.index'))

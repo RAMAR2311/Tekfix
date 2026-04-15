@@ -43,6 +43,60 @@ def vendedores():
     lista_vendedores = User.query.filter_by(rol='vendedor').order_by(User.nombre).all()
     return render_template('admin/vendedores.html', vendedores=lista_vendedores)
 
+@admin_bp.route('/vendedores/editar/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def editar_vendedor(id):
+    vendedor = User.query.get_or_404(id)
+    nombre = request.form.get('nombre')
+    email = request.form.get('email')
+    telefono = request.form.get('telefono')
+    password = request.form.get('password')
+    
+    # Validar email único si cambió
+    if email != vendedor.email:
+        if User.query.filter_by(email=email).first():
+            flash('Error: El nuevo correo ya está en uso por otro usuario.', 'danger')
+            return redirect(url_for('admin_bp.vendedores'))
+
+    vendedor.nombre = nombre.strip()
+    vendedor.email = email.strip()
+    vendedor.telefono = telefono.strip() if telefono else None
+    
+    if password and password.strip():
+        vendedor.password_hash = generate_password_hash(password)
+        
+    try:
+        db.session.commit()
+        flash(f'Vendedor "{nombre}" actualizado correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error al actualizar el vendedor.', 'danger')
+        
+    return redirect(url_for('admin_bp.vendedores'))
+
+@admin_bp.route('/vendedores/eliminar/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_vendedor(id):
+    vendedor = User.query.get_or_404(id)
+    nombre = vendedor.nombre
+    
+    # No permitir que un admin borre a otro admin desde aquí o a sí mismo
+    if vendedor.rol == 'admin':
+        flash('No se pueden eliminar cuentas de administrador desde este panel.', 'danger')
+        return redirect(url_for('admin_bp.vendedores'))
+
+    try:
+        db.session.delete(vendedor)
+        db.session.commit()
+        flash(f'Vendedor "{nombre}" eliminado con éxito.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error: No se pudo eliminar el vendedor (puede tener ventas u operaciones registradas).', 'danger')
+        
+    return redirect(url_for('admin_bp.vendedores'))
+
 @admin_bp.route('/dashboard')
 @login_required
 @admin_required

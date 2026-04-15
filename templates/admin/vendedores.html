@@ -66,7 +66,7 @@
                             <th class="ps-4">NOMBRE DE EMPLEADO</th>
                             <th>EMAIL (ACCESO)</th>
                             <th>TELÉFONO</th>
-                            <th class="text-center pe-4">STATUS</th>
+                            <th class="text-center">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,7 +76,54 @@
                             <td class="text-tekfix-sec">{{ vendedor.email }}</td>
                             <td class="text-tekfix-sec">{{ vendedor.telefono or '-- No registrado --' }}</td>
                             <td class="text-center pe-4">
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2 w-100">Activo</span>
+                                <div class="d-flex justify-content-center align-items-center gap-2">
+                                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#editModal{{ vendedor.id }}" title="Editar Vendedor">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <form action="{{ url_for('admin_bp.eliminar_vendedor', id=vendedor.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar permanentemente el acceso de {{ vendedor.nombre }}?')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Revocar Acceso">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Modal Editar Vendedor -->
+                                <div class="modal fade" id="editModal{{ vendedor.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered text-start">
+                                        <div class="modal-content border-0 shadow-lg rounded-4 bg-tekfix-card">
+                                            <div class="modal-header border-bottom-0 pb-0">
+                                                <h5 class="fw-bold text-tekfix-main"><i class="fa-solid fa-user-pen me-2 text-tekfix-primary"></i> Modificar Vendedor</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="{{ url_for('admin_bp.editar_vendedor', id=vendedor.id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <div class="modal-body py-4">
+                                                    <div class="mb-3">
+                                                        <label class="form-label text-tekfix-main fw-bold small">Nombre Completo</label>
+                                                        <input type="text" name="nombre" class="form-control bg-tekfix-card border-0 text-tekfix-main" value="{{ vendedor.nombre }}" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label text-tekfix-main fw-bold small">Correo Empresarial</label>
+                                                        <input type="email" name="email" class="form-control bg-tekfix-card border-0 text-tekfix-main" value="{{ vendedor.email }}" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label text-tekfix-main fw-bold small">Teléfono</label>
+                                                        <input type="text" name="telefono" class="form-control bg-tekfix-card border-0 text-tekfix-main" value="{{ vendedor.telefono or '' }}">
+                                                    </div>
+                                                    <div class="mb-0">
+                                                        <label class="form-label text-tekfix-main fw-bold small">Nueva Contraseña (Dejar en blanco para no cambiar)</label>
+                                                        <input type="password" name="password" class="form-control bg-tekfix-card border-0 text-tekfix-main" placeholder="••••••••">
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-top-0 pt-0">
+                                                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cerrar</button>
+                                                    <button type="submit" class="btn btn-tekfix-secondary rounded-pill px-4 fw-bold text-tekfix-main">Actualizar Datos</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                         {% else %}

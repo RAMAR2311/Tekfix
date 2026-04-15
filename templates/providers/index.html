@@ -21,7 +21,7 @@
                     <th class="ps-4">Compañía / Proveedor</th>
                     <th>Teléfono</th>
                     <th>Registrado</th>
-                    <th class="pe-4 text-end">Acción</th>
+                    <th class="text-center pe-4">ACCIONES</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,10 +35,21 @@
                     </td>
                     <td>{{ prov.telefono or 'No registrado' }}</td>
                     <td>{{ prov.fecha_creacion.strftime('%d/%m/%Y') }}</td>
-                    <td class="pe-4 text-end">
-                        <a href="{{ url_for('providers_bp.cuenta', id=prov.id) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold" style="border-color: var(--tekfix-border); color: var(--tekfix-text-main);">
-                            Ver Cuenta <i class="fa-solid fa-arrow-right ms-1"></i>
-                        </a>
+                    <td class="text-center pe-4">
+                        <div class="d-flex justify-content-center align-items-center gap-3">
+                            <a href="{{ url_for('providers_bp.cuenta', id=prov.id) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold" style="border-color: var(--tekfix-border); color: var(--tekfix-text-main);">
+                                Ver Cuenta <i class="fa-solid fa-arrow-right ms-1"></i>
+                            </a>
+                            
+                            {% if current_user.rol == 'admin' %}
+                            <form action="{{ url_for('providers_bp.eliminar_proveedor', id=prov.id) }}" method="POST" onsubmit="return confirm('ATENCIÓN: Se eliminará este proveedor y TODO su historial de facturas y pagos. ¿Continuar?')" class="m-0">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-sm text-danger hover-danger border-0 bg-transparent p-0" title="Eliminar Proveedor">
+                                    <i class="fa-solid fa-trash-can fs-5"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% else %}

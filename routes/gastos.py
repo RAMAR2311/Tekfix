@@ -74,3 +74,23 @@ def index():
     # Provide today's date formatted for HTML5 <input type="date">
     hoy_str = ahora.strftime('%Y-%m-%d')
     return render_template('gastos/index.html', gastos=gastos_mes, total_diarios=total_diarios, total_indirectos=total_indirectos, hoy=hoy_str)
+
+@gastos_bp.route('/eliminar/<int:id>', methods=['POST'])
+@login_required
+def eliminar_gasto(id):
+    gasto = Expense.query.get_or_404(id)
+    
+    # Restricción: Solo Admin o el usuario que lo creó
+    if current_user.rol != 'admin' and gasto.usuario_id != current_user.id:
+        flash('No tienes permiso para eliminar este gasto.', 'danger')
+        return redirect(url_for('gastos_bp.index'))
+    
+    try:
+        db.session.delete(gasto)
+        db.session.commit()
+        flash('Gasto eliminado correctamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error al intentar eliminar el gasto.', 'danger')
+        
+    return redirect(url_for('gastos_bp.index'))
