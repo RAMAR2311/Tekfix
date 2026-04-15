@@ -31,7 +31,7 @@
         <!-- Tabla Carrito de Compras -->
         <div class="card card-custom p-0 overflow-hidden">
             <div class="table-responsive">
-                <table class="table table-custom table-dark mb-0 align-middle">
+                <table class="table table-custom mb-0 align-middle">
                     <thead class="bg-tekfix-card">
                         <tr>
                             <th>Producto Seleccionado</th>
@@ -84,7 +84,7 @@
                     </button>
                 </div>
                 <div id="fecha_venta_container" style="display: none; margin-top: 8px;">
-                    <input type="date" id="fecha_venta_input" class="form-control form-control-sm bg-tekfix-card border-0 shadow-sm" value="">
+                    <input type="date" id="fecha_venta_input" class="form-control form-control-sm" value="">
                     <small class="form-text text-tekfix-sec"><i class="fa-solid fa-circle-info text-primary me-1"></i>Cambia la fecha para registrar ventas de días anteriores.</small>
                 </div>
             </div>
@@ -117,14 +117,14 @@
             <!-- Modo 2: Pago Dividido/Mixto (oculto por defecto) -->
             <div id="pago_mixto_section" style="display: none;">
                 <!-- Indicador visual del saldo restante -->
-                <div class="alert border-0 shadow-sm py-2 px-3 mb-3" id="saldo_restante_alert" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                <div class="alert border shadow-sm py-2 px-3 mb-3" id="saldo_restante_alert" style="background-color: var(--tekfix-bg);">
                     <div class="d-flex justify-content-between align-items-center">
                         <small class="fw-bold text-tekfix-sec text-uppercase"><i class="fa-solid fa-scale-balanced me-1"></i> Saldo por cubrir:</small>
                         <span class="fw-bolder fs-5" id="saldo_restante" style="color: var(--tekfix-primary);">$0</span>
                     </div>
                     <!-- Barra de progreso visual -->
-                    <div class="progress mt-2" style="height: 6px; border-radius: 10px;">
-                        <div class="progress-bar" id="barra_progreso_pago" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #A3D8DE, #7BC8D0); border-radius: 10px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress mt-2" style="height: 6px; border-radius: 10px; background-color: var(--tekfix-border);">
+                        <div class="progress-bar" id="barra_progreso_pago" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #DDB856, #F9E491); border-radius: 10px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                 </div>
 
@@ -143,7 +143,7 @@
                 <button type="button" class="btn btn-tekfix-secondary btn-lg rounded-3 py-3 shadow-sm text-uppercase" id="btn_process_sale">
                     <i class="fa-solid fa-credit-card me-2"></i> Procesar Cobro
                 </button>
-                <button type="button" class="btn btn-light mt-2 fw-bold text-tekfix-sec" id="btn_clear_cart">
+                <button type="button" class="btn btn-outline-secondary mt-2 fw-bold" id="btn_clear_cart">
                     Limpiar Venta
                 </button>
             </div>
@@ -180,36 +180,36 @@
                 <h5 class="modal-title fw-bold text-primary"><i class="fa-solid fa-handshake me-2"></i>Producto Manual (Externo)</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4">
-                <div class="alert py-2 px-3 rounded-3 mb-4" style="background: #e8f4fd; border: 1px dashed #90c4e8;">
-                    <small class="text-tekfix-sec"><i class="fa-solid fa-circle-info text-primary me-1"></i>Usa esta opción para productos <strong>prestados de otros locales</strong>. No se descuenta stock propio.</small>
+            <div class="modal-body p-4 bg-tekfix-card text-tekfix-main">
+                <div class="alert border-dashed py-2 px-3 rounded-3 mb-4" style="background-color: rgba(221, 184, 86, 0.1); border: 1px dashed var(--tekfix-primary);">
+                    <small class="text-tekfix-sec"><i class="fa-solid fa-circle-info text-tekfix-primary me-1"></i>Usa esta opción para productos <strong>prestados de otros locales</strong>. No se descuenta stock propio.</small>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Nombre del Producto</label>
-                    <input type="text" id="manual_nombre" class="form-control bg-tekfix-card border-0" placeholder="Ej: Funda iPhone 15 Pro Max - Local Alex" required>
+                    <label class="form-label fw-bold text-tekfix-main">Nombre del Producto</label>
+                    <input type="text" id="manual_nombre" class="form-control" placeholder="Ej: Funda iPhone 15 Pro Max - Local Alex" required>
                 </div>
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold"><i class="fa-solid fa-arrow-down text-danger me-1"></i>Costo de Compra</label>
+                        <label class="form-label fw-bold text-tekfix-main"><i class="fa-solid fa-arrow-down text-danger me-1"></i>Costo de Compra</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-tekfix-card border-0">$</span>
-                            <input type="number" step="1" min="0" id="manual_costo" class="form-control bg-tekfix-card border-0" placeholder="Lo que se le paga al vecino" required>
+                            <span class="input-group-text bg-tekfix-card border-end-0 text-tekfix-sec">$</span>
+                            <input type="number" step="1" min="0" id="manual_costo" class="form-control border-start-0" placeholder="Lo que se le paga al vecino" required>
                         </div>
                         <small class="form-text text-tekfix-sec">Precio al que te lo vende el otro local</small>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-bold"><i class="fa-solid fa-arrow-up text-success me-1"></i>Precio de Venta</label>
+                        <label class="form-label fw-bold text-tekfix-main"><i class="fa-solid fa-arrow-up text-success me-1"></i>Precio de Venta</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-tekfix-card border-0 text-success fw-bold">$</span>
-                            <input type="number" step="1" min="0" id="manual_precio_venta" class="form-control bg-tekfix-card border-0" placeholder="Lo que se cobra al cliente" required>
+                            <span class="input-group-text bg-tekfix-card border-end-0 text-success fw-bold">$</span>
+                            <input type="number" step="1" min="0" id="manual_precio_venta" class="form-control border-start-0" placeholder="Lo que se cobra al cliente" required>
                         </div>
                         <small class="form-text text-tekfix-sec">Precio al que se le vende al cliente final</small>
                     </div>
                 </div>
                 <div class="mb-0">
-                    <label class="form-label fw-bold">Cantidad</label>
-                    <input type="number" id="manual_cantidad" class="form-control bg-tekfix-card border-0 w-25" min="1" value="1" required>
+                    <label class="form-label fw-bold text-tekfix-main">Cantidad</label>
+                    <input type="number" id="manual_cantidad" class="form-control w-25" min="1" value="1" required>
                 </div>
             </div>
             <div class="modal-footer border-0 bg-tekfix-card">

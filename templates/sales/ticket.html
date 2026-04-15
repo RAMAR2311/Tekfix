@@ -7,23 +7,41 @@
     <!-- Incluir solo la fuente base "Roboto Mono" (Letra de ticketera 80mm) -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* Colores Base Ticket (Papel) */
+            --paper-bg: #FFFFFF;
+            --paper-text: #1A1A1A;
+            --desktop-bg: #f0f2f5; /* Color claro por defecto */
+            --btn-bg: #1A1A1A;
+            --btn-text: #FFFFFF;
+        }
+
+        /* Detectar Modo Oscuro desde el Body (inyectado por JS) */
+        body.dark-mode {
+            --desktop-bg: #1A1818;
+            --btn-bg: #DDB856;
+            --btn-text: #1A1818;
+        }
+
         body {
-            background-color: #555555; /* Fondo oscuro simulando el escritorio detrás del papel */
+            background-color: var(--desktop-bg);
             margin: 0;
             padding: 30px;
             display: flex;
             justify-content: center;
             font-family: 'Roboto Mono', monospace, sans-serif;
+            transition: background-color 0.3s;
         }
         
         .ticket {
-            background-color: #FFFFFF;
+            background-color: var(--paper-bg);
             width: 100%;
             max-width: 380px; /* Ancho de impresora térmica 80mm */
             padding: 25px 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            color: #1A1A1A; /* Negro de nuestra paleta */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            color: var(--paper-text);
             box-sizing: border-box;
+            border-radius: 2px;
         }
 
         .header {
@@ -97,9 +115,9 @@
             display: block;
             width: 100%;
             padding: 15px;
-            background-color: #1A1A1A;
-            color: #FFFFFF;
-            border: 2px solid #1A1A1A;
+            background-color: var(--btn-bg);
+            color: var(--btn-text);
+            border: 2px solid var(--btn-bg);
             font-size: 1.1rem;
             border-radius: 6px;
             font-weight: bold;
@@ -200,8 +218,16 @@
     </button>
 </div>
 
-<!-- Lógica de Auto-Impresión Reactiva -->
+<!-- Lógica de Auto-Impresión y Sincronización de Tema -->
 <script>
+    // Sincronizar tema con la aplicación principal
+    (function() {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    })();
+
     // Evento silencioso que detona el pop-up de impresora nativo de Windows al renderizar
     window.onload = function() {
         setTimeout(() => {

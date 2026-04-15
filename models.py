@@ -79,12 +79,14 @@ class Loss(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True) # Quién registró la pérdida
     quantity = db.Column(db.Integer, nullable=False)
     cost_at_loss = db.Column(db.Numeric(10, 2), nullable=False)
     reason = db.Column(db.String(255), nullable=True)
     date = db.Column(db.DateTime, default=obtener_hora_bogota)
     
     producto = db.relationship('Product', backref='perdidas', lazy=True)
+    usuario = db.relationship('User', backref='perdidas_registradas', lazy=True)
 
 class Sale(db.Model):
     __tablename__ = 'sales'
@@ -304,4 +306,23 @@ class Warranty(db.Model):
     # Relaciones
     venta = db.relationship('Sale', backref='garantias', lazy=True)
     producto = db.relationship('Product', backref='garantias', lazy=True)
+
+    @property
+    def tiempo_transcurrido(self):
+        """Retorna una cadena legible del tiempo que ha pasado desde el ingreso."""
+        ahora = obtener_hora_bogota()
+        diferencia = ahora - self.created_at
+        
+        dias = diferencia.days
+        segundos = diferencia.seconds
+        horas = segundos // 3600
+        minutos = (segundos % 3600) // 60
+        
+        if dias > 0:
+            return f"Hace {dias} día(s)"
+        if horas > 0:
+            return f"Hace {horas} hora(s)"
+        if minutos > 0:
+            return f"Hace {minutos} min"
+        return "Hace un momento"
 # ======================================================

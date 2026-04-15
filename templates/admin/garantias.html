@@ -17,7 +17,7 @@
             <div class="mb-3">
                 <label class="form-label text-tekfix-sec small fw-bold">1. Ingresa el Número de Factura (ID)</label>
                 <div class="input-group">
-                    <input type="number" id="sale_id_input" class="form-control form-control-lg bg-tekfix-card border-0 text-white fw-bold" placeholder="Ej: 45" min="1">
+                    <input type="number" id="sale_id_input" class="form-control form-control-lg bg-tekfix-card border-0 text-tekfix-main fw-bold" placeholder="Ej: 45" min="1">
                     <button class="btn fw-bold px-4" id="btn_buscar" style="background-color: #DDB856; color: #1A1818;">
                         <i class="fa-solid fa-search me-1"></i> Buscar
                     </button>
@@ -30,7 +30,7 @@
                 <div class="p-3 rounded-3 bg-tekfix-card mb-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="text-tekfix-sec small fw-bold">Factura</span>
-                        <span class="fw-bold text-white" id="info_sale_id"></span>
+                        <span class="fw-bold text-tekfix-main" id="info_sale_id"></span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-1">
                         <span class="text-tekfix-sec small fw-bold">Fecha</span>
@@ -64,7 +64,7 @@
 
                 <div class="mb-4 p-3 bg-tekfix-card rounded-3">
                     <p class="text-tekfix-sec small mb-1">Producto seleccionado:</p>
-                    <h5 class="fw-bold text-white mb-0" id="display_producto">
+                    <h5 class="fw-bold text-tekfix-main mb-0" id="display_producto">
                         <span class="text-secondary fst-italic">Busca una factura primero...</span>
                     </h5>
                 </div>
@@ -72,11 +72,11 @@
                 <div class="row mb-3">
                     <div class="col-4">
                         <label class="form-label fw-bold text-tekfix-main small">Cantidad en garantía</label>
-                        <input type="number" name="quantity" id="form_quantity" class="form-control border-0 bg-tekfix-card text-white" min="1" value="1" required>
+                        <input type="number" name="quantity" id="form_quantity" class="form-control border-0 bg-tekfix-card text-tekfix-main" min="1" value="1" required>
                     </div>
                     <div class="col-8">
                         <label class="form-label fw-bold text-tekfix-main small">Motivo / Falla Reportada (*)</label>
-                        <input type="text" name="reason" class="form-control border-0 bg-tekfix-card text-white" placeholder="Ej: Pantalla presenta líneas de colores" required>
+                        <input type="text" name="reason" class="form-control border-0 bg-tekfix-card text-tekfix-main" placeholder="Ej: Pantalla presenta líneas de colores" required>
                     </div>
                 </div>
 
@@ -100,11 +100,12 @@
         <h5 class="fw-bold text-tekfix-main m-0"><i class="fa-solid fa-clock-rotate-left me-2"></i> Garantías Registradas Recientemente</h5>
     </div>
     <div class="table-responsive">
-        <table class="table table-hover align-middle m-0 text-tekfix-sec">
-            <thead class="bg-dark text-tekfix-main small">
+        <table class="table table-hover table-custom align-middle m-0">
+            <thead>
                 <tr>
                     <th class="ps-4">ID</th>
                     <th>Factura</th>
+                    <th>Ingreso</th>
                     <th>Producto</th>
                     <th>Motivo</th>
                     <th>Estado</th>
@@ -114,8 +115,12 @@
             <tbody>
                 {% for g in garantias_recientes %}
                 <tr>
-                    <td class="ps-4 fw-bold text-white">#{{ g.id }}</td>
+                    <td class="ps-4 fw-bold text-tekfix-main">#{{ g.id }}</td>
                     <td><a href="#" onclick="document.getElementById('sale_id_input').value='{{ g.sale_id }}'; document.getElementById('btn_buscar').click(); return false;" class="text-decoration-none" style="color: #DDB856;">Fac. #{{ g.sale_id }}</a></td>
+                    <td class="small">
+                        <span class="d-block text-tekfix-main fw-bold">{{ g.tiempo_transcurrido }}</span>
+                        <span class="text-tekfix-sec" style="font-size: 0.7rem;">{{ g.created_at.strftime('%d/%m/%Y') }}</span>
+                    </td>
                     <td>{{ g.producto.nombre if g.producto else g.nombre_manual or '---' }}</td>
                     <td class="fst-italic">{{ g.reason[:50] }}{% if g.reason|length > 50 %}...{% endif %}</td>
                     <td>
@@ -130,8 +135,8 @@
                         {% endif %}
                     </td>
                     <td class="pe-4 text-end">
-                        <a href="{{ url_for('warranties_bp.ticket', warranty_id=g.id) }}" target="_blank" class="btn btn-sm btn-outline-light rounded-pill px-3">
-                            <i class="fa-solid fa-print me-1"></i> Ver
+                        <a href="{{ url_for('warranties_bp.ticket', warranty_id=g.id) }}" target="_blank" class="btn btn-sm rounded-pill px-3 fw-bold" style="background-color: rgba(221,184,86,0.15); color: #DDB856; border: 1px solid #DDB856;">
+                            <i class="fa-solid fa-eye me-1"></i> Ver
                         </a>
                     </td>
                 </tr>
@@ -215,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
                          onclick="seleccionarProducto('${item.product_id || ''}', '${item.nombre_manual || ''}', '${item.nombre}')">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <p class="fw-bold text-white mb-0">${item.nombre}</p>
+                                <p class="fw-bold text-tekfix-main mb-0">${item.nombre}</p>
                                 <small class="text-tekfix-sec">${item.cantidad} und(s) vendidas · $${new Intl.NumberFormat('es-CO').format(item.precio)} c/u</small>
                             </div>
                             <i class="fa-solid fa-hand-pointer" style="color: #DDB856;"></i>

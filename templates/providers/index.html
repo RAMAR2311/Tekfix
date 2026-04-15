@@ -13,10 +13,10 @@
     </div>
 </div>
 
-<div class="card card-custom overflow-hidden border-0 shadow-sm p-0 table-dark">
+<div class="card card-custom overflow-hidden border-0 shadow-sm p-0">
     <div class="table-responsive p-0">
-        <table class="table table-hover align-middle m-0 text-tekfix-sec">
-            <thead class="bg-dark text-tekfix-main">
+        <table class="table table-hover table-custom align-middle m-0">
+            <thead>
                 <tr>
                     <th class="ps-4">Compañía / Proveedor</th>
                     <th>Teléfono</th>
@@ -30,13 +30,13 @@
                     <td class="ps-4 py-3">
                         <span class="fw-bold text-tekfix-main">{{ prov.nombre }}</span>
                         {% if prov.empresa %}
-                        <br><small class="text-muted"><i class="fa-solid fa-building me-1"></i>{{ prov.empresa }}</small>
+                        <br><small class="text-tekfix-sec opacity-75"><i class="fa-solid fa-building me-1"></i>{{ prov.empresa }}</small>
                         {% endif %}
                     </td>
                     <td>{{ prov.telefono or 'No registrado' }}</td>
                     <td>{{ prov.fecha_creacion.strftime('%d/%m/%Y') }}</td>
                     <td class="pe-4 text-end">
-                        <a href="{{ url_for('providers_bp.cuenta', id=prov.id) }}" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                        <a href="{{ url_for('providers_bp.cuenta', id=prov.id) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold" style="border-color: var(--tekfix-border); color: var(--tekfix-text-main);">
                             Ver Cuenta <i class="fa-solid fa-arrow-right ms-1"></i>
                         </a>
                     </td>
@@ -66,16 +66,16 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-white small">Nombre o Referencia</label>
-                        <input type="text" name="nombre" class="form-control form-control-lg bg-tekfix-card border-0 text-white" placeholder="Ej: Juan Pérez" required>
+                        <label class="form-label fw-bold text-tekfix-main small">Nombre o Referencia</label>
+                        <input type="text" name="nombre" class="form-control form-control-lg bg-tekfix-card border-0 text-tekfix-main" placeholder="Ej: Juan Pérez" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-white small">Empresa (Opcional)</label>
-                        <input type="text" name="empresa" class="form-control form-control-lg bg-tekfix-card border-0 text-white" placeholder="Ej: Tech Suplidor SAS">
+                        <label class="form-label fw-bold text-tekfix-main small">Empresa (Opcional)</label>
+                        <input type="text" name="empresa" class="form-control form-control-lg bg-tekfix-card border-0 text-tekfix-main" placeholder="Ej: Tech Suplidor SAS">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-white small">Teléfono</label>
-                        <input type="text" name="telefono" class="form-control form-control-lg bg-tekfix-card border-0 text-white" placeholder="Ej: 3001234567">
+                        <label class="form-label fw-bold text-tekfix-main small">Teléfono</label>
+                        <input type="text" name="telefono" class="form-control form-control-lg bg-tekfix-card border-0 text-tekfix-main" placeholder="Ej: 3001234567">
                     </div>
                 </div>
                 <div class="modal-footer border-top-0 pt-0">

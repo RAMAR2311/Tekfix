@@ -7,7 +7,7 @@
         <h2 class="fw-bolder m-0" style="color: var(--tekfix-primary);">
             <i class="fa-solid fa-users-gear me-2"></i>Gestión de Personal
         </h2>
-        <a href="/admin/dashboard" class="btn btn-light rounded-pill px-4 fw-bold text-tekfix-sec border shadow-sm">
+        <a href="/admin/dashboard" class="btn btn-outline-secondary rounded-pill px-4 fw-bold shadow-sm" style="border-color: var(--tekfix-border); color: var(--tekfix-text-main);">
             <i class="fa-solid fa-arrow-left me-1"></i> Panel Principal
         </a>
     </div>
@@ -24,22 +24,22 @@
                 
                 <div class="mb-3">
                     <label class="form-label text-tekfix-main fw-semibold small">Nombre Completo</label>
-                    <input type="text" name="nombre" class="form-control bg-tekfix-card border-0 py-2" required placeholder="Ej. Ana Pérez">
+                    <input type="text" name="nombre" class="form-control bg-tekfix-card border-0 py-2 text-tekfix-main" required placeholder="Ej. Ana Pérez">
                 </div>
                 
                 <div class="mb-3">
                     <label class="form-label text-tekfix-main fw-semibold small">Correo Empresarial (Login)</label>
-                    <input type="email" name="email" class="form-control bg-tekfix-card border-0 py-2" required placeholder="ventas@Tekfix Oficial">
+                    <input type="email" name="email" class="form-control bg-tekfix-card border-0 py-2 text-tekfix-main" required placeholder="ventas@Tekfix Oficial">
                 </div>
                 
                 <div class="mb-3">
                     <label class="form-label text-tekfix-main fw-semibold small">Celular / Móvil de Contacto</label>
-                    <input type="text" name="telefono" class="form-control bg-tekfix-card border-0 py-2" placeholder="Ej. 300 123 4567">
+                    <input type="text" name="telefono" class="form-control bg-tekfix-card border-0 py-2 text-tekfix-main" placeholder="Ej. 300 123 4567">
                 </div>
                 
                 <div class="mb-4">
                     <label class="form-label text-tekfix-main fw-semibold small">Contraseña (PIN)</label>
-                    <input type="password" name="password" class="form-control bg-tekfix-card border-0 py-2" required placeholder="••••••••">
+                    <input type="password" name="password" class="form-control bg-tekfix-card border-0 py-2 text-tekfix-main" required placeholder="••••••••">
                 </div>
                 
                 <div class="d-grid mt-auto">
@@ -54,18 +54,18 @@
 
     <!-- Columna Derecha: Tabla Administrativa -->
     <div class="col-md-8">
-        <div class="card card-custom p-0 overflow-hidden h-100 table-custom table-dark">
+        <div class="card card-custom p-0 overflow-hidden h-100">
             <!-- Título de cabecera adherido a la tabla -->
             <div class="bg-tekfix-card p-4 border-bottom">
                  <h5 class="fw-bold text-tekfix-main m-0 mt-2">Plantilla de Vendedores Activos en Sistema</h5>
             </div>
             <div class="table-responsive p-0">
-                <table class="table table-hover align-middle m-0">
-                    <thead class="bg-tekfix-card">
+                <table class="table table-hover table-custom align-middle m-0">
+                    <thead>
                         <tr>
                             <th class="ps-4">NOMBRE DE EMPLEADO</th>
-                            <th>EMAIL (CREDENCIAL DE ACCESO)</th>
-                            <th>NÚMERO TELEFÓNICO</th>
+                            <th>EMAIL (ACCESO)</th>
+                            <th>TELÉFONO</th>
                             <th class="text-center pe-4">STATUS</th>
                         </tr>
                     </thead>

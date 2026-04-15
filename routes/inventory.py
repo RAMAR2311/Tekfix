@@ -267,18 +267,44 @@ def eliminar_variante(id):
 @login_required
 @admin_or_bodega_required
 def descargar_plantilla():
-    # Crear un DataFrame de estructura requerida
-    df = pd.DataFrame(columns=['sku', 'nombre', 'cantidad_stock', 'precio_costo', 'precio_minimo', 'precio_sugerido', 'observacion'])
+    # Crear la estructura de datos
+    cols = ['sku', 'nombre', 'subcategoria', 'cantidad_stock', 'precio_costo', 'precio_minimo', 'precio_sugerido', 'observacion']
+    df = pd.DataFrame(columns=cols)
     
-    # Filas de ejemplo para guiar al usuario
-    df.loc[0] = ['SKU-EXAMPLE-01', 'Audífonos Bluetooth Inalambricos', 50, 10.50, 14.00, 20.00, 'Color azul noche']
-    df.loc[1] = ['SKU-EXAMPLE-02', 'Cargador Original Carga Rápida', 100, 5.00, 7.50, 12.00, '']
+    # Filas de ejemplo instructivas
+    df.loc[0] = ['SKU-001', 'Camiseta Polo', 'Azul / M', 50, 15000, 25000, 35000, 'Algodón Premium']
+    df.loc[1] = ['SKU-001', 'Camiseta Polo', 'Rojo / L', 30, 15000, 25000, 35000, 'Algodón Premium']
+    df.loc[2] = ['SKU-002', 'Protector Pantalla G7', '', 100, 2000, 5000, 8000, 'Sin subcategorías']
     
     output = BytesIO()
-    df.to_excel(output, index=False, engine='openpyxl')
-    output.seek(0)
     
-    return send_file(output, download_name="plantilla_importacion.xlsx", as_attachment=True)
+    # Usar XlsxWriter como motor para aplicar estilos profesionales
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='Plantilla Tekfix')
+        
+        workbook  = writer.book
+        worksheet = writer.sheets['Plantilla Tekfix']
+        
+        # Formato para el encabezado (Dorado Tekfix)
+        header_format = workbook.add_format({
+            'bold': True,
+            'text_wrap': True,
+            'valign': 'vcenter',
+            'align': 'center',
+            'fg_color': '#DDB856',
+            'font_color': '#1A1818',
+            'border': 1
+        })
+        
+        # Aplicar formato a los encabezados
+        for col_num, value in enumerate(df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+            # Auto-ajustar ancho de columna (basado en el largo del texto del header o ejemplo)
+            column_len = max(len(str(value)), 15)
+            worksheet.set_column(col_num, col_num, column_len)
+
+    output.seek(0)
+    return send_file(output, download_name="plantilla_importacion_tekfix.xlsx", as_attachment=True)
 
 @inventory_bp.route('/importar', methods=['POST'])
 @login_required
@@ -305,6 +331,7 @@ def importar_inventario():
             df = pd.read_excel(archivo)
             
         required_cols = ['sku', 'nombre', 'cantidad_stock', 'precio_costo', 'precio_minimo', 'precio_sugerido', 'observacion']
+        # 'subcategoria' es opcional pero la normalizamos si existe
         
         # Limpieza de encabezados para evitar problemas por mayúsculas o espacios accidentales
         df.columns = [str(c).strip().lower() for c in df.columns]
@@ -317,6 +344,7 @@ def importar_inventario():
         tipo = 'bodega' if current_user.rol == 'bodega' else 'tienda'
         creados = 0
         actualizados = 0
+        variantes_procesadas = 0
         
         for idx, row in df.iterrows():
             sku_raw = str(row['sku']).strip()
@@ -333,56 +361,86 @@ def importar_inventario():
             if obs_val.lower() == 'nan':
                 obs_val = ''
 
+            sub_raw = str(row['subcategoria']).strip() if 'subcategoria' in row else ''
+            if sub_raw.lower() in ['nan', 'none', '']:
+                sub_raw = None
+
             prod = Product.query.filter_by(sku=sku_raw, tipo_inventario=tipo).first()
             
-            if prod:
-                # Si EXISTE, sumamos la cantidad como especificó y actualizamos los precios.
-                stock_anterior = prod.cantidad_stock
-                prod.cantidad_stock += cant
-                prod.precio_costo = costo
-                prod.precio_minimo = minimo
-                prod.precio_sugerido = sugerido
-                # Se podría o no actualizar el nombre, pero la instrucción dice "actualiza los precios"
-                prod.nombre = nombre_val 
-                prod.observacion = obs_val
-                
-                if cant > 0:
-                    ajuste = StockAdjustment(
-                        product_id=prod.id,
-                        admin_id=current_user.id,
-                        tipo_movimiento='Suma por Ingreso Masivo (Excel)',
-                        stock_anterior=stock_anterior,
-                        stock_nuevo=prod.cantidad_stock
-                    )
-                    db.session.add(ajuste)
-                actualizados += 1
-            else:
-                # CREAR NUEVO
-                nuevo_prod = Product(
+            if not prod:
+                # CREAR PRODUCTO BASE PRIMERO
+                prod = Product(
                     sku=sku_raw,
                     nombre=nombre_val,
                     tipo_inventario=tipo,
-                    cantidad_stock=cant,
+                    cantidad_stock=0, # Empezamos en 0, se llenará abajo
                     precio_costo=costo,
                     precio_minimo=minimo,
                     precio_sugerido=sugerido,
                     observacion=obs_val
                 )
-                db.session.add(nuevo_prod)
-                db.session.flush() # Generar ID autoincremental
-                
-                ajuste = StockAdjustment(
-                    product_id=nuevo_prod.id,
-                    admin_id=current_user.id,
-                    tipo_movimiento='Creación Inicial (Excel)',
-                    stock_anterior=0,
-                    stock_nuevo=nuevo_prod.cantidad_stock
-                )
-                db.session.add(ajuste)
+                db.session.add(prod)
+                db.session.flush()
                 creados += 1
+            else:
+                # Actualizar información general del producto existente
+                prod.nombre = nombre_val
+                prod.observacion = obs_val
+                if not sub_raw: # Si es producto base, actualizamos precios
+                    prod.precio_costo = costo
+                    prod.precio_minimo = minimo
+                    prod.precio_sugerido = sugerido
+                actualizados += 1
+
+            if sub_raw:
+                # PROCESAR COMO VARIANTE
+                var = ProductVariant.query.filter_by(product_id=prod.id, nombre_variante=sub_raw).first()
+                if var:
+                    stock_ant = var.cantidad_stock
+                    var.cantidad_stock += cant
+                    # Actualizar precios específicos de la variante si vienen en el excel
+                    var.precio_costo = costo
+                    var.precio_minimo = minimo
+                    var.precio_sugerido = sugerido
+                else:
+                    stock_ant = 0
+                    var = ProductVariant(
+                        product_id=prod.id,
+                        nombre_variante=sub_raw,
+                        cantidad_stock=cant,
+                        precio_costo=costo,
+                        precio_minimo=minimo,
+                        precio_sugerido=sugerido
+                    )
+                    db.session.add(var)
+                
+                variantes_procesadas += 1
+                
+                # Kardex de variante
+                if cant > 0:
+                    db.session.add(StockAdjustment(
+                        product_id=prod.id,
+                        admin_id=current_user.id,
+                        tipo_movimiento=f'Entrada Masiva (Subcat: {sub_raw})',
+                        stock_anterior=stock_ant,
+                        stock_nuevo=var.cantidad_stock
+                    ))
+            else:
+                # PROCESAR COMO PRODUCTO BASE (Sin variante)
+                stock_anterior = prod.cantidad_stock
+                prod.cantidad_stock += cant
+                
+                if cant > 0:
+                    db.session.add(StockAdjustment(
+                        product_id=prod.id,
+                        admin_id=current_user.id,
+                        tipo_movimiento='Entrada Masiva (Base)',
+                        stock_anterior=stock_anterior,
+                        stock_nuevo=prod.cantidad_stock
+                    ))
                 
         db.session.commit()
-        flash(f'Carga masiva completada exitosamente. Productos creados: {creados} | Agregados a stock existente: {actualizados}.', 'success')
+        flash(f'Carga masiva completada. Productos: {creados} creados / {actualizados} actualizados. Subcategorías procesadas: {variantes_procesadas}.', 'success')
         
     except Exception as e:
         db.session.rollback()

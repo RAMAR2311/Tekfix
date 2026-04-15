@@ -49,7 +49,12 @@ def vendedores():
 def dashboard():
     # Se obtienen métricas clave para que el administrador tenga un resumen rápido de las operaciones del negocio
     total_productos = Product.query.count()
-    productos_bajo_stock = Product.query.filter(Product.cantidad_stock <= 10).count()
+    
+    # Se calcula el stock bajo considerando tanto productos planos como con variantes
+    # Unificamos la regla a 5 unidades según requerimiento del usuario
+    productos = Product.query.all()
+    productos_bajo_stock = sum(1 for p in productos if p.total_stock <= 5)
+    
     maneos_activos = Maneo.query.filter_by(estado='PENDIENTE').count()
     
     # Se delega la suma al motor de base de datos para no saturar la memoria de la aplicación con registros a medida que crecen las ventas
@@ -140,6 +145,7 @@ def registrar_perdida():
         # Registrar pérdida
         nueva_perdida = Loss(
             product_id=producto.id,
+            user_id=current_user.id,
             quantity=cantidad,
             cost_at_loss=costo_actual,
             reason=motivo
