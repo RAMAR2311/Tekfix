@@ -15,9 +15,9 @@ def seed_test_data():
         
         # 1. Crear Usuarios de Prueba si no existen
         roles = [
-            {'email': 'vendedor@test.com', 'nombre': 'Vendedor Demo', 'rol': 'vendedor'},
-            {'email': 'bodega@test.com', 'nombre': 'Bodeguero Demo', 'rol': 'bodega'},
-            {'email': 'admin@test.com', 'nombre': 'Admin Demo', 'rol': 'admin'}
+            {'email': 'vendedor@tekfix', 'nombre': 'Vendedor Oficial', 'rol': 'vendedor', 'pass': 'Tekfix1234'},
+            {'email': 'bodega@tekfix', 'nombre': 'Encargado Bodega', 'rol': 'bodega', 'pass': 'Tekfix1234'},
+            {'email': 'admin@tekfix', 'nombre': 'Administrador General', 'rol': 'admin', 'pass': 'Tekfix2026*'}
         ]
         test_users = {}
         for r in roles:
@@ -26,14 +26,14 @@ def seed_test_data():
                 user = User(
                     nombre=r['nombre'],
                     email=r['email'],
-                    password_hash=generate_password_hash('Test1234'),
+                    password_hash=generate_password_hash(r['pass']),
                     rol=r['rol'],
                     telefono='3000000000'
                 )
                 db.session.add(user)
                 db.session.commit()
             test_users[r['rol']] = user
-        print("[OK] Usuarios creados/verificados (vendedor@test.com, bodega@test.com, admin@test.com, clave: Test1234).")
+        print("[OK] Usuarios creados/verificados (admin@tekfix, bodega@tekfix, vendedor@tekfix).")
 
         # 2. Crear Productos y Variantes
         if Product.query.filter(Product.sku.like('DEMO-%')).count() == 0:
