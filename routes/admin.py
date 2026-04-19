@@ -142,12 +142,12 @@ def dashboard():
     hoy = obtener_hora_bogota()
     mes_actual = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     
-    perdidas_valor = db.session.query(func.sum(Loss.cost_at_loss * Loss.quantity)).filter(Loss.date >= mes_actual).scalar() or 0.0
-    ventas_mes_actual = db.session.query(func.sum(Sale.monto_total)).filter(Sale.fecha_venta >= mes_actual).scalar() or 0.0
+    perdidas_valor = float(db.session.query(func.sum(Loss.cost_at_loss * Loss.quantity)).filter(Loss.date >= mes_actual).scalar() or 0)
+    ventas_mes_actual = float(db.session.query(func.sum(Sale.monto_total)).filter(Sale.fecha_venta >= mes_actual).scalar() or 0)
     
     porcentaje_perdidas = 0
     if ventas_mes_actual > 0:
-        porcentaje_perdidas = round(float((perdidas_valor / ventas_mes_actual) * 100), 2)
+        porcentaje_perdidas = round((perdidas_valor / ventas_mes_actual) * 100, 2)
         
     # Cálculos modulo Proveedores (Cuentas por Pagar)
     total_deuda_facturas = db.session.query(func.sum(ProviderInvoice.monto_total)).scalar() or 0.0

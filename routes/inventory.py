@@ -13,9 +13,45 @@ inventory_bp = Blueprint('inventory_bp', __name__)
 @login_required
 @admin_or_bodega_required
 def index():
+    from models import Sale
+    from sqlalchemy.sql import func as sql_func
     tipo = 'bodega' if current_user.rol == 'bodega' else 'tienda'
-    productos = Product.query.filter_by(tipo_inventario=tipo).order_by(Product.nombre).all()
-    return render_template('inventory/index.html', productos=productos)
+
+    # --- Paginación ---
+    PER_PAGE = 15
+    page = request.args.get('page', 1, type=int)
+    paginacion = Product.query.filter_by(tipo_inventario=tipo).order_by(Product.nombre).paginate(
+        page=page, per_page=PER_PAGE, error_out=False
+    )
+    productos = paginacion.items
+
+    # --- KPIs: Valor total a costo y a precio sugerido ---
+    todos = Product.query.filter_by(tipo_inventario=tipo).all()
+    valor_costo = 0.0
+    valor_sugerido = 0.0
+    for p in todos:
+        if p.variantes:
+            for v in p.variantes:
+                costo = float(v.precio_costo or p.precio_costo or 0)
+                sugerido = float(v.precio_sugerido or p.precio_sugerido or 0)
+                valor_costo += costo * v.cantidad_stock
+                valor_sugerido += sugerido * v.cantidad_stock
+        else:
+            valor_costo += float(p.precio_costo or 0) * p.cantidad_stock
+            valor_sugerido += float(p.precio_sugerido or 0) * p.cantidad_stock
+
+    # --- KPI: Total de ventas registradas ---
+    total_ventas = float(db.session.query(sql_func.sum(Sale.monto_total)).scalar() or 0)
+
+    return render_template(
+        'inventory/index.html',
+        productos=productos,
+        paginacion=paginacion,
+        valor_costo=valor_costo,
+        valor_sugerido=valor_sugerido,
+        total_ventas=total_ventas,
+        total_productos=len(todos)
+    )
 
 @inventory_bp.route('/nuevo', methods=['GET', 'POST'])
 @login_required

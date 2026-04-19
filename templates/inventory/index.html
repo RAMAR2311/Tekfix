@@ -13,6 +13,63 @@
     </div>
 </div>
 
+<!-- ========== KPI CARDS ========== -->
+<div class="row g-3 mb-4">
+
+    <!-- Valor Total a Costo -->
+    <div class="col-12 col-md-4">
+        <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative">
+            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(var(--tekfix-primary-rgb,221,184,86),.08) 0%, transparent 70%); pointer-events:none;"></div>
+            <div class="card-body p-4 d-flex align-items-center gap-3">
+                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:52px;height:52px;background:linear-gradient(135deg,#c0a050,#ddb856);">
+                    <i class="fa-solid fa-coins text-white fs-5"></i>
+                </div>
+                <div>
+                    <p class="text-tekfix-sec fw-semibold mb-1" style="font-size:.75rem;letter-spacing:.6px;text-transform:uppercase;">Valor a Costo</p>
+                    <h4 class="fw-bold mb-0 text-tekfix-main" style="font-size:1.4rem;">${{ valor_costo|cop }}</h4>
+                    <small class="text-tekfix-sec" style="font-size:.7rem;">Inversión total en inventario</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Valor a Precio Sugerido -->
+    <div class="col-12 col-md-4">
+        <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative">
+            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(99,179,130,.08) 0%, transparent 70%); pointer-events:none;"></div>
+            <div class="card-body p-4 d-flex align-items-center gap-3">
+                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:52px;height:52px;background:linear-gradient(135deg,#3a9e6a,#63b382);">
+                    <i class="fa-solid fa-chart-line text-white fs-5"></i>
+                </div>
+                <div>
+                    <p class="text-tekfix-sec fw-semibold mb-1" style="font-size:.75rem;letter-spacing:.6px;text-transform:uppercase;">Valor Sugerido</p>
+                    <h4 class="fw-bold mb-0" style="font-size:1.4rem;color:#3a9e6a;">${{ valor_sugerido|cop }}</h4>
+                    <small class="text-tekfix-sec" style="font-size:.7rem;">Valor potencial de ventas</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total de Productos -->
+    <div class="col-12 col-md-4">
+        <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative">
+            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(100,130,220,.08) 0%, transparent 70%); pointer-events:none;"></div>
+            <div class="card-body p-4 d-flex align-items-center gap-3">
+                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:52px;height:52px;background:linear-gradient(135deg,#4a6ad8,#6482dc);">
+                    <i class="fa-solid fa-boxes-stacked text-white fs-5"></i>
+                </div>
+                <div>
+                    <p class="text-tekfix-sec fw-semibold mb-1" style="font-size:.75rem;letter-spacing:.6px;text-transform:uppercase;">Total Productos</p>
+                    <h4 class="fw-bold mb-0" style="font-size:1.4rem;color:#4a6ad8;">{{ total_productos }}</h4>
+                    <small class="text-tekfix-sec" style="font-size:.7rem;">Ítems registrados en inventario</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- ================================ -->
+
 <!-- Buscador Rápido de Inventario -->
 <div class="card card-custom p-3 mb-4 border-0 shadow-sm bg-tekfix-card">
     <div class="row align-items-center">
@@ -27,7 +84,7 @@
         </div>
         <div class="col-md-4 col-lg-6 text-md-end mt-3 mt-md-0">
             <small class="text-tekfix-sec fw-bold text-uppercase" style="font-size: 0.75rem;">
-                Mostrando <span id="visibleCount" class="text-tekfix-primary">{{ productos|length }}</span> de {{ productos|length }} productos
+                Mostrando <span id="visibleCount" class="text-tekfix-primary">{{ productos|length }}</span> de {{ total_productos }} productos
             </small>
         </div>
     </div>
@@ -116,6 +173,52 @@
         </table>
     </div>
 </div>
+
+<!-- ========== PAGINACIÓN ========== -->
+{% if paginacion.pages > 1 %}
+<div class="d-flex justify-content-between align-items-center mt-3 px-1">
+    <small class="text-tekfix-sec">
+        Página <strong>{{ paginacion.page }}</strong> de <strong>{{ paginacion.pages }}</strong>
+        &mdash; {{ total_productos }} productos en total
+    </small>
+    <nav aria-label="Paginación de inventario">
+        <ul class="pagination pagination-sm mb-0 gap-1">
+
+            <!-- Anterior -->
+            <li class="page-item {% if not paginacion.has_prev %}disabled{% endif %}">
+                <a class="page-link rounded-pill border-0 shadow-sm px-3"
+                   href="{% if paginacion.has_prev %}{{ url_for('inventory_bp.index', page=paginacion.prev_num) }}{% else %}#{% endif %}"
+                   aria-label="Anterior">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+            </li>
+
+            <!-- Números de página -->
+            {% for num in paginacion.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if num %}
+                    <li class="page-item {% if num == paginacion.page %}active{% endif %}">
+                        <a class="page-link rounded-pill border-0 shadow-sm px-3"
+                           href="{{ url_for('inventory_bp.index', page=num) }}">{{ num }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link border-0 bg-transparent">…</span></li>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Siguiente -->
+            <li class="page-item {% if not paginacion.has_next %}disabled{% endif %}">
+                <a class="page-link rounded-pill border-0 shadow-sm px-3"
+                   href="{% if paginacion.has_next %}{{ url_for('inventory_bp.index', page=paginacion.next_num) }}{% else %}#{% endif %}"
+                   aria-label="Siguiente">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+</div>
+{% endif %}
+<!-- =================================== -->
 
 <!-- Modales de Variantes generados fuera de la tabla para evitar cortes de interfaz -->
 {% for p in productos %}
