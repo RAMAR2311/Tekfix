@@ -128,21 +128,38 @@ def procesar_venta():
                     if cantidad_vendida > variante.cantidad_stock:
                         raise ValueError(f"Stock insuficiente para la variante '{variante.nombre_variante}' de '{producto.nombre}'. Solicitado: {cantidad_vendida}, Disponible: {variante.cantidad_stock}.")
                     variante.cantidad_stock -= cantidad_vendida
-                    precio_limite_autorizado = variante.precio_costo if current_user.rol == 'admin' else variante.precio_minimo
+                    # El vendedor solo puede bajar del precio sugerido con aprobación. El admin tiene el costo como límite físico.
+                    precio_limite_autorizado = variante.precio_costo if current_user.rol == 'admin' else (variante.precio_sugerido or producto.precio_sugerido)
                 else:
                     if cantidad_vendida > producto.cantidad_stock:
                         raise ValueError(f"Stock insuficiente para el producto '{producto.nombre}'. Solicitado: {cantidad_vendida}, Disponible: {producto.cantidad_stock}.")
                     producto.cantidad_stock -= cantidad_vendida
-                    precio_limite_autorizado = producto.precio_costo if current_user.rol == 'admin' else producto.precio_minimo
+                    # El vendedor solo puede bajar del precio sugerido con aprobación.
+                    precio_limite_autorizado = producto.precio_costo if current_user.rol == 'admin' else producto.precio_sugerido
 
                 if precio_venta_final < precio_limite_autorizado:
-                    auth = item.get('autorizacion')
-                    if auth:
-                        clave = DynamicKey.query.filter_by(key_code=auth).first()
-                        if not clave or not clave.is_used:
-                            raise ValueError(f"Código de autorización inválido para el producto '{producto.nombre}'.")
+                    # Sistema nuevo: buscar aprobación remota aprobada
+                    from models import PriceApproval
+                    aprobacion = PriceApproval.query.filter_by(
+                        vendedor_id=current_user.id,
+                        product_id=producto.id,
+                        variant_id=variant_id,
+                        estado='aprobado'
+                    ).order_by(PriceApproval.fecha_resolucion.desc()).first()
+
+                    # Validar si existe aprobación y si el precio coincide o es superior al aprobado
+                    if aprobacion and precio_venta_final >= float(aprobacion.precio_aprobado):
+                        # Todo bien, se permite la venta con este precio
+                        pass
                     else:
-                        raise ValueError(f"No autorizado: El precio ({precio_venta_final}) del producto '{producto.nombre}' está por debajo del límite permitido ({precio_limite_autorizado}).")
+                        # Fallback al sistema viejo (códigos) para compatibilidad o error directo
+                        auth = item.get('autorizacion')
+                        if auth:
+                            clave = DynamicKey.query.filter_by(key_code=auth).first()
+                            if not clave or not clave.is_used:
+                                raise ValueError(f"Código de autorización inválido para el producto '{producto.nombre}'.")
+                        else:
+                            raise ValueError(f"No autorizado: El precio solicitado (${precio_venta_final}) para '{producto.nombre}' requiere aprobación del administrador.")
 
                 detalle = SaleDetail(
                     sale_id=nueva_venta.id,
@@ -216,9 +233,10 @@ def api_buscar_producto(sku):
         'sku': producto.sku,
         'cantidad_stock': producto.total_stock,
         'precio_minimo': float(producto.precio_minimo),
-        'precio_limite': float(producto.precio_costo) if current_user.rol == 'admin' else float(producto.precio_minimo),
+        # El límite operativo para el vendedor es el sugerido; si quiere menos, pide permiso.
+        'precio_limite': float(producto.precio_costo) if current_user.rol == 'admin' else float(producto.precio_sugerido),
         'precio_sugerido': float(producto.precio_sugerido),
-        'variantes': [{"id": v.id, "nombre": v.nombre_variante, "stock": v.cantidad_stock, "precio_minimo": float(v.precio_minimo or producto.precio_minimo), "precio_limite": float(v.precio_costo or producto.precio_costo) if current_user.rol == 'admin' else float(v.precio_minimo or producto.precio_minimo), "precio_sugerido": float(v.precio_sugerido or producto.precio_sugerido)} for v in producto.variantes]
+        'variantes': [{"id": v.id, "nombre": v.nombre_variante, "stock": v.cantidad_stock, "precio_minimo": float(v.precio_minimo or producto.precio_minimo), "precio_limite": float(v.precio_costo or producto.precio_costo) if current_user.rol == 'admin' else float(v.precio_sugerido or producto.precio_sugerido), "precio_sugerido": float(v.precio_sugerido or producto.precio_sugerido)} for v in producto.variantes]
     })
 
 # Ruta para la Impresión del formato Térmico (Ticket)
@@ -362,3 +380,72 @@ def catalogo():
         
     return render_template('sales/catalogo.html', productos=productos, q=query_str)
 
+
+# ─── SISTEMA DE APROBACIÓN REMOTA DE PRECIOS ────────────────────────────────
+
+@sales_bp.route('/api/precio/solicitar', methods=['POST'])
+@login_required
+def api_solicitar_precio():
+    """
+    El vendedor crea una solicitud de precio especial desde el POS.
+    Body JSON: { product_id, variant_id (opt), precio_solicitado, precio_original }
+    Retorna:   { solicitud_id }
+    """
+    from models import PriceApproval
+    data = request.get_json(silent=True) or {}
+
+    product_id        = data.get('product_id')
+    variant_id        = data.get('variant_id')
+    precio_solicitado = data.get('precio_solicitado')
+    precio_original   = data.get('precio_original')
+
+    if not all([product_id, precio_solicitado is not None, precio_original is not None]):
+        return jsonify({'error': 'Datos incompletos en la solicitud.'}), 400
+
+    producto = Product.query.get(product_id)
+    if not producto:
+        return jsonify({'error': 'Producto no encontrado.'}), 404
+
+    # Cancelar solicitudes previas pendientes del mismo vendedor+producto (evita duplicados)
+    PriceApproval.query.filter_by(
+        vendedor_id=current_user.id,
+        product_id=product_id,
+        variant_id=variant_id,
+        estado='pendiente'
+    ).update({'estado': 'cancelada'})
+
+    solicitud = PriceApproval(
+        vendedor_id=current_user.id,
+        product_id=product_id,
+        variant_id=variant_id if variant_id else None,
+        precio_original=Decimal(str(precio_original)),
+        precio_solicitado=Decimal(str(precio_solicitado))
+    )
+    try:
+        db.session.add(solicitud)
+        db.session.commit()
+        return jsonify({'solicitud_id': solicitud.id}), 201
+    except Exception:
+        db.session.rollback()
+        return jsonify({'error': 'Error al guardar la solicitud.'}), 500
+
+
+@sales_bp.route('/api/precio/estado/<int:solicitud_id>', methods=['GET'])
+@login_required
+def api_estado_solicitud(solicitud_id):
+    """
+    Endpoint de polling: el POS consulta cada 3 s si la solicitud fue resuelta.
+    Solo el propio vendedor (o admin) puede consultar su solicitud.
+    Retorna: { estado, precio_aprobado, motivo_rechazo }
+    """
+    from models import PriceApproval
+    solicitud = PriceApproval.query.get_or_404(solicitud_id)
+
+    if solicitud.vendedor_id != current_user.id and current_user.rol != 'admin':
+        return jsonify({'error': 'Acceso denegado.'}), 403
+
+    return jsonify({
+        'estado':           solicitud.estado,
+        'precio_aprobado':  float(solicitud.precio_aprobado) if solicitud.precio_aprobado else None,
+        'motivo_rechazo':   solicitud.motivo_rechazo
+    })

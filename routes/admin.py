@@ -159,6 +159,9 @@ def dashboard():
     total_garantias_mes = Warranty.query.filter(Warranty.created_at >= mes_actual).count()
     garantias_pendientes = Warranty.query.filter(Warranty.resolution == 'Pendiente').count()
         
+    from models import PriceApproval
+    aprobaciones_pendientes = PriceApproval.query.filter_by(estado='pendiente').count()
+
     return render_template('admin/dashboard.html', 
                            total_productos=total_productos,
                            productos_bajo_stock=productos_bajo_stock,
@@ -169,7 +172,8 @@ def dashboard():
                            deuda_proveedores=deuda_proveedores,
                            total_proveedores=total_proveedores,
                            total_garantias_mes=total_garantias_mes,
-                           garantias_pendientes=garantias_pendientes)
+                           garantias_pendientes=garantias_pendientes,
+                           aprobaciones_pendientes=aprobaciones_pendientes)
 
 # --- ENDPOINTS MODULO PERDIDAS ---
 @admin_bp.route('/perdidas')
@@ -178,6 +182,15 @@ def dashboard():
 def perdidas():
     ultimas_perdidas = Loss.query.order_by(Loss.date.desc()).all()
     return render_template('admin/perdidas.html', ultimas_perdidas=ultimas_perdidas)
+
+
+@admin_bp.route('/aprobaciones/panel')
+@login_required
+@admin_required
+def panel_aprobaciones():
+    """Pagina dedicada para gestionar las solicitudes de precio especial."""
+    return render_template('admin/aprobaciones.html')
+
 @admin_bp.route('/api/product/<sku>')
 @login_required
 @admin_required
@@ -570,3 +583,105 @@ def balance_financiero():
         fecha_generacion=hoy.strftime('%Y-%m-%d %H:%M'),
         datos=datos_financieros
     )
+
+
+# ─── SISTEMA DE APROBACIÓN REMOTA DE PRECIOS ────────────────────────────────
+
+@admin_bp.route('/aprobaciones', methods=['GET'])
+@login_required
+@admin_required
+def aprobaciones_precio():
+    """
+    API JSON: devuelve todas las solicitudes pendientes.
+    El Dashboard las consulta cada 4 s para mostrar el widget de aprobaciones.
+    """
+    from models import PriceApproval
+    solicitudes = PriceApproval.query.filter_by(estado='pendiente').order_by(
+        PriceApproval.fecha_solicitud.asc()
+    ).all()
+
+    resultado = []
+    for s in solicitudes:
+        nombre_variante = s.variante.nombre_variante if s.variante else None
+        resultado.append({
+            'id':                s.id,
+            'vendedor':          s.vendedor.nombre,
+            'producto':          s.producto.nombre,
+            'variante':          nombre_variante,
+            'precio_original':   float(s.precio_original),
+            'precio_solicitado': float(s.precio_solicitado),
+            'hace':              _tiempo_relativo(s.fecha_solicitud)
+        })
+    return jsonify(resultado)
+
+
+@admin_bp.route('/aprobaciones/<int:solicitud_id>/aprobar', methods=['POST'])
+@login_required
+@admin_required
+def aprobar_precio(solicitud_id):
+    """
+    El admin aprueba la solicitud, opcionalmente con un precio diferente.
+    Body JSON: { precio_aprobado (opcional) }
+    """
+    from models import PriceApproval
+    solicitud = PriceApproval.query.get_or_404(solicitud_id)
+
+    if solicitud.estado != 'pendiente':
+        return jsonify({'error': 'Esta solicitud ya fue resuelta.'}), 400
+
+    data = request.get_json(silent=True) or {}
+    precio_final = data.get('precio_aprobado', float(solicitud.precio_solicitado))
+
+    solicitud.estado           = 'aprobado'
+    solicitud.precio_aprobado  = precio_final
+    solicitud.admin_id         = current_user.id
+    solicitud.fecha_resolucion = obtener_hora_bogota()
+
+    try:
+        db.session.commit()
+        return jsonify({'ok': True, 'precio_aprobado': float(solicitud.precio_aprobado)})
+    except Exception:
+        db.session.rollback()
+        return jsonify({'error': 'Error al guardar la aprobación.'}), 500
+
+
+@admin_bp.route('/aprobaciones/<int:solicitud_id>/rechazar', methods=['POST'])
+@login_required
+@admin_required
+def rechazar_precio(solicitud_id):
+    """
+    El admin rechaza la solicitud con un motivo opcional.
+    Body JSON: { motivo (opcional) }
+    """
+    from models import PriceApproval
+    solicitud = PriceApproval.query.get_or_404(solicitud_id)
+
+    if solicitud.estado != 'pendiente':
+        return jsonify({'error': 'Esta solicitud ya fue resuelta.'}), 400
+
+    data = request.get_json(silent=True) or {}
+    solicitud.estado           = 'rechazado'
+    solicitud.motivo_rechazo   = data.get('motivo', 'Sin motivo especificado.')
+    solicitud.admin_id         = current_user.id
+    solicitud.fecha_resolucion = obtener_hora_bogota()
+
+    try:
+        db.session.commit()
+        return jsonify({'ok': True})
+    except Exception:
+        db.session.rollback()
+        return jsonify({'error': 'Error al guardar el rechazo.'}), 500
+
+
+def _tiempo_relativo(dt):
+    """Helper: '2 min atrás', 'hace 5 s', etc."""
+    if not dt:
+        return ''
+    ahora = obtener_hora_bogota()
+    diff  = int((ahora - dt).total_seconds())
+    if diff < 60:
+        return f'hace {diff} s'
+    elif diff < 3600:
+        return f'hace {diff // 60} min'
+    else:
+        return f'hace {diff // 3600} h'

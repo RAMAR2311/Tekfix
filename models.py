@@ -342,3 +342,42 @@ class Warranty(db.Model):
             return f"Hace {minutos} min"
         return "Hace un momento"
 # ======================================================
+
+
+# ====== SISTEMA DE APROBACIÓN REMOTA DE PRECIOS ======
+class PriceApproval(db.Model):
+    """
+    Solicitud de autorización de precio especial desde el POS.
+    Flujo: vendedor crea (pendiente) → admin aprueba/rechaza → POS consulta (polling cada 3s).
+    """
+    __tablename__ = 'price_approvals'
+
+    id               = db.Column(db.Integer, primary_key=True)
+
+    # ¿Quién pide y sobre qué producto/variante?
+    vendedor_id      = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    product_id       = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    variant_id       = db.Column(db.Integer, db.ForeignKey('product_variants.id'), nullable=True)
+
+    # Precios involucrados
+    precio_original  = db.Column(db.Numeric(10, 2), nullable=False)  # Límite en el momento de la solicitud
+    precio_solicitado= db.Column(db.Numeric(10, 2), nullable=False)  # Precio que el vendedor quiere cobrar
+    precio_aprobado  = db.Column(db.Numeric(10, 2), nullable=True)   # Precio que el admin autorizó
+
+    # Estado del ciclo de vida: pendiente | aprobado | rechazado | cancelada
+    estado           = db.Column(db.String(20), nullable=False, default='pendiente', index=True)
+
+    # Admin que resolvió (null si aún pendiente)
+    admin_id         = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    motivo_rechazo   = db.Column(db.String(255), nullable=True)
+
+    fecha_solicitud  = db.Column(db.DateTime, default=obtener_hora_bogota)
+    fecha_resolucion = db.Column(db.DateTime, nullable=True)
+
+    # Relaciones
+    vendedor = db.relationship('User',           foreign_keys=[vendedor_id], backref='solicitudes_precio', lazy=True)
+    admin    = db.relationship('User',           foreign_keys=[admin_id],    backref='aprobaciones_precio', lazy=True)
+    producto = db.relationship('Product',        foreign_keys=[product_id],  backref='solicitudes_precio', lazy=True)
+    variante = db.relationship('ProductVariant', foreign_keys=[variant_id],  backref='solicitudes_precio', lazy=True)
+# =====================================================
+

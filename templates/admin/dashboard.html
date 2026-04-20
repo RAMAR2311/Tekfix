@@ -4,122 +4,45 @@
 <div class="d-flex justify-content-between align-items-center mb-5">
     <div>
         <h2 class="fw-bold text-tekfix-main mb-0">Dashboard Operativo</h2>
-        <p class="text-tekfix-sec">¡Bienvenido al panel central, {{ current_user.nombre }}!</p>
+        <p class="text-tekfix-sec">Bienvenido al panel central, {{ current_user.nombre }}!</p>
     </div>
     <div class="d-flex gap-2">
-        <button type="button" class="btn rounded-pill fw-bold shadow-sm px-4" style="background-color: var(--tekfix-hover); color: var(--tekfix-bg);" onclick="generarClaveDescuento()">
-            <i class="fa-solid fa-key me-2"></i>Generar Código
-        </button>
         <button type="button" class="btn btn-tekfix-secondary rounded-pill fw-bold shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#modalBalance">
             <i class="fa-solid fa-scale-balanced me-2"></i>Generar Balance
         </button>
     </div>
 </div>
 
-<!-- Modal Dinámico para Código de Autorización -->
-<div class="modal fade" id="modalDynamicKey" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered text-center">
-    <div class="modal-content border-0 shadow-lg rounded-4 bg-tekfix-card" style="border-top: 5px solid var(--tekfix-primary) !important;">
-      <div class="modal-body py-5">
-        <h5 class="fw-bold text-tekfix-sec mb-4">Código de Autorización</h5>
-        <div class="d-inline-block py-3 px-5 rounded-3 mb-4" style="background-color: var(--tekfix-hover);">
-            <h1 class="display-3 fw-bolder m-0" id="codigoGeneradoLabel" style="letter-spacing: 0.15em; color: var(--tekfix-bg) !important;">------</h1>
-        </div>
-        <p class="text-tekfix-main mb-0 fs-5">Expira en: <span id="contadorExpira" class="fw-bolder text-danger">10:00</span> minutos</p>
-        <p class="small text-danger mt-3 mb-0" style="opacity: 0.8;"><i class="fa-solid fa-triangle-exclamation me-1"></i>Válido para 1 solo uso en el Sistema (Caja).</p>
-      </div>
-      <div class="modal-footer border-top-0 pt-0 justify-content-center">
-        <button type="button" class="btn btn-outline-secondary rounded-pill px-5 fw-bold" data-bs-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-let temporizadorClave;
-function generarClaveDescuento() {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}';
-    
-    fetch('{{ url_for("admin_bp.generar_clave") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('codigoGeneradoLabel').innerText = data.codigo;
-            iniciarContador(10 * 60);
-            
-            var modal = new bootstrap.Modal(document.getElementById('modalDynamicKey'));
-            modal.show();
-        } else {
-            alert('Error generando código');
-        }
-    })
-    .catch(error => alert('Error de conexión'));
-}
-
-function iniciarContador(segundos) {
-    clearInterval(temporizadorClave);
-    let restante = segundos;
-    const label = document.getElementById('contadorExpira');
-    
-    temporizadorClave = setInterval(() => {
-        let mins = Math.floor(restante / 60);
-        let secs = restante % 60;
-        label.innerText = `${mins}:${secs < 10 ? '0'+secs : secs}`;
-        
-        if (restante <= 0) {
-            clearInterval(temporizadorClave);
-            label.innerText = "0:00 (Expirado)";
-            document.getElementById('codigoGeneradoLabel').style.color = "var(--tekfix-sec)";
-            document.getElementById('codigoGeneradoLabel').style.textDecoration = "line-through";
-        }
-        restante--;
-    }, 1000);
-}
-</script>
-
-<!-- Modal Generar Balance Financiero -->
+<!-- Modal Balance Financiero -->
 <div class="modal fade" id="modalBalance" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg rounded-4 bg-tekfix-card">
       <div class="modal-header border-bottom-0 pb-0">
         <h5 class="fw-bold text-tekfix-main"><i class="fa-solid fa-file-invoice-dollar me-2" style="color: var(--tekfix-primary);"></i>Balance Financiero</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form action="{{ url_for('admin_bp.balance_financiero') }}" method="GET">
           <div class="modal-body">
-              <p class="text-tekfix-sec small">Selecciona el rango de fechas para cruzar las ventas e ingresos totales contra el Costo Directo y los Gastos Registrados.</p>
-              <div class="mb-3">
-                  <label class="form-label fw-bold text-tekfix-main small">Fecha de Inicio</label>
-                  <input type="date" name="fecha_inicio" class="form-control" required>
-              </div>
-              <div class="mb-4">
-                  <label class="form-label fw-bold text-tekfix-main small">Fecha de Fin</label>
-                  <input type="date" name="fecha_fin" class="form-control" required>
-              </div>
+              <p class="text-tekfix-sec small">Selecciona el rango de fechas para cruzar ventas, costos directos y gastos registrados.</p>
+              <div class="mb-3"><label class="form-label fw-bold text-tekfix-main small">Fecha de Inicio</label><input type="date" name="fecha_inicio" class="form-control" required></div>
+              <div class="mb-4"><label class="form-label fw-bold text-tekfix-main small">Fecha de Fin</label><input type="date" name="fecha_fin" class="form-control" required></div>
           </div>
           <div class="modal-footer border-top-0 pt-0">
             <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-tekfix-secondary rounded-pill px-4 fw-bold"><i class="fa-solid fa-file-pdf me-1"></i> Calcular y Validar</button>
+            <button type="submit" class="btn btn-tekfix-secondary rounded-pill px-4 fw-bold"><i class="fa-solid fa-file-pdf me-1"></i> Calcular</button>
           </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- Layout de Tarjetas (Fila de 4 Elementos que se envuelven) -->
+<!-- Tarjetas KPI -->
 <div class="row g-3 mb-4">
-    <!-- 1. Tarjeta: Ingresos Totales -->
+
+    <!-- 1. Total Ventas -->
     <div class="col-md-3">
         <div class="card card-custom h-100 p-4 border" style="border-color: #DDB856 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-sack-dollar fs-1" style="color: #DDB856;"></i>
-            </div>
+            <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-sack-dollar fs-1" style="color: #DDB856;"></i></div>
             <h5 class="text-tekfix-main fw-bold">Total Ventas</h5>
             <h3 class="fw-bolder" style="color: #DDB856;">${{ (total_ventas)|cop }}</h3>
             <div class="mt-auto pt-4">
@@ -128,12 +51,10 @@ function iniciarContador(segundos) {
         </div>
     </div>
 
-    <!-- 2. Tarjeta: Productos en Catálogo -->
+    <!-- 2. Inventario -->
     <div class="col-md-3">
         <div class="card card-custom h-100 p-4 border" style="border-color: #DDB856 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-cubes fs-1" style="color: #DDB856;"></i>
-            </div>
+            <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-cubes fs-1" style="color: #DDB856;"></i></div>
             <h5 class="text-tekfix-main fw-bold">Inventario</h5>
             <h3 class="fw-bolder" style="color: #DDB856;">{{ total_productos }} uds.</h3>
             <div class="mt-auto pt-4">
@@ -142,12 +63,10 @@ function iniciarContador(segundos) {
         </div>
     </div>
 
-    <!-- 3. Tarjeta: Alertas de Stock -->
+    <!-- 3. Alertas Stock -->
     <div class="col-md-3">
         <div class="card card-custom h-100 p-4 border" style="border-color: #dc3545 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-triangle-exclamation fs-1 text-danger"></i>
-            </div>
+            <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-triangle-exclamation fs-1 text-danger"></i></div>
             <h5 class="text-tekfix-main fw-bold">Alertas Stock</h5>
             <h3 class="fw-bolder text-danger">{{ productos_bajo_stock }} items</h3>
             <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Existencias limitadas o en falta.</p>
@@ -157,50 +76,106 @@ function iniciarContador(segundos) {
         </div>
     </div>
 
-    <!-- 4. Tarjeta KPI: Mermas y Pérdidas -->
+    <!-- 4. Perdidas -->
     <div class="col-md-3">
         <div class="card card-custom h-100 p-4 border" style="border-color: #dc3545 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-heart-crack fs-1 text-danger"></i>
-            </div>
-            <h5 class="text-tekfix-main fw-bold">Pérdidas</h5>
+            <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-heart-crack fs-1 text-danger"></i></div>
+            <h5 class="text-tekfix-main fw-bold">Perdidas</h5>
             <h3 class="fw-bolder text-danger">${{ (total_perdidas)|cop }} <span class="fs-6 text-tekfix-sec">({{ porcentaje_perdidas }}%)</span></h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Impacto deducido contra los ingresos operativos mensuales.</p>
+            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Impacto deducido contra los ingresos del mes.</p>
             <div class="mt-auto pt-2">
                 <a href="{{ url_for('admin_bp.perdidas') }}" class="btn btn-tekfix-secondary w-100 rounded-pill fw-bold border-danger text-danger"><i class="fa-solid fa-expand me-2"></i> Ver Detalle</a>
             </div>
         </div>
     </div>
 
-    <!-- 5. Tarjeta KPI: Proveedores -->
+    <!-- 5. Proveedores -->
     <div class="col-md-3">
         <div class="card card-custom h-100 p-4 border" style="border-color: #DDB856 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-address-book fs-1" style="color: #DDB856;"></i>
-            </div>
+            <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-address-book fs-1" style="color: #DDB856;"></i></div>
             <h5 class="text-tekfix-main fw-bold">Proveedores</h5>
             <h3 class="fw-bolder" style="color: #DDB856;">-${{ (deuda_proveedores)|cop }} <span class="fs-6 text-tekfix-sec">({{ total_proveedores }} prov)</span></h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Deuda activa con proveedores logísticos.</p>
+            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Deuda activa con proveedores logisticos.</p>
             <div class="mt-auto pt-2">
                 <a href="{{ url_for('providers_bp.index') }}" class="btn btn-tekfix w-100 rounded-pill fw-bold"><i class="fa-solid fa-money-check-dollar me-2"></i> Saldar Cuentas</a>
             </div>
         </div>
     </div>
 
-    <!-- 6. Tarjeta KPI: Garantías -->
+    <!-- 6. Garantias -->
     <div class="col-md-3">
         <div class="card card-custom h-100 p-4 border" style="border-color: #DDB856 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-shield-halved fs-1" style="color: #DDB856;"></i>
-            </div>
-            <h5 class="text-tekfix-main fw-bold">Garantías</h5>
+            <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-shield-halved fs-1" style="color: #DDB856;"></i></div>
+            <h5 class="text-tekfix-main fw-bold">Garantias</h5>
             <h3 class="fw-bolder" style="color: #DDB856;">{{ total_garantias_mes }} <span class="fs-6 text-tekfix-sec">Este mes</span></h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">{{ garantias_pendientes }} pendientes por resolución técnica.</p>
+            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">{{ garantias_pendientes }} pendientes por resolucion tecnica.</p>
             <div class="mt-auto pt-2">
                 <a href="{{ url_for('warranties_bp.index') }}" class="btn btn-tekfix w-100 rounded-pill fw-bold"><i class="fa-solid fa-screwdriver-wrench me-2"></i> Gestionar</a>
             </div>
         </div>
     </div>
 
+    <!-- 7. APROBACIONES DE PRECIO - TARJETA KPI -->
+    <div class="col-md-3">
+        <div class="card card-custom h-100 p-4 border position-relative" id="card-aprobaciones"
+             style="border-color: #DDB856 !important;">
+            <span id="badge-aprobaciones-kpi"
+                  class="position-absolute badge rounded-pill bg-danger"
+                  style="display:none; top:10px; right:10px; font-size:.75rem; z-index:2; animation: pulseBadge 1.5s infinite;">0</span>
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <i class="fa-solid fa-bell-concierge fs-1" style="color: #DDB856;"></i>
+            </div>
+            <h5 class="text-tekfix-main fw-bold">Aprobaciones</h5>
+            <h3 class="fw-bolder" style="color: #DDB856;">
+                <span id="kpi-aprobaciones-num">{{ aprobaciones_pendientes }}</span>
+                <span class="fs-6 text-tekfix-sec">pendientes</span>
+            </h3>
+            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Solicitudes de precio especial del vendedor en espera.</p>
+            <div class="mt-auto pt-2">
+                <a href="{{ url_for('admin_bp.panel_aprobaciones') }}"
+                   class="btn btn-tekfix w-100 rounded-pill fw-bold">
+                    <i class="fa-solid fa-gavel me-2"></i> Gestionar
+                </a>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<style>
+@keyframes pulseBadge {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.2); }
+}
+</style>
+
+<script>
+(function() {
+    async function actualizarKpiAprobaciones() {
+        try {
+            const r = await fetch('/admin/aprobaciones');
+            if (!r.ok) return;
+            const lista = await r.json();
+            const n = lista.length;
+            const numEl   = document.getElementById('kpi-aprobaciones-num');
+            const badge   = document.getElementById('badge-aprobaciones-kpi');
+            const card    = document.getElementById('card-aprobaciones');
+            if (numEl) numEl.textContent = n;
+            if (n > 0) {
+                badge.textContent   = n;
+                badge.style.display = 'inline-block';
+                card.style.borderColor = '#dc3545';
+                card.style.boxShadow   = '0 0 0 3px rgba(220,53,69,.25)';
+            } else {
+                badge.style.display    = 'none';
+                card.style.borderColor = '#DDB856';
+                card.style.boxShadow   = '';
+            }
+        } catch(e) {}
+    }
+    actualizarKpiAprobaciones();
+    setInterval(actualizarKpiAprobaciones, 5000);
+})();
+</script>
+
 {% endblock %}

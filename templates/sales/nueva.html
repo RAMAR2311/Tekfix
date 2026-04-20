@@ -515,6 +515,7 @@
                     precio_final: initial_precio, 
                     precio_limite: initial_limite,
                     precio_minimo: initial_minimo,
+                    precio_sugerido: initial_precio, // Se guarda el sugerido original para referencia
                     cantidad_stock: producto.cantidad_stock,
                     variantes: producto.variantes,
                     variant_id: initial_variant_id,
@@ -575,16 +576,27 @@
                 item.precio_final = varSel.precio_sugerido;
                 item.precio_limite = varSel.precio_limite;
                 item.precio_minimo = varSel.precio_minimo;
+                item.precio_sugerido = varSel.precio_sugerido;
             }
         }
 
         if (campo === 'precio_final') {
             const nuevoPrecio = parseFloat(valor);
             
-            // Regla de Negocio: Control de precio según Autoridad
-            if (nuevoPrecio < item.precio_limite) {
-                alert(`¡OPERACIÓN BLOQUEADA! El precio pactado ($${nuevoPrecio}) es INFERIOR al Mínimo Autorizado para tu nivel de usuario ($${item.precio_limite}). No se puede vender a este precio para evitar pérdidas.`);
-                renderizarCarrito(); // Re-renderizar ignorando el valor digitado
+            // Regla de Negocio: El vendedor puede subir el precio libremente, pero no bajarlo del sugerido sin permiso.
+            const threshold = (userRol === 'vendedor' && !item.precio_unlocked) ? item.precio_sugerido : item.precio_limite;
+            
+            if (nuevoPrecio < threshold) {
+                if (userRol === 'vendedor' && !item.precio_unlocked) {
+                    if (confirm(`¡PRECIO RESTRINGIDO! El precio mínimo sugerido es ${formatoCOP(item.precio_sugerido)}. ¿Deseas solicitar una aprobación al Administrador para vender a ${formatoCOP(nuevoPrecio)}?`)) {
+                        abrirModalPrecio(index);
+                        // El valor del modal se llenará con lo que intentó poner
+                        document.getElementById('sp-precio-nuevo').value = Math.round(nuevoPrecio);
+                    }
+                } else {
+                    alert(`¡OPERACIÓN BLOQUEADA! El precio pactado ($${nuevoPrecio}) es INFERIOR al Mínimo Autorizado para tu nivel de usuario ($${item.precio_limite}). No se puede vender a este precio para evitar pérdidas.`);
+                }
+                renderizarCarrito();
                 return;
             }
             item.precio_final = nuevoPrecio;
@@ -667,9 +679,9 @@
                     ` : `
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-tekfix-card border-end-0">$</span>
-                        <input type="number" step="1" class="form-control text-end border-start-0 pe-2" value="${Math.round(item.precio_final)}" onchange="actualizarItem(${index}, 'precio_final', this.value)" ${(userRol === 'vendedor' && !item.precio_unlocked) ? 'readonly style="background-color: #f1f3f5;" data-bs-toggle="tooltip" title="Solo edición autorizada por administrador"' : ''}>
+                        <input type="number" step="1" class="form-control text-end border-start-0 pe-2" value="${Math.round(item.precio_final)}" onchange="actualizarItem(${index}, 'precio_final', this.value)" ${(userRol === 'vendedor' && item.precio_unlocked) ? 'style="background-color: #e8f5e9; border: 1px solid #28a745;"' : ''}>
                         ${(userRol === 'vendedor' && !item.precio_unlocked) ? `
-                        <button class="btn btn-outline-secondary" type="button" onclick="solicitarClaveDescuento(${index})">
+                        <button class="btn btn-outline-warning" type="button" onclick="abrirModalPrecio(${index})" title="Solicitar precio especial al administrador">
                             <i class="fa-solid fa-lock" style="color: var(--tekfix-primary);"></i>
                         </button>
                         ` : `
@@ -723,34 +735,155 @@
         });
     }
 
-    function solicitarClaveDescuento(index) {
-        const codigo = prompt("Ingresa la Clave Dinámica del Administrador:");
-        if (!codigo) return;
-        
-        fetch('/sales/api/validar-clave', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrf_token
-            },
-            body: JSON.stringify({ codigo: codigo.trim() })
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                carrito[index].precio_unlocked = true;
-                carrito[index].autorizacion = codigo.trim();
-                renderizarCarrito();
-                alert("¡Edición de precio desbloqueada exitosamente!");
-            } else {
-                alert("Código inválido, expirado o ya utilizado.");
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert("Error conectando con el servidor de autorización.");
-        });
+    // ─── SISTEMA DE APROBACIÓN REMOTA DE PRECIOS ───────────────────────────
+    let solicitudActiva = null; // { solicitud_id, cartIndex, pollingInterval }
+
+    // ── Bloqueo / desbloqueo de la caja mientras espera aprobación ──
+    function bloquearCaja(mensaje) {
+        const btn = document.getElementById('btn_process_sale');
+        const addBtn = document.getElementById('btn_add_product');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i>' + (mensaje || 'Esperando aprobación...');
+            btn.style.background = '#6c757d';
+            btn.style.cursor = 'not-allowed';
+        }
+        if (addBtn) addBtn.disabled = true;
+        // Banner de aviso en el carrito
+        let banner = document.getElementById('banner-espera');
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'banner-espera';
+            banner.className = 'alert mb-3 text-center fw-bold';
+            banner.style.cssText = 'background:rgba(221,184,86,.15); border:2px solid var(--tekfix-primary); color:var(--tekfix-primary);';
+            banner.innerHTML = '<i class="fa-solid fa-clock fa-spin me-2"></i>Caja bloqueada: esperando aprobación del administrador';
+            const cartCard = document.querySelector('#cart_body').closest('.card');
+            cartCard.parentNode.insertBefore(banner, cartCard);
+        }
+        banner.style.display = 'block';
     }
+
+    function desbloquearCaja() {
+        const btn = document.getElementById('btn_process_sale');
+        const addBtn = document.getElementById('btn_add_product');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-credit-card me-2"></i> Procesar Cobro';
+            btn.style.background = '';
+            btn.style.cursor = '';
+        }
+        if (addBtn) addBtn.disabled = false;
+        const banner = document.getElementById('banner-espera');
+        if (banner) banner.style.display = 'none';
+    }
+
+    function abrirModalPrecio(cartIndex) {
+        const item = carrito[cartIndex];
+        if (!item || item.es_manual) return;
+
+        // Poblar el modal con datos del ítem
+        document.getElementById('sp-producto-label').textContent =
+            item.nombre + (item.variant_id ? ' · subcategoría seleccionada' : '');
+        
+        // El precio de referencia ahora es el Sugerido, no el Límite de costo
+        document.getElementById('sp-precio-original').value = Math.round(item.precio_sugerido || item.precio_final);
+        document.getElementById('sp-precio-nuevo').value = '';
+        document.getElementById('sp-estado').style.display = 'none';
+        document.getElementById('sp-footer').style.display = '';
+        document.getElementById('sp-estado-texto').textContent = 'Esperando respuesta del Administrador...';
+        document.getElementById('sp-estado-texto').className = 'fw-bold text-muted';
+
+        solicitudActiva = { cartIndex };
+        new bootstrap.Modal(document.getElementById('modalSolicitudPrecio')).show();
+    }
+
+    async function enviarSolicitudPrecio() {
+        if (!solicitudActiva) return;
+        const item = carrito[solicitudActiva.cartIndex];
+        const precioNuevo = parseFloat(document.getElementById('sp-precio-nuevo').value);
+
+        if (!precioNuevo || precioNuevo <= 0) return alert('Ingresa un precio válido mayor a $0.');
+
+        // Threshold: Precio Sugerido
+        if (precioNuevo >= item.precio_sugerido) {
+            actualizarItem(solicitudActiva.cartIndex, 'precio_final', precioNuevo);
+            bootstrap.Modal.getInstance(document.getElementById('modalSolicitudPrecio')).hide();
+            return;
+        }
+
+        // Ocultar botones y mostrar spinner + bloquear caja
+        document.getElementById('sp-footer').style.display = 'none';
+        document.getElementById('sp-estado').style.display = 'block';
+        bloquearCaja();
+
+        try {
+            const res = await fetch('/sales/api/precio/solicitar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf_token },
+                body: JSON.stringify({
+                    product_id:        item.id,
+                    variant_id:        item.variant_id || null,
+                    precio_solicitado: precioNuevo,
+                    precio_original:   item.precio_sugerido || item.precio_final
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) return alert(data.error || 'Error al enviar solicitud.');
+
+            solicitudActiva.solicitud_id = data.solicitud_id;
+
+            // Polling cada 3 segundos
+            solicitudActiva.pollingInterval = setInterval(async () => {
+                try {
+                    const pr = await fetch(`/sales/api/precio/estado/${solicitudActiva.solicitud_id}`);
+                    const pd = await pr.json();
+
+                    if (pd.estado === 'aprobado') {
+                        clearInterval(solicitudActiva.pollingInterval);
+                        const precioFinal = pd.precio_aprobado || precioNuevo;
+
+                        // Aplicar el precio aprobado en el carrito
+                        carrito[solicitudActiva.cartIndex].precio_final  = precioFinal;
+                        carrito[solicitudActiva.cartIndex].precio_limite  = precioFinal;
+                        carrito[solicitudActiva.cartIndex].precio_unlocked = true;
+                        renderizarCarrito();
+                        desbloquearCaja();
+
+                        document.getElementById('sp-estado-texto').textContent =
+                            `✅ ¡Aprobado! Precio autorizado: ${formatoCOP(precioFinal)}`;
+                        document.getElementById('sp-estado-texto').className = 'fw-bold text-success';
+                        document.getElementById('sp-estado-subtext').textContent = 'El precio fue actualizado en el carrito.';
+
+                        setTimeout(() => {
+                            bootstrap.Modal.getInstance(document.getElementById('modalSolicitudPrecio'))?.hide();
+                        }, 2000);
+                        solicitudActiva = null;
+
+                    } else if (pd.estado === 'rechazado') {
+                        clearInterval(solicitudActiva.pollingInterval);
+                        document.getElementById('sp-footer').style.display = '';
+                        document.getElementById('sp-estado').style.display = 'none';
+                        solicitudActiva = null;
+                        desbloquearCaja();
+                        alert(`❌ Solicitud rechazada.\nMotivo: ${pd.motivo_rechazo || 'Sin motivo especificado.'}`);
+                    }
+                    // Si sigue 'pendiente', no hacer nada y esperar el próximo tick
+                } catch(e) { /* ignorar errores de red transitorios */ }
+            }, 3000);
+
+        } catch(e) {
+            document.getElementById('sp-footer').style.display = '';
+            document.getElementById('sp-estado').style.display = 'none';
+            alert('Error de red al enviar la solicitud.');
+        }
+    }
+
+    function cancelarSolicitud() {
+        if (solicitudActiva?.pollingInterval) clearInterval(solicitudActiva.pollingInterval);
+        solicitudActiva = null;
+        desbloquearCaja();
+    }
+    // ───────────────────────────────────────────────────────────────────────
 
     // Evento Transaccional JSON de Salida
     async function procesarPago() {
@@ -857,4 +990,74 @@
         }
     }
 </script>
+
+<!-- ══════════ MODAL: SOLICITAR PRECIO ESPECIAL ══════════ -->
+<div class="modal fade" id="modalSolicitudPrecio" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-top: 4px solid var(--tekfix-primary) !important;">
+            <div class="modal-header border-0 bg-tekfix-card">
+                <h5 class="modal-title fw-bold text-tekfix-main">
+                    <i class="fa-solid fa-lock me-2" style="color: var(--tekfix-primary);"></i>Solicitar Precio Especial
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="cancelarSolicitud()"></button>
+            </div>
+            <div class="modal-body p-4 bg-tekfix-card text-tekfix-main">
+                <div class="alert rounded-3 mb-4 py-2 px-3"
+                     style="background: rgba(221,184,86,.12); border: 1px dashed var(--tekfix-primary);">
+                    <small><i class="fa-solid fa-triangle-exclamation me-1" style="color:var(--tekfix-primary);"></i>
+                    Esta solicitud será enviada al <strong>Administrador</strong> para aprobación en tiempo real.</small>
+                </div>
+                <div class="mb-1 text-tekfix-sec small fw-bold" id="sp-producto-label">Producto</div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small text-tekfix-sec fw-bold mb-1">Precio Sugerido</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text border-0 bg-tekfix-card">$</span>
+                            <input type="text" id="sp-precio-original"
+                                   class="form-control border-0 fw-bold text-danger bg-tekfix-card" readonly>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-bold mb-1" style="color:var(--tekfix-primary);">Precio a Solicitar</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text border-0"
+                                  style="background:var(--tekfix-primary); color:var(--tekfix-bg);">$</span>
+                            <input type="number" step="1" id="sp-precio-nuevo"
+                                   class="form-control border-0 fw-bold text-end shadow-sm"
+                                   placeholder="Ej: 18000">
+                        </div>
+                    </div>
+                </div>
+                <!-- Estado de espera / spinner -->
+                <div id="sp-estado" class="text-center py-3" style="display:none;">
+                    <div class="spinner-border mb-2" role="status"
+                         style="color: var(--tekfix-primary);"></div>
+                    <div class="fw-bold" id="sp-estado-texto">Esperando respuesta del Administrador...</div>
+                    <small class="text-tekfix-sec" id="sp-estado-subtext">La terminal quedará en espera · Consulta cada 3 s</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-tekfix-card" id="sp-footer">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
+                        data-bs-dismiss="modal" onclick="cancelarSolicitud()">Cancelar</button>
+                <button type="button" class="btn fw-bold rounded-pill px-4 shadow-sm"
+                        id="btn-enviar-solicitud"
+                        style="background:var(--tekfix-primary); color:var(--tekfix-bg);"
+                        onclick="enviarSolicitudPrecio()">
+                    <i class="fa-solid fa-paper-plane me-1"></i> Enviar Solicitud
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ══════════════════════════════════════════════════════ -->
+
+<style>
+@keyframes pulseLock {
+    0%   { box-shadow: 0 0 0 0 rgba(221,184,86,.6); }
+    70%  { box-shadow: 0 0 0 10px rgba(221,184,86,0); }
+    100% { box-shadow: 0 0 0 0 rgba(221,184,86,0); }
+}
+#modalSolicitudPrecio .modal-content { animation: pulseLock .5s ease-out; }
+</style>
+
 {% endblock %}
