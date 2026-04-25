@@ -239,6 +239,32 @@ def api_buscar_producto(sku):
         'variantes': [{"id": v.id, "nombre": v.nombre_variante, "stock": v.cantidad_stock, "precio_minimo": float(v.precio_minimo or producto.precio_minimo), "precio_limite": float(v.precio_costo or producto.precio_costo) if current_user.rol == 'admin' else float(v.precio_sugerido or producto.precio_sugerido), "precio_sugerido": float(v.precio_sugerido or producto.precio_sugerido)} for v in producto.variantes]
     })
 
+@sales_bp.route('/api/productos/search', methods=['GET'])
+@login_required
+def api_search_productos():
+    query_str = request.args.get('q', '').strip()
+    if not query_str or len(query_str) < 2:
+        return jsonify([])
+    
+    search_term = f"%{query_str}%"
+    productos = Product.query.filter_by(tipo_inventario='tienda').filter(
+        or_(
+            Product.sku.ilike(search_term),
+            Product.nombre.ilike(search_term)
+        )
+    ).limit(10).all()
+    
+    results = []
+    for p in productos:
+        results.append({
+            'id': p.id,
+            'nombre': p.nombre,
+            'sku': p.sku,
+            'stock': p.total_stock,
+            'precio_sugerido': float(p.precio_sugerido)
+        })
+    return jsonify(results)
+
 # Ruta para la Impresión del formato Térmico (Ticket)
 @sales_bp.route('/recibo/<int:sale_id>', methods=['GET'])
 @login_required # Proteger confidencialidad del cajero

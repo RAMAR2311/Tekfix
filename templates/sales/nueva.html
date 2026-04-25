@@ -14,11 +14,15 @@
         <div class="card card-custom p-4 mb-4">
             <label class="form-label fw-bold text-tekfix-main">Buscar o Escanear Código</label>
             <div class="d-flex gap-2">
-                <div class="input-group input-group-lg shadow-sm border-0 rounded-3 overflow-hidden flex-grow-1">
-                    <span class="input-group-text bg-tekfix-card border-0"><i class="fa-solid fa-barcode text-tekfix-sec"></i></span>
-                    <input type="text" class="form-control border-0" id="sku_input" placeholder="Ingresa SKU exacto..." autofocus>
+                <div class="input-group input-group-lg shadow-sm border-0 rounded-3 flex-grow-1 position-relative">
+                    <span class="input-group-text bg-tekfix-card border-0" style="border-radius: 12px 0 0 12px;"><i class="fa-solid fa-barcode text-tekfix-sec"></i></span>
+                    <input type="text" class="form-control border-0" id="sku_input" placeholder="Buscar por nombre o SKU..." autofocus autocomplete="off">
+                    <!-- Contenedor Resultados Autocomplete -->
+                    <div id="autocomplete-results" class="position-absolute w-100 shadow-lg border d-none" 
+                         style="top: 100%; left: 0; z-index: 1050; background: var(--tekfix-card-bg); border-radius: 0 0 12px 12px; max-height: 350px; overflow-y: auto; border-color: var(--tekfix-border) !important;">
+                    </div>
                     <!-- Botón Secundario Rosa Pastel -->
-                    <button class="btn btn-tekfix px-4" type="button" id="btn_add_product">
+                    <button class="btn btn-tekfix px-4" type="button" id="btn_add_product" style="border-radius: 0 12px 12px 0;">
                         <i class="fa-solid fa-check ms-1"></i> Agregar
                     </button>
                 </div>
@@ -228,6 +232,102 @@
     let pagosMixtos = []; // Array de {metodo_pago, monto}
     const csrf_token = "{{ csrf_token() }}";
     const userRol = "{{ current_user.rol }}";
+
+    // --- CARGAR PRODUCTOS DESDE EL CARRITO GLOBAL ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const transferData = localStorage.getItem('tekfix_transfer_cart');
+        if (transferData) {
+            try {
+                const items = JSON.parse(transferData);
+                items.forEach(item => {
+                    // Adaptar formato del carrito global al formato de la caja
+                    carrito.push({
+                        id: item.id,
+                        sku: item.sku,
+                        nombre: item.nombre,
+                        cantidad: item.cantidad,
+                        precio_final: item.precio_sugerido, 
+                        precio_limite: item.precio_minimo,
+                        precio_minimo: item.precio_minimo,
+                        precio_sugerido: item.precio_sugerido,
+                        cantidad_stock: item.cantidad_stock,
+                        variantes: item.variantes || [],
+                        variant_id: item.variant_id || null,
+                        precio_unlocked: false,
+                        autorizacion: null
+                    });
+                });
+                renderizarCarrito();
+                // Limpiar transferencias
+                localStorage.removeItem('tekfix_transfer_cart');
+                localStorage.setItem('tekfix_global_cart', '[]');
+                // Notificar al sistema global que el carrito se vació
+                if (window.updateGlobalCartUI) window.updateGlobalCartUI();
+            } catch (e) {
+                console.error("Error cargando carrito transferido:", e);
+            }
+        }
+    });
+
+    // --- LÓGICA DE BÚSQUEDA ASÍNCRONA (AUTOCOMPLETE) ---
+    const skuInput = document.getElementById('sku_input');
+    const resultsContainer = document.getElementById('autocomplete-results');
+    let searchTimeout;
+
+    skuInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+
+        if (query.length < 1) { // Cambiado a 1 para mayor rapidez
+            resultsContainer.classList.add('d-none');
+            return;
+        }
+
+        searchTimeout = setTimeout(async () => {
+            try {
+                const res = await fetch(`/sales/api/productos/search?q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+
+                if (data.length > 0) {
+                    renderSearchResults(data);
+                    resultsContainer.classList.remove('d-none');
+                } else {
+                    resultsContainer.classList.add('d-none');
+                }
+            } catch (e) {
+                console.error("Error en búsqueda:", e);
+            }
+        }, 150); // Reducido a 150ms para respuesta casi instantánea
+    });
+
+    function renderSearchResults(products) {
+        resultsContainer.innerHTML = products.map(p => `
+            <div class="search-result-item p-3 border-bottom d-flex justify-content-between align-items-center cursor-pointer" 
+                 style="cursor: pointer; transition: background 0.2s;"
+                 onclick="seleccionarProducto('${p.sku}')"
+                 onmouseover="this.style.background='rgba(221, 184, 86, 0.1)'"
+                 onmouseout="this.style.background='transparent'">
+                <div class="d-flex flex-column">
+                    <span class="fw-bold text-tekfix-main">${p.nombre}</span>
+                    <small class="text-tekfix-sec">${p.sku} • Stock: ${p.stock}</small>
+                </div>
+                <span class="fw-bold text-tekfix-primary">$${new Intl.NumberFormat('es-CO').format(p.precio_sugerido)}</span>
+            </div>
+        `).join('');
+    }
+
+    window.seleccionarProducto = function(sku) {
+        skuInput.value = sku;
+        resultsContainer.classList.add('d-none');
+        buscarYAgregarProducto(); // Corregido: Llama a la función correcta
+    };
+
+    // Cerrar autocomplete si se hace clic fuera
+    document.addEventListener('click', (e) => {
+        if (!skuInput.contains(e.target) && !resultsContainer.contains(e.target)) {
+            resultsContainer.classList.add('d-none');
+        }
+    });
 
     // Inicializar fecha de venta con la fecha de hoy (Solo Admin)
     (function() {

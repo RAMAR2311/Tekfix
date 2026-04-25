@@ -70,8 +70,27 @@
                                     {% if v.cantidad_stock > 0 %}
                                         {% set ns.active_variants = ns.active_variants + 1 %}
                                         <tr class="border-bottom" style="border-color: var(--tekfix-border) !important; background-color: transparent !important;">
-                                            <td class="ps-0 text-tekfix-main" style="background-color: transparent !important;"><i class="fa-solid fa-caret-right text-tekfix-primary me-1" style="font-size: 0.7rem;"></i> {{ v.nombre_variante }}</td>
-                                            <td class="text-end fw-bold text-tekfix-main pe-0">${{ (v.precio_sugerido or p.precio_sugerido)|cop }}</td>
+                                            <td class="ps-0 text-tekfix-main" style="background-color: transparent !important;">
+                                                <i class="fa-solid fa-caret-right text-tekfix-primary me-1" style="font-size: 0.7rem;"></i> {{ v.nombre_variante }}
+                                            </td>
+                                            <td class="text-end pe-0">
+                                                <div class="d-flex align-items-center justify-content-end gap-2">
+                                                    <span class="fw-bold text-tekfix-main">${{ (v.precio_sugerido or p.precio_sugerido)|cop }}</span>
+                                                    <button type="button" class="btn btn-link p-0 text-tekfix-primary" title="Agregar al Carrito" 
+                                                            onclick="addToGlobalCart({
+                                                                id: {{ p.id }}, 
+                                                                sku: '{{ p.sku }}', 
+                                                                nombre: '{{ p.nombre }} ({{ v.nombre_variante }})', 
+                                                                precio_sugerido: {{ v.precio_sugerido or p.precio_sugerido or 0 }}, 
+                                                                precio_minimo: {{ v.precio_minimo or p.precio_minimo or 0 }}, 
+                                                                precio_costo: {{ v.precio_costo or p.precio_costo or 0 }},
+                                                                cantidad_stock: {{ v.cantidad_stock }},
+                                                                variant_id: {{ v.id }}
+                                                            })">
+                                                        <i class="fa-solid fa-cart-plus"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
                                         </tr>
                                     {% endif %}
                                 {% endfor %}
@@ -83,8 +102,22 @@
                     </div>
                 {% else %}
                     <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-end" style="border-color: var(--tekfix-border) !important;">
-                        <span class="fw-bold" style="font-size: 0.8rem; letter-spacing: 0.5px; color: var(--tekfix-text-main);">PRECIO GENERAL</span>
-                        <h4 class="fw-bolder m-0" style="color: var(--tekfix-text-main);">${{ (p.precio_sugerido)|cop }}</h4>
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold" style="font-size: 0.8rem; letter-spacing: 0.5px; color: var(--tekfix-text-main);">PRECIO GENERAL</span>
+                            <h4 class="fw-bolder m-0" style="color: var(--tekfix-text-main);">${{ (p.precio_sugerido)|cop }}</h4>
+                        </div>
+                        <button type="button" class="btn btn-tekfix rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" title="Agregar al Carrito" 
+                                onclick="addToGlobalCart({
+                                    id: {{ p.id }}, 
+                                    sku: '{{ p.sku }}', 
+                                    nombre: '{{ p.nombre }}', 
+                                    precio_sugerido: {{ p.precio_sugerido or 0 }}, 
+                                    precio_minimo: {{ p.precio_minimo or 0 }}, 
+                                    precio_costo: {{ p.precio_costo or 0 }},
+                                    cantidad_stock: {{ p.cantidad_stock }}
+                                })">
+                            <i class="fa-solid fa-cart-plus fs-5"></i>
+                        </button>
                     </div>
                 {% endif %}
             </div>

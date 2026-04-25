@@ -15,7 +15,7 @@ def seed_test_data():
         
         # 1. Crear Usuarios de Prueba si no existen
         roles = [
-            {'email': 'vendedor@tekfix', 'nombre': 'Vendedor Oficial', 'rol': 'vendedor', 'pass': 'Tekfix1234'},
+            {'email': 'vendedor@tekfix.com', 'nombre': 'Vendedor Oficial', 'rol': 'vendedor', 'pass': 'Tekfix1234'},
             {'email': 'bodega@tekfix', 'nombre': 'Encargado Bodega', 'rol': 'bodega', 'pass': 'Tekfix1234'},
             {'email': 'admin@tekfix', 'nombre': 'Administrador General', 'rol': 'admin', 'pass': 'Tekfix2026*'}
         ]

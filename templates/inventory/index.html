@@ -142,22 +142,58 @@
                         {% endif %}
                     </td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill hover-primary me-1" title="Gestionar Variantes" data-bs-toggle="modal" data-bs-target="#variantesModal{{ p.id }}">
-                            <i class="fa-solid fa-layer-group"></i>
-                        </button>
-                        <a href="{{ url_for('inventory_bp.ver_producto', id=p.id) }}" class="btn btn-sm btn-outline-info rounded-pill hover-primary me-1" title="Ver Detalle">
-                            <i class="fa-solid fa-eye"></i>
-                        </a>
-                        <!-- Enlace dinámico con ID insertado (Jinja2 url_for) -->
-                        <a href="{{ url_for('inventory_bp.editar_producto', id=p.id) }}" class="btn btn-sm text-secondary hover-primary me-1" title="Editar">
-                            <i class="fa-solid fa-pen"></i>
-                        </a>
-                        <form method="POST" action="{{ url_for('inventory_bp.eliminar_producto', id=p.id) }}" class="d-inline" onsubmit="return confirm('ATENCIÓN: ¿Está seguro de que desea ELIMINAR PERMANENTEMENTE este producto del sistema en la Nube? Esto no se puede deshacer.');">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-sm text-danger hover-danger" title="Eliminar Producto">
-                                <i class="fa-solid fa-trash-can"></i>
+                        <div class="d-flex align-items-center justify-content-center gap-1">
+                            <!-- Acción Principal: Agregar al Carrito -->
+                            <button type="button" class="btn btn-tekfix rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" 
+                                    style="width: 34px; height: 34px;"
+                                    title="Agregar al Carrito" 
+                                    onclick="addToGlobalCart({
+                                        id: {{ p.id }}, 
+                                        sku: '{{ p.sku }}', 
+                                        nombre: '{{ p.nombre }}', 
+                                        precio_sugerido: {{ p.precio_sugerido or 0 }}, 
+                                        precio_minimo: {{ p.precio_minimo or 0 }}, 
+                                        precio_costo: {{ p.precio_costo or 0 }},
+                                        cantidad_stock: {{ p.total_stock }},
+                                        variantes: {{ p.variantes_json | safe if p.variantes_json else '[]' }}
+                                    })">
+                                <i class="fa-solid fa-cart-plus" style="font-size: 0.9rem;"></i>
                             </button>
-                        </form>
+
+                            <!-- Menú de Acciones Secundarias -->
+                            <div class="dropdown">
+                                <button class="btn btn-link text-tekfix-sec p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 34px; height: 34px;">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 bg-tekfix-card p-2" style="min-width: 180px; border-radius: 12px;">
+                                    <li><h6 class="dropdown-header text-tekfix-primary small fw-bold text-uppercase pb-2">Gestión de Producto</h6></li>
+                                    <li>
+                                        <button class="dropdown-item rounded-3 py-2 text-tekfix-main" type="button" data-bs-toggle="modal" data-bs-target="#variantesModal{{ p.id }}">
+                                            <i class="fa-solid fa-layer-group me-2 text-primary"></i> Subcategorías
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item rounded-3 py-2 text-tekfix-main" href="{{ url_for('inventory_bp.ver_producto', id=p.id) }}">
+                                            <i class="fa-solid fa-eye me-2 text-info"></i> Ver Detalles
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item rounded-3 py-2 text-tekfix-main" href="{{ url_for('inventory_bp.editar_producto', id=p.id) }}">
+                                            <i class="fa-solid fa-pen me-2 text-warning"></i> Editar Info
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider bg-tekfix-border opacity-25"></li>
+                                    <li>
+                                        <form method="POST" action="{{ url_for('inventory_bp.eliminar_producto', id=p.id) }}" onsubmit="return confirm('¿Eliminar permanentemente este producto?');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="dropdown-item rounded-3 py-2 text-danger fw-bold">
+                                                <i class="fa-solid fa-trash-can me-2"></i> Eliminar
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </td>
                 </tr>
                 {% else %}
