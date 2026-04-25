@@ -142,8 +142,15 @@
                 </button>
             </div>
 
+            <div class="form-check mb-3 mt-4">
+                <input class="form-check-input" type="checkbox" id="imprimir_ticket" checked style="cursor: pointer; width: 1.5rem; height: 1.5rem;">
+                <label class="form-check-label fw-bold text-tekfix-sec ms-2" for="imprimir_ticket" style="cursor: pointer; position: relative; top: 3px;">
+                    <i class="fa-solid fa-print me-1"></i> Imprimir Recibo / Abrir Cajón
+                </label>
+            </div>
+
             <!-- Botón de Cobro Masivo Azul Turquesa -->
-            <div class="d-grid gap-2 mt-4">
+            <div class="d-grid gap-2 mt-2">
                 <button type="button" class="btn btn-tekfix-secondary btn-lg rounded-3 py-3 shadow-sm text-uppercase" id="btn_process_sale">
                     <i class="fa-solid fa-credit-card me-2"></i> Procesar Cobro
                 </button>
@@ -1063,8 +1070,11 @@
             const data = await response.json();
 
             if (response.ok) {
+                const imprimir = document.getElementById('imprimir_ticket').checked;
+                const ticketUrl = `/sales/recibo/${data.sale_id}${imprimir ? '' : '?silent=1'}`;
+
                 // FIX: Abre el Recibo PRIMERO antes de detener el código con la alerta. Así Chrome no lo detecta como Spam
-                let reciboWindow = window.open(`/sales/recibo/${data.sale_id}`, '_blank');
+                let reciboWindow = window.open(ticketUrl, '_blank');
                 
                 // Si el navegador tiene un bloqueador de ventanas emergentes muy agresivo:
                 if (!reciboWindow) {

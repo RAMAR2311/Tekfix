@@ -140,6 +140,20 @@
             .total-row { background-color: transparent !important; border: none !important; padding: 8px 0 !important; }
             .total-row * { color: #1A1A1A !important; } /* Desactivar Azul para impresiones monocromas */
         }
+
+        /* MODO SILENCIOSO (SOLO APERTURA DE CAJÓN) */
+        body.silent-mode {
+            background-color: #FFFFFF !important;
+            padding: 0 !important;
+            height: 1mm !important;
+            overflow: hidden !important;
+        }
+        body.silent-mode .ticket {
+            display: none !important;
+        }
+        body.silent-mode .btn-print {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -218,22 +232,34 @@
     </button>
 </div>
 
-<!-- Lógica de Auto-Impresión y Sincronización de Tema -->
 <script>
-    // Sincronizar tema con la aplicación principal
+    // Lógica de Auto-Impresión y Sincronización de Tema
     (function() {
+        // Detectar modo silencioso (solo apertura)
+        const urlParams = new URLSearchParams(window.location.search);
+        const isSilent = urlParams.get('silent') === '1';
+        
+        if (isSilent) {
+            document.body.classList.add('silent-mode');
+        }
+
         const theme = localStorage.getItem('theme');
-        if (theme === 'dark') {
+        if (theme === 'dark' && !isSilent) {
             document.body.classList.add('dark-mode');
         }
-    })();
 
-    // Evento silencioso que detona el pop-up de impresora nativo de Windows al renderizar
-    window.onload = function() {
-        setTimeout(() => {
-            window.print();
-        }, 700); // 700ms de retraso para asegurar carga asíncrona de tipografías de Google
-    };
+        // Evento silencioso que detona el pop-up de impresora nativo de Windows al renderizar
+        window.onload = function() {
+            const delay = isSilent ? 100 : 700;
+            setTimeout(() => {
+                window.print();
+                if (isSilent) {
+                    // Cerrar la ventana inmediatamente después de mandar el pulso en modo silencioso
+                    setTimeout(() => { window.close(); }, 500);
+                }
+            }, delay);
+        };
+    })();
 </script>
 
 </body>
