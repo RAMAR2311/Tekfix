@@ -77,6 +77,23 @@ class Product(db.Model):
             return min_p
         return (min_p, max_p)
 
+    @property
+    def variantes_json(self):
+        import json
+        if not self.variantes:
+            return None
+        vars_list = []
+        for v in self.variantes:
+            vars_list.append({
+                'id': v.id,
+                'nombre': v.nombre_variante,
+                'stock': v.cantidad_stock,
+                'precio_costo': float(v.precio_costo or 0),
+                'precio_minimo': float(v.precio_minimo or 0),
+                'precio_sugerido': float(v.precio_sugerido or 0)
+            })
+        return json.dumps(vars_list)
+
 class ProductVariant(db.Model):
     __tablename__ = 'product_variants'
 
@@ -176,6 +193,9 @@ class ArqueoCaja(db.Model):
     observaciones_gastos = db.Column(db.String(255), nullable=True)
     total_efectivo_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
     total_transferencia_sistema = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    efectivo_fisico = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    diferencia = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    observacion_diferencia = db.Column(db.String(500), nullable=True)
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
 
 class Maneo(db.Model):

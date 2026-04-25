@@ -220,9 +220,48 @@
             border: 1px solid #e74c3c;
         }
 
+        /* Mini-Cart Dropdown Style */
+        .cart-dropdown-menu {
+            width: 320px;
+            background: rgba(37, 35, 35, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--tekfix-border);
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            padding: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        body.light-mode .cart-dropdown-menu {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .mini-cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(221, 184, 86, 0.1);
+        }
+
+        .mini-cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-badge-pulse {
+            animation: pulse-gold 1s infinite;
+        }
+
+        @keyframes pulse-gold {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
+
     <!-- Navbar Tekfix -->
     <nav class="navbar navbar-custom mb-5 position-relative">
         <div class="container-fluid px-3 d-flex justify-content-between align-items-center">
@@ -247,8 +286,34 @@
                 </a>
             </div>
 
-            <!-- Spacer derecho para equilibrar flex -->
-            <div style="width: 40px;"></div>
+            <!-- Carrito Dropdown (Derecha) -->
+            <div id="global-cart-container" class="dropdown d-none">
+                <button class="btn btn-link position-relative p-2 text-decoration-none border-0 shadow-none" type="button" id="cartDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                    <i class="fa-solid fa-cart-shopping fs-3 text-tekfix-primary"></i>
+                    <span id="global-cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem;">0</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end cart-dropdown-menu shadow-lg border-0" aria-labelledby="cartDropdown">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="m-0 fw-bold text-tekfix-main"><i class="fa-solid fa-shopping-basket me-2 text-tekfix-primary"></i>Carrito Pendiente</h6>
+                        <button class="btn btn-sm text-danger p-0" onclick="clearGlobalCart()" title="Limpiar todo"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                    <div id="global-cart-items-list" class="mb-3 overflow-auto" style="max-height: 300px;">
+                        <!-- Dinámico -->
+                    </div>
+                    <div class="border-top pt-3">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-tekfix-sec small">Total Estimado:</span>
+                            <span id="global-cart-total" class="fw-bold text-tekfix-primary fs-5">$0</span>
+                        </div>
+                        <button class="btn btn-tekfix w-100 rounded-pill fw-bold py-2 shadow-sm" onclick="confirmGlobalCart()">
+                            <i class="fa-solid fa-cash-register me-2"></i> CONFIRMAR Y VENDER
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Placeholder if cart is hidden -->
+            <div id="cart-placeholder" class="d-none" style="width: 40px;"></div>
         </div>
     </nav>
 
@@ -294,6 +359,9 @@
                     </li>
                     <li class="nav-item mt-2">
                         <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-bold bg-tekfix-card border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Arqueo de Caja</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-bold" href="/arqueo/sobrantes"><i class="fa-solid fa-coins text-tekfix-primary me-2" style="width:20px; text-align:center;"></i> Log de Sobrantes</a>
                     </li>
                 {% elif current_user.rol == 'vendedor' %}
                     <!-- Vistas Estrictamente Operativas (Cajeros) -->
@@ -388,6 +456,92 @@
                 }
             });
         });
+
+        // --- LÓGICA DE CARRITO GLOBAL TEKFIX (MINI-DROPDOWN) ---
+        let globalCart = JSON.parse(localStorage.getItem('tekfix_global_cart') || '[]');
+
+        function updateGlobalCartUI() {
+            const container = document.getElementById('global-cart-container');
+            const placeholder = document.getElementById('cart-placeholder');
+            const countEl = document.getElementById('global-cart-count');
+            const totalEl = document.getElementById('global-cart-total');
+            const listEl = document.getElementById('global-cart-items-list');
+
+            // Ocultar si estamos en la Caja Terminal
+            if (window.location.pathname.includes('/sales/nueva')) {
+                container.classList.add('d-none');
+                placeholder.classList.remove('d-none');
+                return;
+            }
+
+            if (globalCart.length === 0) {
+                container.classList.add('d-none');
+                placeholder.classList.remove('d-none');
+                return;
+            }
+
+            container.classList.remove('d-none');
+            placeholder.classList.add('d-none');
+            
+            countEl.textContent = globalCart.reduce((sum, item) => sum + item.cantidad, 0);
+            
+            let total = globalCart.reduce((sum, item) => sum + (item.cantidad * item.precio_sugerido), 0);
+            totalEl.textContent = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(total);
+
+            listEl.innerHTML = globalCart.map((item, index) => `
+                <div class="mini-cart-item">
+                    <div class="d-flex flex-column">
+                        <span class="text-tekfix-main fw-bold small">${item.nombre}</span>
+                        <span class="text-tekfix-sec" style="font-size: 0.7rem;">${item.cantidad} x ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(item.precio_sugerido)}</span>
+                    </div>
+                    <button class="btn btn-link p-0 text-danger" onclick="removeFromGlobalCart(${index})">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+                </div>
+            `).join('');
+            
+            localStorage.setItem('tekfix_global_cart', JSON.stringify(globalCart));
+        }
+
+        window.addToGlobalCart = function(product) {
+            const existing = globalCart.find(item => item.id === product.id && (item.variant_id === product.variant_id));
+            if (existing) {
+                existing.cantidad++;
+            } else {
+                globalCart.push({ ...product, cantidad: 1 });
+            }
+            updateGlobalCartUI();
+            
+            // Abrir automáticamente el dropdown (Mini Pestaña)
+            const dropdownBtn = document.getElementById('cartDropdown');
+            const dropdown = new bootstrap.Dropdown(dropdownBtn);
+            dropdown.show();
+
+            // Animación de pulso
+            const icon = dropdownBtn.querySelector('i');
+            icon.classList.add('cart-badge-pulse');
+            setTimeout(() => icon.classList.remove('cart-badge-pulse'), 1000);
+        };
+
+        window.removeFromGlobalCart = function(index) {
+            globalCart.splice(index, 1);
+            updateGlobalCartUI();
+        };
+
+        window.clearGlobalCart = function() {
+            if (confirm('¿Vaciar el carrito?')) {
+                globalCart = [];
+                updateGlobalCartUI();
+            }
+        };
+
+        window.confirmGlobalCart = function() {
+            localStorage.setItem('tekfix_transfer_cart', JSON.stringify(globalCart));
+            window.location.href = '/sales/nueva?source=global_cart';
+        };
+
+        // Inicializar UI
+        document.addEventListener('DOMContentLoaded', updateGlobalCartUI);
     </script>
 </body>
 </html>

@@ -91,7 +91,36 @@
 
                         <div class="mb-4">
                             <label for="observaciones_gastos" class="form-label fw-semibold">Observación u Detalle del Gasto</label>
-                            <textarea id="observaciones_gastos" name="observaciones_gastos" rows="2" class="form-control"></textarea>
+                            <textarea id="observaciones_gastos" name="observaciones_gastos" rows="2" class="form-control" placeholder="Ej: Pago de almuerzos, fletes..."></textarea>
+                        </div>
+
+                        <hr class="my-4 opacity-25">
+
+                        <h5 class="fw-bold text-tekfix-main mb-3"><i class="fa-solid fa-cash-register me-2"></i> Conteo Final</h5>
+                        
+                        <div class="mb-3">
+                            <label for="efectivo_fisico" class="form-label fw-bold text-primary">Efectivo Físico en Caja <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text border-end-0 bg-tekfix-card text-primary fw-bold">$</span>
+                                <input type="number" step="1" min="0" id="efectivo_fisico" name="efectivo_fisico" class="form-control border-start-0 fw-bold fs-5" value="0" required>
+                            </div>
+                            <div class="form-text">Ingresa el total de dinero físico contado.</div>
+                        </div>
+
+                        <!-- Sección de Diferencia (Dinámica) -->
+                        <div id="seccion_diferencia" class="d-none animate__animated animate__fadeIn">
+                            <div class="alert p-3 rounded-3 border-0 shadow-sm" id="alert_diferencia">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold" id="label_diferencia">Diferencia:</span>
+                                    <span class="fw-bolder fs-5" id="val_diferencia">$0</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="observacion_diferencia" class="form-label fw-bold" id="label_obs_dif">Observación de la Diferencia <span class="text-danger">*</span></label>
+                                <textarea id="observacion_diferencia" name="observacion_diferencia" rows="2" class="form-control border-danger" placeholder="Explica por qué hay un sobrante o faltante..."></textarea>
+                                <small class="text-danger fw-bold" id="msg_obs_dif">Este campo es obligatorio cuando hay diferencias.</small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -115,22 +144,64 @@ document.addEventListener("DOMContentLoaded", function() {
     const inputBaseInicial = document.getElementById("base_inicial");
     const inputGastos = document.getElementById("gastos_del_dia");
     const spanEsperado = document.getElementById("efectivo_esperado");
+    
+    const inputFisico = document.getElementById("efectivo_fisico");
+    const seccionDif = document.getElementById("seccion_diferencia");
+    const alertDif = document.getElementById("alert_diferencia");
+    const labelDif = document.getElementById("label_diferencia");
+    const valDif = document.getElementById("val_diferencia");
+    const obsDif = document.getElementById("observacion_diferencia");
 
     const formatoCOP = (num) => Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
     function calcularEsperado() {
-        if(!inputBaseInicial || !spanEsperado) return;
+        if(!inputBaseInicial || !spanEsperado) return 0;
         const base = parseFloat(inputBaseInicial.value) || 0;
         const gastos = parseFloat(inputGastos.value) || 0;
 
-        const formula = (base + totalEfectivo) - gastos;
-        spanEsperado.textContent = formatoCOP(formula);
+        const esperado = (base + totalEfectivo) - gastos;
+        spanEsperado.textContent = formatoCOP(esperado);
+        return esperado;
+    }
+
+    function validarDiferencia() {
+        const esperado = calcularEsperado();
+        const fisico = parseFloat(inputFisico.value) || 0;
+        const diferencia = fisico - esperado;
+
+        if (Math.abs(diferencia) > 1) {
+            seccionDif.classList.remove('d-none');
+            valDif.textContent = (diferencia > 0 ? "+" : "") + formatoCOP(diferencia);
+            obsDif.required = true;
+            
+            if (diferencia > 0) {
+                alertDif.style.backgroundColor = "rgba(221, 184, 86, 0.15)";
+                alertDif.style.border = "1px solid var(--tekfix-primary)";
+                labelDif.textContent = "SOBRANTE DE CAJA:";
+                labelDif.classList.remove('text-danger');
+                labelDif.classList.add('text-tekfix-primary');
+                valDif.classList.remove('text-danger');
+                valDif.classList.add('text-tekfix-primary');
+            } else {
+                alertDif.style.backgroundColor = "rgba(231, 76, 60, 0.1)";
+                alertDif.style.border = "1px solid #e74c3c";
+                labelDif.textContent = "FALTANTE DE CAJA:";
+                labelDif.classList.remove('text-tekfix-primary');
+                labelDif.classList.add('text-danger');
+                valDif.classList.remove('text-tekfix-primary');
+                valDif.classList.add('text-danger');
+            }
+        } else {
+            seccionDif.classList.add('d-none');
+            obsDif.required = false;
+        }
     }
 
     if(inputBaseInicial) {
-        inputBaseInicial.addEventListener("input", calcularEsperado);
-        inputGastos.addEventListener("input", calcularEsperado);
-        calcularEsperado(); // Cálculo inicial
+        inputBaseInicial.addEventListener("input", validarDiferencia);
+        inputGastos.addEventListener("input", validarDiferencia);
+        inputFisico.addEventListener("input", validarDiferencia);
+        validarDiferencia();
     }
 });
 </script>

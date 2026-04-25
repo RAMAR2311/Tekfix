@@ -68,6 +68,12 @@ def nuevo():
         gastos_del_dia = float(sum(g.monto for g in gastos_recalculados))
         
         observaciones_gastos = request.form.get('observaciones_gastos', '').strip()
+        efectivo_fisico = float(request.form.get('efectivo_fisico', 0.0))
+        observacion_diferencia = request.form.get('observacion_diferencia', '').strip()
+
+        # Calcular diferencia para el reporte
+        esperado = (base_inicial + float(total_efectivo)) - gastos_del_dia
+        diferencia = efectivo_fisico - esperado
 
         nuevo_arqueo = ArqueoCaja(
             vendedor_id=current_user.id,
@@ -76,7 +82,10 @@ def nuevo():
             gastos_del_dia=gastos_del_dia,
             observaciones_gastos=observaciones_gastos,
             total_efectivo_sistema=total_efectivo,
-            total_transferencia_sistema=total_transferencia
+            total_transferencia_sistema=total_transferencia,
+            efectivo_fisico=efectivo_fisico,
+            diferencia=diferencia,
+            observacion_diferencia=observacion_diferencia
         )
 
         try:
@@ -149,4 +158,19 @@ def reporte():
         fecha_fin=fecha_fin_str,
         fecha_generacion=fecha_generacion,
         ventas_periodo=ventas_periodo
+    )
+
+@arqueo_bp.route('/sobrantes', methods=['GET'])
+@login_required
+@admin_required
+def sobrantes():
+    # Solo mostrar arqueos donde la diferencia sea mayor a 0
+    historial_sobrantes = ArqueoCaja.query.filter(ArqueoCaja.diferencia > 0).order_by(ArqueoCaja.fecha_arqueo.desc()).all()
+    
+    total_acumulado = sum(s.diferencia for s in historial_sobrantes)
+    
+    return render_template(
+        'arqueo/sobrantes.html',
+        sobrantes=historial_sobrantes,
+        total_acumulado=total_acumulado
     )

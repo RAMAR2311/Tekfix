@@ -88,36 +88,48 @@
                 <table class="table table-bordered table-sm fw-semibold mb-0 table-hover align-middle">
                     <thead class="table-light text-center text-uppercase" style="font-size: 0.85rem;">
                         <tr>
-                            <th width="10%">Fecha</th>
+                            <th width="8%">Fecha</th>
                             {% if current_user.rol == 'admin' %}
-                            <th width="15%">Cajero(a)</th>
+                            <th width="12%">Cajero(a)</th>
                             {% endif %}
-                            <th width="12%" class="text-primary">Base Inicial</th>
-                            <th width="12%" class="text-success">Ventas Cash</th>
-                            <th width="12%" class="text-info">Transf Bancos</th>
-                            <th width="15%" class="text-danger">Salida (Gastos)</th>
-                            <th width="24%">Detalle del Gasto</th>
+                            <th width="10%" class="text-primary">Base</th>
+                            <th width="10%" class="text-success">Ventas Cash</th>
+                            <th width="12%" class="text-info">Bancos</th>
+                            <th width="10%" class="text-danger">Gastos</th>
+                            <th width="10%" class="text- tekfix-main">Físico</th>
+                            <th width="10%">Diferencia</th>
+                            <th width="18%">Observaciones</th>
                         </tr>
                     </thead>
                     <tbody style="font-size: 0.9rem;">
                         {% for arqueo in arqueos %}
                         <tr>
-                            <td class="text-center text-secondary">{{ arqueo.fecha_arqueo }}</td>
+                            <td class="text-center text-secondary small">{{ arqueo.fecha_arqueo }}</td>
                             
                             {% if current_user.rol == 'admin' %}
-                            <td class="text-truncate" style="max-width:120px;" title="{{ arqueo.cajero.nombre }}">{{ arqueo.cajero.nombre }}</td>
+                            <td class="text-truncate" style="max-width:100px;">{{ arqueo.cajero.nombre }}</td>
                             {% endif %}
 
-                            <td class="text-end text-primary fw-bold">${{ (arqueo.base_inicial)|cop }}</td>
-                            <td class="text-end text-success fw-bold">${{ (arqueo.total_efectivo_sistema)|cop }}</td>
-                            <td class="text-end text-info fw-bold">${{ (arqueo.total_transferencia_sistema)|cop }}</td>
+                            <td class="text-end text-primary">${{ (arqueo.base_inicial)|cop }}</td>
+                            <td class="text-end text-success">${{ (arqueo.total_efectivo_sistema)|cop }}</td>
+                            <td class="text-end text-info">${{ (arqueo.total_transferencia_sistema)|cop }}</td>
+                            <td class="text-end text-danger">${{ (arqueo.gastos_del_dia)|cop }}</td>
+                            <td class="text-end fw-bold text-tekfix-main">${{ (arqueo.efectivo_fisico)|cop }}</td>
                             
-                            <td class="text-end {% if arqueo.gastos_del_dia > 0 %}text-danger{% else %}text-tekfix-sec{% endif %} fw-bold">
-                                ${{ (arqueo.gastos_del_dia)|cop }}
+                            <td class="text-end fw-bold {% if arqueo.diferencia > 0 %}text-tekfix-primary{% elif arqueo.diferencia < 0 %}text-danger{% else %}text-secondary{% endif %}">
+                                {{ "+" if arqueo.diferencia > 0 else "" }}{{ (arqueo.diferencia)|cop }}
                             </td>
                             
-                            <td class="text-tekfix-sec fst-italic" style="font-size: 0.8rem;">
-                                {{ arqueo.observaciones_gastos if arqueo.observaciones_gastos else '-' }}
+                            <td class="text-tekfix-sec" style="font-size: 0.75rem;">
+                                {% if arqueo.observaciones_gastos %}
+                                    <div class="mb-1"><strong>Gasto:</strong> {{ arqueo.observaciones_gastos }}</div>
+                                {% endif %}
+                                {% if arqueo.observacion_diferencia %}
+                                    <div class="text-dark"><strong>Dif:</strong> {{ arqueo.observacion_diferencia }}</div>
+                                {% endif %}
+                                {% if not arqueo.observaciones_gastos and not arqueo.observacion_diferencia %}
+                                    -
+                                {% endif %}
                             </td>
                         </tr>
                         {% else %}

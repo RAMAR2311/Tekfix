@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-tekfix-main m-0">
+                <i class="fa-solid fa-coins text-tekfix-primary me-2"></i>Historial de Sobrantes
+            </h2>
+            <p class="text-tekfix-sec mb-0">Registro administrativo de excedentes detectados en arqueos.</p>
+        </div>
+        <div class="card bg-tekfix-card border-tekfix-primary shadow-sm px-4 py-2">
+            <small class="text-tekfix-sec d-block text-uppercase fw-bold" style="font-size: 0.7rem;">Total Acumulado</small>
+            <span class="fs-4 fw-bold text-tekfix-primary">${{ total_acumulado|cop }}</span>
+        </div>
+    </div>
+
+    <div class="card card-custom border-0 shadow-sm overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-custom align-middle mb-0">
+                <thead class="bg-tekfix-card text-tekfix-main">
+                    <tr>
+                        <th class="ps-4">Fecha Arqueo</th>
+                        <th>Cajero(a)</th>
+                        <th class="text-end">Efectivo Esperado</th>
+                        <th class="text-end">Efectivo Físico</th>
+                        <th class="text-end">Sobrante</th>
+                        <th class="ps-4" width="30%">Observación/Justificación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sobrantes %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-tekfix-primary bg-opacity-10 text-tekfix-primary rounded-circle p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-calendar-day small"></i>
+                                </div>
+                                <span class="fw-bold">{{ s.fecha_arqueo }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="fa-solid fa-user-circle text-tekfix-sec me-2 fs-5"></i>
+                                <span>{{ s.cajero.nombre }}</span>
+                            </div>
+                        </td>
+                        <td class="text-end text-tekfix-sec">${{ ((s.base_inicial + s.total_efectivo_sistema) - s.gastos_del_dia)|cop }}</td>
+                        <td class="text-end fw-bold text-tekfix-main">${{ s.efectivo_fisico|cop }}</td>
+                        <td class="text-end">
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill fw-bold">
+                                + ${{ s.diferencia|cop }}
+                            </span>
+                        </td>
+                        <td class="ps-4 pe-4">
+                            <div class="p-2 rounded bg-light bg-opacity-10 border-start border-4 border-tekfix-primary" style="font-size: 0.85rem;">
+                                {{ s.observacion_diferencia if s.observacion_diferencia else 'Sin observación detallada' }}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="fa-solid fa-face-smile fs-1 text-tekfix-sec opacity-25 mb-3 d-block"></i>
+                            <h5 class="text-tekfix-sec">No se han registrado sobrantes de caja hasta el momento.</h5>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
