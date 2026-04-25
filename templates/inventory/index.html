@@ -148,14 +148,14 @@
                                     style="width: 34px; height: 34px;"
                                     title="Agregar al Carrito" 
                                     onclick="addToGlobalCart({
-                                        id: {{ p.id }}, 
-                                        sku: '{{ p.sku }}', 
-                                        nombre: '{{ p.nombre }}', 
-                                        precio_sugerido: {{ p.precio_sugerido or 0 }}, 
-                                        precio_minimo: {{ p.precio_minimo or 0 }}, 
-                                        precio_costo: {{ p.precio_costo or 0 }},
-                                        cantidad_stock: {{ p.total_stock }},
-                                        variantes: {{ p.variantes_json | safe if p.variantes_json else '[]' }}
+                                        'id': {{ p.id | tojson }}, 
+                                        'sku': {{ p.sku | tojson }}, 
+                                        'nombre': {{ p.nombre | tojson }}, 
+                                        'precio_sugerido': {{ (p.precio_sugerido|float if p.precio_sugerido else 0) | tojson }}, 
+                                        'precio_minimo': {{ (p.precio_minimo|float if p.precio_minimo else 0) | tojson }}, 
+                                        'precio_costo': {{ (p.precio_costo|float if p.precio_costo else 0) | tojson }},
+                                        'cantidad_stock': {{ p.total_stock | tojson }},
+                                        'variantes': {{ p.variantes_json | safe if p.variantes_json else '[]' }}
                                     })">
                                 <i class="fa-solid fa-cart-plus" style="font-size: 0.9rem;"></i>
                             </button>
@@ -359,7 +359,7 @@
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mt-3 pt-2">
-                                    <button type="button" class="btn btn-sm btn-outline-light border-0 hover-danger px-2" title="Eliminar Permanente" onclick="if(confirm('¿Eliminar la subcategoría {{ v.nombre_variante }} del inventario? Esta acción es irreversible.')) { document.getElementById('delVarForm{{ v.id }}').submit(); }">
+                                    <button type="button" class="btn btn-sm btn-outline-light border-0 hover-danger px-2" title="Eliminar Permanente" onclick="if(confirm('¿Eliminar la subcategoría ' + {{ v.nombre_variante | tojson }} + ' del inventario? Esta acción es irreversible.')) { document.getElementById('delVarForm{{ v.id }}').submit(); }">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                     <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-4" title="Guardar Cambios">
