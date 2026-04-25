@@ -540,6 +540,40 @@
             window.location.href = '/sales/nueva?source=global_cart';
         };
 
+        // Helper para manejar el carrito desde data-attributes (evita errores de sintaxis en IDE)
+        window.handleAddToCart = function(btn) {
+            try {
+                const productData = JSON.parse(btn.getAttribute('data-product'));
+                
+                // Si las variantes vienen como string (JSON), las parseamos
+                if (typeof productData.variantes === 'string') {
+                    try {
+                        productData.variantes = JSON.parse(productData.variantes);
+                    } catch(e) {
+                        productData.variantes = [];
+                    }
+                }
+                
+                if (window.addToGlobalCart) {
+                    window.addToGlobalCart(productData);
+                    
+                    // Feedback visual en el botón
+                    const icon = btn.querySelector('i');
+                    if (icon) {
+                        const originalClass = icon.className;
+                        icon.className = 'fa-solid fa-check text-success';
+                        btn.classList.add('btn-success-soft');
+                        setTimeout(() => {
+                            icon.className = originalClass;
+                            btn.classList.remove('btn-success-soft');
+                        }, 1500);
+                    }
+                }
+            } catch (e) {
+                console.error("Error al procesar data-product:", e);
+            }
+        };
+
         // Inicializar UI
         document.addEventListener('DOMContentLoaded', updateGlobalCartUI);
     </script>

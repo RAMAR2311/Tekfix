@@ -77,16 +77,17 @@
                                                 <div class="d-flex align-items-center justify-content-end gap-2">
                                                     <span class="fw-bold text-tekfix-main">${{ (v.precio_sugerido or p.precio_sugerido)|cop }}</span>
                                                     <button type="button" class="btn btn-link p-0 text-tekfix-primary" title="Agregar al Carrito" 
-                                                            onclick="addToGlobalCart({
-                                                                'id': {{ p.id | tojson }}, 
-                                                                'sku': {{ p.sku | tojson }}, 
-                                                                'nombre': {{ (p.nombre ~ ' (' ~ v.nombre_variante ~ ')') | tojson }}, 
-                                                                'precio_sugerido': {{ (v.precio_sugerido or p.precio_sugerido or 0) | float | tojson }}, 
-                                                                'precio_minimo': {{ (v.precio_minimo or p.precio_minimo or 0) | float | tojson }}, 
-                                                                'precio_costo': {{ (v.precio_costo or p.precio_costo or 0) | float | tojson }},
-                                                                'cantidad_stock': {{ v.cantidad_stock | tojson }},
-                                                                'variant_id': {{ v.id | tojson }}
-                                                            })">
+                                                            onclick="handleAddToCart(this)"
+                                                            data-product='{{ {
+                                                                "id": p.id,
+                                                                "sku": p.sku,
+                                                                "nombre": (p.nombre ~ " (" ~ v.nombre_variante ~ ")"),
+                                                                "precio_sugerido": (v.precio_sugerido or p.precio_sugerido or 0) | float,
+                                                                "precio_minimo": (v.precio_minimo or p.precio_minimo or 0) | float,
+                                                                "precio_costo": (v.precio_costo or p.precio_costo or 0) | float,
+                                                                "cantidad_stock": v.cantidad_stock,
+                                                                "variant_id": v.id
+                                                            } | tojson }}' >
                                                         <i class="fa-solid fa-cart-plus"></i>
                                                     </button>
                                                 </div>
@@ -107,15 +108,16 @@
                             <h4 class="fw-bolder m-0" style="color: var(--tekfix-text-main);">${{ (p.precio_sugerido)|cop }}</h4>
                         </div>
                         <button type="button" class="btn btn-tekfix rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" title="Agregar al Carrito" 
-                                onclick="addToGlobalCart({
-                                    'id': {{ p.id | tojson }}, 
-                                    'sku': {{ p.sku | tojson }}, 
-                                    'nombre': {{ p.nombre | tojson }}, 
-                                    'precio_sugerido': {{ (p.precio_sugerido or 0) | float | tojson }}, 
-                                    'precio_minimo': {{ (p.precio_minimo or 0) | float | tojson }}, 
-                                    'precio_costo': {{ (p.precio_costo or 0) | float | tojson }},
-                                    'cantidad_stock': {{ p.cantidad_stock | tojson }}
-                                })">
+                                onclick="handleAddToCart(this)"
+                                data-product='{{ {
+                                    "id": p.id,
+                                    "sku": p.sku,
+                                    "nombre": p.nombre,
+                                    "precio_sugerido": (p.precio_sugerido or 0) | float,
+                                    "precio_minimo": (p.precio_minimo or 0) | float,
+                                    "precio_costo": (p.precio_costo or 0) | float,
+                                    "cantidad_stock": p.cantidad_stock
+                                } | tojson }}' >
                             <i class="fa-solid fa-cart-plus fs-5"></i>
                         </button>
                     </div>

@@ -147,49 +147,54 @@
                             <button type="button" class="btn btn-tekfix rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" 
                                     style="width: 34px; height: 34px;"
                                     title="Agregar al Carrito" 
-                                    onclick="addToGlobalCart({
-                                        'id': {{ p.id | tojson }}, 
-                                        'sku': {{ p.sku | tojson }}, 
-                                        'nombre': {{ p.nombre | tojson }}, 
-                                        'precio_sugerido': {{ (p.precio_sugerido|float if p.precio_sugerido else 0) | tojson }}, 
-                                        'precio_minimo': {{ (p.precio_minimo|float if p.precio_minimo else 0) | tojson }}, 
-                                        'precio_costo': {{ (p.precio_costo|float if p.precio_costo else 0) | tojson }},
-                                        'cantidad_stock': {{ p.total_stock | tojson }},
-                                        'variantes': {{ p.variantes_json | safe if p.variantes_json else '[]' }}
-                                    })">
-                                <i class="fa-solid fa-cart-plus" style="font-size: 0.9rem;"></i>
+                                    onclick="handleAddToCart(this)"
+                                    data-product='{{ {
+                                        "id": p.id,
+                                        "sku": p.sku,
+                                        "nombre": p.nombre,
+                                        "precio_sugerido": (p.precio_sugerido|float if p.precio_sugerido else 0),
+                                        "precio_minimo": (p.precio_minimo|float if p.precio_minimo else 0),
+                                        "precio_costo": (p.precio_costo|float if p.precio_costo else 0),
+                                        "cantidad_stock": p.total_stock,
+                                        "variantes": (p.variantes_json or "[]")
+                                    } | tojson }}'>
+                                <i class="fa-solid fa-cart-plus"></i>
                             </button>
 
-                            <!-- Menú de Acciones Secundarias -->
+                            <!-- Editar -->
+                            <a href="{{ url_for('inventory_bp.editar_producto', id=p.id) }}" 
+                               class="btn btn-outline-warning rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" 
+                               style="width: 34px; height: 34px;" title="Editar">
+                                <i class="fa-solid fa-pen" style="font-size: 0.85rem;"></i>
+                            </a>
+
+                            <!-- Eliminar -->
+                            <form method="POST" action="{{ url_for('inventory_bp.eliminar_producto', id=p.id) }}" 
+                                  onsubmit="return confirm('¿Eliminar permanentemente este producto?');" 
+                                  class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-outline-danger rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" 
+                                        style="width: 34px; height: 34px;" title="Eliminar">
+                                    <i class="fa-solid fa-trash-can" style="font-size: 0.85rem;"></i>
+                                </button>
+                            </form>
+
+                            <!-- Ver más -->
                             <div class="dropdown">
                                 <button class="btn btn-link text-tekfix-sec p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 34px; height: 34px;">
                                     <i class="fa-solid fa-ellipsis-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 bg-tekfix-card p-2" style="min-width: 180px; border-radius: 12px;">
-                                    <li><h6 class="dropdown-header text-tekfix-primary small fw-bold text-uppercase pb-2">Gestión de Producto</h6></li>
+                                    <li><h6 class="dropdown-header text-tekfix-primary small fw-bold text-uppercase pb-2">Opciones</h6></li>
                                     <li>
                                         <button class="dropdown-item rounded-3 py-2 text-tekfix-main" type="button" data-bs-toggle="modal" data-bs-target="#variantesModal{{ p.id }}">
-                                            <i class="fa-solid fa-layer-group me-2 text-primary"></i> Subcategorías
+                                            <i class="fa-solid fa-layer-group me-2 text-primary"></i> Gestionar Subcategorías
                                         </button>
                                     </li>
                                     <li>
                                         <a class="dropdown-item rounded-3 py-2 text-tekfix-main" href="{{ url_for('inventory_bp.ver_producto', id=p.id) }}">
                                             <i class="fa-solid fa-eye me-2 text-info"></i> Ver Detalles
                                         </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item rounded-3 py-2 text-tekfix-main" href="{{ url_for('inventory_bp.editar_producto', id=p.id) }}">
-                                            <i class="fa-solid fa-pen me-2 text-warning"></i> Editar Info
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider bg-tekfix-border opacity-25"></li>
-                                    <li>
-                                        <form method="POST" action="{{ url_for('inventory_bp.eliminar_producto', id=p.id) }}" onsubmit="return confirm('¿Eliminar permanentemente este producto?');">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="dropdown-item rounded-3 py-2 text-danger fw-bold">
-                                                <i class="fa-solid fa-trash-can me-2"></i> Eliminar
-                                            </button>
-                                        </form>
                                     </li>
                                 </ul>
                             </div>
@@ -359,7 +364,10 @@
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mt-3 pt-2">
-                                    <button type="button" class="btn btn-sm btn-outline-light border-0 hover-danger px-2" title="Eliminar Permanente" onclick="if(confirm('¿Eliminar la subcategoría ' + {{ v.nombre_variante | tojson }} + ' del inventario? Esta acción es irreversible.')) { document.getElementById('delVarForm{{ v.id }}').submit(); }">
+                                    <button type="button" class="btn btn-sm btn-outline-light border-0 hover-danger px-2" title="Eliminar Permanente" 
+                                            onclick="confirmDeleteVariant(this)" 
+                                            data-nombre="{{ v.nombre_variante }}" 
+                                            data-form-id="delVarForm{{ v.id }}">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                     <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-4" title="Guardar Cambios">
@@ -476,6 +484,15 @@ document.addEventListener('DOMContentLoaded', function() {
         filterTable();
         searchInput.focus();
     });
+
+    // Helper para manejar el carrito desde data-attributes (evita errores de sintaxis en IDE)
+    window.confirmDeleteVariant = function(btn) {
+        const nombre = btn.getAttribute('data-nombre');
+        const formId = btn.getAttribute('data-form-id');
+        if (confirm(`¿Eliminar la subcategoría "${nombre}" del inventario? Esta acción es irreversible.`)) {
+            document.getElementById(formId).submit();
+        }
+    };
 });
 </script>
 {% endblock %}
