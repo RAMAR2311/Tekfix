@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ticket de Compra #{{ venta.id }} - Tekfix Oficial</title>
-    <!-- Incluir solo la fuente base "Roboto Mono" (Letra de ticketera 80mm) -->
+    <!-- Incluir solo la fuente base "Roboto Mono" (Letra de ticketera 58mm) -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -36,8 +36,8 @@
         .ticket {
             background-color: var(--paper-bg);
             width: 100%;
-            max-width: 380px; /* Ancho de impresora térmica 80mm */
-            padding: 25px 20px;
+            max-width: 300px; /* Ajustado para impresora térmica 58mm */
+            padding: 20px 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             color: var(--paper-text);
             box-sizing: border-box;
@@ -52,23 +52,23 @@
         }
 
         .logo {
-            font-size: 2.2rem;
+            font-size: 1.8rem; /* Reducido para 58mm */
             font-weight: 700;
             margin: 0 0 10px 0;
-            letter-spacing: -1.5px;
+            letter-spacing: -1px;
         }
 
         .info {
-            font-size: 0.9rem;
-            margin: 3px 0;
-            line-height: 1.5;
+            font-size: 0.8rem; /* Reducido para 58mm */
+            margin: 2px 0;
+            line-height: 1.4;
         }
 
         .table-items {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.85rem;
-            margin-bottom: 20px;
+            font-size: 0.75rem; /* Reducido para 58mm */
+            margin-bottom: 15px;
         }
 
         .table-items th {
@@ -96,11 +96,11 @@
         .total-row {
             display: flex;
             justify-content: space-between;
-            font-size: 1.4rem;
+            font-size: 1.2rem; /* Reducido para 58mm */
             font-weight: 700;
             /* Branding Inyectado: Resalte estricto en Azul Turquesa (#A3D8DE) */
             background-color: #A3D8DE;
-            padding: 12px 15px;
+            padding: 10px 12px;
             border-radius: 6px;
             border: 1px solid #1A1A1A;
         }
@@ -135,9 +135,9 @@
         /* MEDIA QUERY DE IMPRESIÓN RIGUROSA: Las reglas CSS aquí omiten UI inútil al imprimir en papel */
         @media print {
             body { background-color: #FFFFFF; padding: 0; display: block; }
-            .ticket { box-shadow: none; max-width: 100%; padding: 0; margin: 0 auto; width: 80mm; border: none; }
+            .ticket { box-shadow: none; max-width: 100%; padding: 0; margin: 0 auto; width: 58mm; border: none; }
             .btn-print { display: none; }
-            .total-row { background-color: transparent !important; border: none !important; padding: 10px 0 !important; }
+            .total-row { background-color: transparent !important; border: none !important; padding: 8px 0 !important; }
             .total-row * { color: #1A1A1A !important; } /* Desactivar Azul para impresiones monocromas */
         }
     </style>
@@ -176,9 +176,9 @@
                 <!-- Cortar la longitud del título si es gigantesco para no descuadrar la ticketera -->
                 <td class="col-prod">
                     {% if detalle.nombre_manual %}
-                        {{ detalle.nombre_manual[:25] }}{% if detalle.nombre_manual|length > 25 %}...{% endif %}
+                        {{ detalle.nombre_manual[:20] }}{% if detalle.nombre_manual|length > 20 %}...{% endif %}
                     {% else %}
-                        {{ detalle.producto.nombre[:25] }}{% if detalle.producto.nombre|length > 25 %}...{% endif %}
+                        {{ detalle.producto.nombre[:20] }}{% if detalle.producto.nombre|length > 20 %}...{% endif %}
                     {% endif %}
                 </td>
                 <td class="col-sub">${{ (detalle.precio_venta_final * detalle.cantidad_vendida)|cop }}</td>
@@ -208,9 +208,9 @@
     </div>
 
     <div class="footer">
-        <p style="font-size: 1rem; font-weight: bold;">¡Gracias por tu compra!</p>
-        <p>Políticas de Tienda: Devoluciones únicamente presentando ticket impreso o digital.</p>
-        <p>Soporte: ventas@Tekfix Oficial</p>
+        <p style="font-size: 0.9rem; font-weight: bold;">¡Gracias por tu compra!</p>
+        <p style="font-size: 0.75rem;">Políticas: Devoluciones únicamente presentando ticket impreso o digital.</p>
+        <p style="font-size: 0.75rem;">Soporte: ventas@Tekfix Oficial</p>
     </div>
 
     <button class="btn-print" onclick="window.print()">
