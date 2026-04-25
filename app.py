@@ -18,6 +18,7 @@ def create_app():
     
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = 'static/uploads'
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Permitir hasta 16MB por archivo
 
     # Inicializar Extensiones
     db.init_app(app)
