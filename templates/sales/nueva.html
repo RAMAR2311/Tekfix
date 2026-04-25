@@ -261,6 +261,9 @@
                 // Limpiar transferencias
                 localStorage.removeItem('tekfix_transfer_cart');
                 localStorage.setItem('tekfix_global_cart', '[]');
+                if (typeof globalCart !== 'undefined') {
+                    globalCart = []; // Actualizar variable global para consistencia
+                }
                 // Notificar al sistema global que el carrito se vació
                 if (window.updateGlobalCartUI) window.updateGlobalCartUI();
             } catch (e) {

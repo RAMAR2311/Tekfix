@@ -461,6 +461,9 @@
         let globalCart = JSON.parse(localStorage.getItem('tekfix_global_cart') || '[]');
 
         function updateGlobalCartUI() {
+            // Sincronizar siempre con localStorage para persistencia
+            localStorage.setItem('tekfix_global_cart', JSON.stringify(globalCart));
+
             const container = document.getElementById('global-cart-container');
             const placeholder = document.getElementById('cart-placeholder');
             const countEl = document.getElementById('global-cart-count');
@@ -469,19 +472,19 @@
 
             // Ocultar si estamos en la Caja Terminal
             if (window.location.pathname.includes('/sales/nueva')) {
-                container.classList.add('d-none');
-                placeholder.classList.remove('d-none');
+                if (container) container.classList.add('d-none');
+                if (placeholder) placeholder.classList.remove('d-none');
                 return;
             }
 
             if (globalCart.length === 0) {
-                container.classList.add('d-none');
-                placeholder.classList.remove('d-none');
+                if (container) container.classList.add('d-none');
+                if (placeholder) placeholder.classList.remove('d-none');
                 return;
             }
 
-            container.classList.remove('d-none');
-            placeholder.classList.add('d-none');
+            if (container) container.classList.remove('d-none');
+            if (placeholder) placeholder.classList.add('d-none');
             
             countEl.textContent = globalCart.reduce((sum, item) => sum + item.cantidad, 0);
             
@@ -499,8 +502,6 @@
                     </button>
                 </div>
             `).join('');
-            
-            localStorage.setItem('tekfix_global_cart', JSON.stringify(globalCart));
         }
 
         window.addToGlobalCart = function(product) {
