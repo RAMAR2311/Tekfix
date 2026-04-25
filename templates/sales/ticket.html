@@ -142,16 +142,20 @@
         }
 
         /* MODO SILENCIOSO (SOLO APERTURA DE CAJÓN) */
+        @page {
+            margin: 0 !important;
+        }
         body.silent-mode {
             background-color: #FFFFFF !important;
             padding: 0 !important;
-            height: 1mm !important;
+            margin: 0 !important;
+            height: 0.1mm !important;
+            width: 58mm !important;
             overflow: hidden !important;
         }
-        body.silent-mode .ticket {
-            display: none !important;
-        }
-        body.silent-mode .btn-print {
+        body.silent-mode .ticket, 
+        body.silent-mode .btn-print,
+        body.silent-mode * {
             display: none !important;
         }
     </style>
