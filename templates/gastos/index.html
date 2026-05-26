@@ -1,11 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold text-tekfix-main m-0">Control de Gastos y Costos</h2>
-    <a href="{{ url_for('admin_bp.dashboard') if current_user.rol == 'admin' else url_for('sales_bp.procesar_venta') }}" class="btn btn-outline-secondary rounded-pill px-4">
-        <i class="fa-solid fa-arrow-left me-1"></i> Volver al Menú
-    </a>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <h2 class="fw-bold text-tekfix-main m-0">
+        <i class="fa-solid fa-wallet text-tekfix-primary me-2"></i>Control de Gastos y Costos
+    </h2>
+    <div class="d-flex align-items-center gap-2">
+        <!-- Selector de mes interactivo -->
+        <div class="input-group shadow-sm border rounded-pill overflow-hidden bg-tekfix-card" style="width: 220px; border-color: var(--tekfix-border) !important;">
+            <span class="input-group-text bg-transparent border-0 text-tekfix-primary" style="color: var(--tekfix-primary) !important;"><i class="fa-regular fa-calendar"></i></span>
+            <input type="month" id="monthSelector" class="form-control bg-transparent border-0 shadow-none p-2 text-tekfix-main" 
+                   value="{{ mes_seleccionado }}" 
+                   style="cursor: pointer; color: var(--tekfix-text-main) !important; background: transparent !important; border: none !important; outline: none !important; box-shadow: none !important; font-weight: bold; font-size: 0.9rem;">
+        </div>
+        <a href="{{ url_for('admin_bp.dashboard') if current_user.rol == 'admin' else url_for('sales_bp.procesar_venta') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-bold shadow-sm">
+            <i class="fa-solid fa-arrow-left me-1"></i> Volver
+        </a>
+    </div>
 </div>
 
 <!-- Tarjetas de Resumen Financiero -->
@@ -13,7 +24,7 @@
     <div class="col-md-6">
         <div class="card card-custom h-100 p-4 border-0 shadow-sm" style="border-left: 5px solid var(--tekfix-primary) !important;">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="text-tekfix-main fw-bold mb-0">Total Gastos Diarios (Mes)</h5>
+                <h5 class="text-tekfix-main fw-bold mb-0">Total Gastos Diarios ({{ nombre_mes }})</h5>
                 <i class="fa-solid fa-cart-shopping fs-2" style="color: var(--tekfix-primary);"></i>
             </div>
             <h2 class="fw-bolder m-0">${{ (total_diarios)|cop }}</h2>
@@ -23,7 +34,7 @@
     <div class="col-md-6">
         <div class="card card-custom h-100 p-4 border-0 shadow-sm" style="border-left: 5px solid var(--tekfix-hover) !important;">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="text-tekfix-main fw-bold mb-0">Total Costos Indirectos (Mes)</h5>
+                <h5 class="text-tekfix-main fw-bold mb-0">Total Costos Indirectos ({{ nombre_mes }})</h5>
                 <i class="fa-solid fa-building-columns fs-2" style="color: var(--tekfix-hover);"></i>
             </div>
             <h2 class="fw-bolder m-0">${{ (total_indirectos)|cop }}</h2>
@@ -32,110 +43,176 @@
     </div>
 </div>
 
-<!-- Formulario para Registrar Nuevo Gasto -->
-<div class="card card-custom p-4 mb-5 shadow-sm border-0">
-    <h5 class="text-tekfix-main fw-bold mb-4"><i class="fa-solid fa-money-bill-transfer text-tekfix-sec me-2"></i>Registrar Salida de Dinero</h5>
-    <form method="POST">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <div class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label fw-bold text-tekfix-main">Tipo de Salida</label>
-                <select name="tipo_gasto" class="form-select bg-tekfix-card border-0" required>
-                    {% if current_user.rol == 'admin' %}
-                    <option value="" selected disabled>Seleccionar tipo...</option>
-                    <option value="Gasto Diario">Gasto Diario / Operativo</option>
-                    <option value="Costo Indirecto">Costo Indirecto / Fijo</option>
-                    {% else %}
-                    <option value="Gasto Diario" selected>Gasto Diario / Operativo</option>
-                    {% endif %}
-                </select>
+<div class="row g-4">
+    <!-- Columna Principal Izquierda (Formulario y Tabla Historial) -->
+    <div class="col-lg-8">
+        <!-- Formulario para Registrar Nuevo Gasto -->
+        <div class="card card-custom p-4 mb-4 shadow-sm border-0">
+            <h5 class="text-tekfix-main fw-bold mb-4"><i class="fa-solid fa-money-bill-transfer text-tekfix-sec me-2"></i>Registrar Salida de Dinero</h5>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-tekfix-main">Tipo de Salida</label>
+                        <select name="tipo_gasto" class="form-select bg-tekfix-card border-0" required>
+                            {% if current_user.rol == 'admin' %}
+                            <option value="" selected disabled>Seleccionar tipo...</option>
+                            <option value="Gasto Diario">Gasto Diario / Operativo</option>
+                            <option value="Costo Indirecto">Costo Indirecto / Fijo</option>
+                            {% else %}
+                            <option value="Gasto Diario" selected>Gasto Diario / Operativo</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-tekfix-main">Categoría</label>
+                        <!-- Usamos datalist para permitir escribir o seleccionar opciones -->
+                        <input type="text" name="categoria" list="categoriasComunes" class="form-control bg-tekfix-card border-0" autocomplete="off" placeholder="Ej: Arriendo, Aseo..." required>
+                        <datalist id="categoriasComunes">
+                            <option value="Arriendo">
+                            <option value="Servicios Públicos">
+                            <option value="Nómina">
+                            <option value="Internet / Teléfono">
+                            <option value="Aseo y Mantenimiento">
+                            <option value="Alimentación">
+                            <option value="Transporte / Fletes">
+                            <option value="Caja Menor">
+                            <option value="Insumos Varios">
+                        </datalist>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-tekfix-main">Monto ($)</label>
+                        <input type="number" step="1" min="0" name="monto" class="form-control bg-tekfix-card border-0" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-tekfix-main">Fecha</label>
+                        <input type="date" name="fecha_gasto" class="form-control bg-tekfix-card border-0" value="{{ hoy }}" required>
+                    </div>
+                    <div class="col-md-9 mt-3">
+                        <label class="form-label fw-bold text-tekfix-main">Nota o Descripción</label>
+                        <input type="text" name="descripcion" class="form-control bg-tekfix-card border-0" placeholder="Breve detalle del gasto..." required>
+                    </div>
+                    <div class="col-md-3 mt-3 text-end">
+                        <button type="submit" class="btn btn-tekfix-secondary w-100 rounded-pill fw-bold h-100 py-2"><i class="fa-solid fa-plus me-1"></i> Guardar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabla Historial -->
+        <div class="card card-custom p-0 overflow-hidden shadow-sm border-0">
+            <div class="card-header bg-tekfix-card p-3 border-0">
+                <h5 class="text-tekfix-main fw-bold m-0"><i class="fa-solid fa-list-check text-tekfix-primary me-2"></i>Historial del Periodo</h5>
             </div>
-            <div class="col-md-3">
-                <label class="form-label fw-bold text-tekfix-main">Categoría</label>
-                <!-- Usamos datalist para permitir escribir o seleccionar opciones -->
-                <input type="text" name="categoria" list="categoriasComunes" class="form-control bg-tekfix-card border-0" autocomplete="off" placeholder="Ej: Arriendo, Aseo..." required>
-                <datalist id="categoriasComunes">
-                    <option value="Arriendo">
-                    <option value="Servicios Públicos">
-                    <option value="Nómina">
-                    <option value="Internet / Teléfono">
-                    <option value="Aseo y Mantenimiento">
-                    <option value="Alimentación">
-                    <option value="Transporte / Fletes">
-                    <option value="Caja Menor">
-                    <option value="Insumos Varios">
-                </datalist>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold text-tekfix-main">Monto ($)</label>
-                <input type="number" step="1" min="0" name="monto" class="form-control bg-tekfix-card border-0" required>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold text-tekfix-main">Fecha</label>
-                <input type="date" name="fecha_gasto" class="form-control bg-tekfix-card border-0" value="{{ hoy }}" required>
-            </div>
-            <div class="col-md-10 mt-3">
-                <label class="form-label fw-bold text-tekfix-main">Nota o Descripción</label>
-                <input type="text" name="descripcion" class="form-control bg-tekfix-card border-0" placeholder="Breve detalle del gasto..." required>
-            </div>
-            <div class="col-md-2 mt-3 text-end">
-                <button type="submit" class="btn btn-tekfix-secondary w-100 rounded-pill fw-bold h-100 py-2"><i class="fa-solid fa-plus me-1"></i> Guardar</button>
+            <div class="table-responsive">
+                <table class="table table-hover table-custom mb-0">
+                    <thead class="bg-tekfix-card">
+                        <tr>
+                            <th class="ps-4">FECHA</th>
+                            <th>REGISTRADO POR</th>
+                            <th>TIPO</th>
+                            <th>CATEGORÍA</th>
+                            <th>DESCRIPCIÓN</th>
+                            <th class="text-end">MONTO</th>
+                            <th class="text-center pe-4">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for gasto in gastos %}
+                        <tr>
+                            <td class="ps-4 text-tekfix-sec"><small>{{ gasto.fecha_gasto.strftime('%d/%m/%Y') }}</small></td>
+                            <td><span class="text-tekfix-main fw-semibold"><i class="fa-solid fa-user-tie text-tekfix-sec me-1"></i>{{ gasto.usuario.nombre }}</span></td>
+                            <td>
+                                {% if gasto.tipo_gasto == 'Gasto Diario' %}
+                                    <span class="badge rounded-pill text-tekfix-main" style="background-color: var(--tekfix-primary);">{{ gasto.tipo_gasto }}</span>
+                                {% else %}
+                                    <span class="badge rounded-pill text-tekfix-main" style="background-color: var(--tekfix-hover);">{{ gasto.tipo_gasto }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold text-tekfix-main">{{ gasto.categoria }}</td>
+                            <td class="text-tekfix-sec"><small>{{ gasto.descripcion }}</small></td>
+                            <td class="text-end fw-bolder text-tekfix-main">${{ (gasto.monto)|cop }}</td>
+                            <td class="text-center pe-4">
+                                {% if current_user.rol == 'admin' or gasto.usuario_id == current_user.id %}
+                                <form action="{{ url_for('gastos_bp.eliminar_gasto', id=gasto.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este gasto permanentemente?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-sm text-danger hover-danger border-0 bg-transparent" title="Eliminar Gasto">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-tekfix-sec">
+                                <i class="fa-solid fa-wallet fs-2 mb-3 text-tekfix-sec opacity-50"></i>
+                                <p class="mb-0">No se han registrado salidas de dinero en {{ nombre_mes }}.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
-    </form>
-</div>
+    </div>
 
-<!-- Tabla Historial -->
-<div class="card card-custom p-0 overflow-hidden shadow-sm border-0">
-    <div class="table-responsive">
-        <table class="table table-hover table-custom mb-0">
-            <thead class="bg-tekfix-card">
-                <tr>
-                    <th class="ps-4">FECHA</th>
-                    <th>REGISTRADO POR</th>
-                    <th>TIPO</th>
-                    <th>CATEGORÍA</th>
-                    <th>DESCRIPCIÓN</th>
-                    <th class="text-end">MONTO</th>
-                    <th class="text-center pe-4">ACCIONES</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for gasto in gastos %}
-                <tr>
-                    <td class="ps-4 text-tekfix-sec"><small>{{ gasto.fecha_gasto.strftime('%d/%m/%Y') }}</small></td>
-                    <td><span class="text-tekfix-main fw-semibold"><i class="fa-solid fa-user-tie text-tekfix-sec me-1"></i>{{ gasto.usuario.nombre }}</span></td>
-                    <td>
-                        {% if gasto.tipo_gasto == 'Gasto Diario' %}
-                            <span class="badge rounded-pill text-tekfix-main" style="background-color: var(--tekfix-primary);">{{ gasto.tipo_gasto }}</span>
+    <!-- Columna Derecha (Análisis Categórico) -->
+    <div class="col-lg-4">
+        <div class="card card-custom p-4 border-0 shadow-sm position-sticky" style="top: 100px;">
+            <h5 class="text-tekfix-main fw-bold mb-4">
+                <i class="fa-solid fa-chart-pie text-tekfix-primary me-2"></i>Egresos por Categoría
+            </h5>
+            
+            {% if desglose_categorias %}
+            <div class="d-flex flex-column gap-3">
+                {% for cat in desglose_categorias %}
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div>
+                            <span class="fw-bold text-tekfix-main" style="font-size: 0.95rem;">{{ cat.nombre }}</span>
+                            <small class="text-tekfix-sec d-block" style="font-size: 0.72rem;">
+                                {{ cat.cantidad }} {% if cat.cantidad == 1 %}registro{% else %}registros{% endif %} • {{ cat.tipo_gasto }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <span class="fw-bolder text-tekfix-main">${{ (cat.total)|cop }}</span>
+                            <small class="text-tekfix-sec d-block" style="font-size: 0.72rem; font-weight: bold; color: var(--tekfix-primary);">{{ cat.porcentaje }}%</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Barra de progreso premium -->
+                    <div class="progress" style="height: 6px; background-color: var(--tekfix-border); border-radius: 10px;">
+                        {% if cat.tipo_gasto == 'Gasto Diario' %}
+                            <!-- Degradado Celeste Turquesa para Diario -->
+                            <div class="progress-bar" role="progressbar" style="width: {{ cat.porcentaje }}%; background: linear-gradient(90deg, #A3D8DE, #7BC8D0); border-radius: 10px;" aria-valuenow="{{ cat.porcentaje }}" aria-valuemin="0" aria-valuemax="100"></div>
                         {% else %}
-                            <span class="badge rounded-pill text-tekfix-main" style="background-color: var(--tekfix-hover);">{{ gasto.tipo_gasto }}</span>
+                            <!-- Degradado Rosa/Dorado de Costo Fijo -->
+                            <div class="progress-bar" role="progressbar" style="width: {{ cat.porcentaje }}%; background: linear-gradient(90deg, var(--tekfix-primary), #fd7e14); border-radius: 10px;" aria-valuenow="{{ cat.porcentaje }}" aria-valuemin="0" aria-valuemax="100"></div>
                         {% endif %}
-                    </td>
-                    <td class="fw-bold">{{ gasto.categoria }}</td>
-                    <td class="text-tekfix-sec"><small>{{ gasto.descripcion }}</small></td>
-                    <td class="text-end fw-bolder text-tekfix-main">${{ (gasto.monto)|cop }}</td>
-                    <td class="text-center pe-4">
-                        {% if current_user.rol == 'admin' or gasto.usuario_id == current_user.id %}
-                        <form action="{{ url_for('gastos_bp.eliminar_gasto', id=gasto.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este gasto permanentemente?')">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="btn btn-sm text-danger hover-danger border-0 bg-transparent" title="Eliminar Gasto">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </form>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="7" class="text-center py-5 text-tekfix-sec">
-                        <i class="fa-solid fa-wallet fs-2 mb-3 text-tekfix-sec opacity-50"></i>
-                        <p class="mb-0">No se han registrado salidas de dinero este mes.</p>
-                    </td>
-                </tr>
+                    </div>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-tekfix-sec">
+                <i class="fa-solid fa-chart-line fs-1 mb-3 text-tekfix-sec opacity-40"></i>
+                <h6 class="fw-bold text-tekfix-main">Sin Datos para Análisis</h6>
+                <p class="mb-0 small">No se registran egresos en el periodo de {{ nombre_mes }}.</p>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const monthInput = document.getElementById('monthSelector');
+        if (monthInput) {
+            monthInput.addEventListener('change', function() {
+                window.location.href = "?mes=" + this.value;
+            });
+        }
+    });
+</script>
 {% endblock %}

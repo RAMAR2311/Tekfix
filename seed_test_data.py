@@ -36,12 +36,24 @@ def seed_test_data():
         print("[OK] Usuarios creados/verificados (admin@tekfix, bodega@tekfix, vendedor@tekfix).")
 
         # 2. Crear Productos y Variantes
-        if Product.query.filter(Product.sku.like('DEMO-%')).count() == 0:
+        prod_tienda = Product.query.filter_by(sku='DEMO-FUNDA-01').first()
+        if not prod_tienda:
             prod_tienda = Product(nombre='Funda Protectora Demo', sku='DEMO-FUNDA-01', tipo_inventario='tienda', cantidad_stock=50, precio_costo=5000, precio_minimo=15000, precio_sugerido=20000, observacion='Producto demo tienda')
+            db.session.add(prod_tienda)
+            db.session.commit()
+            print("[OK] Funda Protectora Demo creada.")
+
+        prod_bodega = Product.query.filter_by(sku='DEMO-PAN-IP13').first()
+        if not prod_bodega:
             prod_bodega = Product(nombre='Pantalla iPhone 13 Demo', sku='DEMO-PAN-IP13', tipo_inventario='bodega', cantidad_stock=10, precio_costo=150000, precio_minimo=250000, precio_sugerido=280000, observacion='Producto demo bodega')
+            db.session.add(prod_bodega)
+            db.session.commit()
+            print("[OK] Pantalla iPhone 13 Demo creada.")
+
+        prod_variantes = Product.query.filter_by(sku='DEMO-AUDI-01').first()
+        if not prod_variantes:
             prod_variantes = Product(nombre='Audífonos Inalámbricos Demo', sku='DEMO-AUDI-01', tipo_inventario='tienda', cantidad_stock=0, precio_costo=30000, precio_minimo=50000, precio_sugerido=60000)
-            
-            db.session.add_all([prod_tienda, prod_bodega, prod_variantes])
+            db.session.add(prod_variantes)
             db.session.commit()
             
             # Variantes
@@ -49,11 +61,7 @@ def seed_test_data():
             var2 = ProductVariant(product_id=prod_variantes.id, nombre_variante='Blanco', cantidad_stock=15, precio_costo=30000, precio_minimo=50000, precio_sugerido=60000)
             db.session.add_all([var1, var2])
             db.session.commit()
-            print("[OK] Productos y Variantes Demo creados.")
-        else:
-            prod_tienda = Product.query.filter_by(sku='DEMO-FUNDA-01').first()
-            prod_bodega = Product.query.filter_by(sku='DEMO-PAN-IP13').first()
-            prod_variantes = Product.query.filter_by(sku='DEMO-AUDI-01').first()
+            print("[OK] Audífonos Inalámbricos Demo y Variantes creados.")
 
         # 3. Proveedores, Facturas y Pagos
         prov = Provider.query.filter_by(nombre='Proveedor Demo S.A.').first()
@@ -151,11 +159,11 @@ def seed_test_data():
         db.session.commit()
         print("[OK] Ajuste de Stock registrado.")
 
-        # 11. Arqueo de Caja
-        arqueo = ArqueoCaja(vendedor_id=test_users['vendedor'].id, fecha_arqueo=obtener_hora_bogota().date(), base_inicial=100000, gastos_del_dia=15000, observaciones_gastos='Almuerzo', total_efectivo_sistema=170000, total_transferencia_sistema=30000)
+        # 11. Arqueo de Caja (Se sembrará para el día anterior para dejar libre el de HOY para pruebas reales)
+        arqueo = ArqueoCaja(vendedor_id=test_users['vendedor'].id, fecha_arqueo=obtener_hora_bogota().date() - timedelta(days=1), base_inicial=100000, gastos_del_dia=15000, observaciones_gastos='Almuerzo', total_efectivo_sistema=170000, total_transferencia_sistema=30000)
         db.session.add(arqueo)
         db.session.commit()
-        print("[OK] Arqueo de Caja registrado.")
+        print("[OK] Arqueo de Caja (Histórico) registrado.")
 
         print("[EXITO] ¡Datos de prueba generados exitosamente! Ya puedes realizar la demostración.")
 

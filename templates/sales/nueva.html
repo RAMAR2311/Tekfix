@@ -589,7 +589,16 @@
 
             const producto = await response.json();
 
-            const existente = carrito.find(item => item.id === producto.id && (!item.variantes || item.variantes.length === 0));
+            if (producto.es_sim) {
+                const existente = carrito.find(item => item.es_sim && item.id === producto.id);
+                if (existente) {
+                    alert(`Esta SIM ya se encuentra en el carrito.`);
+                    inputStr.value = '';
+                    return;
+                }
+            }
+
+            const existente = carrito.find(item => item.id === producto.id && (!item.variantes || item.variantes.length === 0) && !item.es_sim);
             if (existente) {
                 // Validación Estricta: Sobreventa (Stock) en productos planos
                 if (existente.cantidad + 1 > producto.cantidad_stock) {
@@ -630,7 +639,8 @@
                     variantes: producto.variantes,
                     variant_id: initial_variant_id,
                     precio_unlocked: false,
-                    autorizacion: null
+                    autorizacion: null,
+                    es_sim: producto.es_sim || false
                 });
             }
 
@@ -648,6 +658,11 @@
         const item = carrito[index];
         
         if (campo === 'cantidad') {
+            if (item.es_sim) {
+                alert('Las tarjetas SIM se venden de forma individual (cantidad fija = 1).');
+                renderizarCarrito();
+                return;
+            }
             const nuevaCantidad = parseInt(valor);
             if (nuevaCantidad <= 0) {
                 alert('La cantidad no debe reducirse en negativo, presiona el cesto de basura para borrar.'); 
@@ -768,6 +783,8 @@
             let skuLabel = '';
             if (item.es_manual) {
                 skuLabel = `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2" style="font-size: 0.7rem;"><i class="fa-solid fa-handshake me-1"></i>EXTERNO</span>`;
+            } else if (item.es_sim) {
+                skuLabel = `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-2" style="font-size: 0.7rem;"><i class="fa-solid fa-sim-card me-1"></i>CHIP SIM</span> <small class="text-tekfix-sec">${item.sku}</small>`;
             } else {
                 skuLabel = `<small class="text-tekfix-sec">${item.sku}</small>`;
             }
@@ -778,7 +795,7 @@
                     ${variantHtml}
                 </td>
                 <td width="130">
-                    <input type="number" class="form-control form-control-sm text-center" value="${item.cantidad}" onchange="actualizarItem(${index}, 'cantidad', this.value)">
+                    <input type="number" class="form-control form-control-sm text-center" value="${item.cantidad}" onchange="actualizarItem(${index}, 'cantidad', this.value)" ${item.es_sim ? 'disabled' : ''}>
                 </td>
                 <td width="200">
                     ${item.es_manual ? `
@@ -1050,6 +1067,9 @@
                     base.es_manual = true;
                     base.nombre_manual = item.nombre;
                     base.precio_costo = item.precio_costo;
+                }
+                if (item.es_sim) {
+                    base.es_sim = true;
                 }
                 return base;
             }),

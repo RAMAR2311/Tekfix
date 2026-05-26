@@ -41,6 +41,7 @@ def create_app():
     from routes.gastos import gastos_bp
     from routes.providers import providers_bp
     from routes.warranties import warranties_bp
+    from routes.sims import sims_bp
     
     app.register_blueprint(sales_bp, url_prefix='/sales')
     app.register_blueprint(inventory_bp, url_prefix='/inventory')
@@ -49,6 +50,7 @@ def create_app():
     app.register_blueprint(gastos_bp, url_prefix='/gastos')
     app.register_blueprint(providers_bp, url_prefix='/providers')
     app.register_blueprint(warranties_bp, url_prefix='/garantias')
+    app.register_blueprint(sims_bp, url_prefix='/sims')
     
     # Registro de Blueprint Admin
     from routes.admin import admin_bp

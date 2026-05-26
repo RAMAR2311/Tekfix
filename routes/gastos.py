@@ -50,15 +50,34 @@ def index():
         
         return redirect(url_for('gastos_bp.index'))
 
-    # GET Logic (Filters current month expenses)
-    ahora = obtener_hora_bogota()
-    mes_actual = ahora.month
-    anio_actual = ahora.year
+    # GET Logic (Filters selected month expenses)
+    mes_str = request.args.get('mes')
+    hoy = obtener_hora_bogota()
+    
+    if mes_str:
+        try:
+            inicio_mes = datetime.strptime(mes_str, '%Y-%m')
+        except ValueError:
+            inicio_mes = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    else:
+        inicio_mes = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+    # Calcular el primer día del siguiente mes para delimitar la consulta
+    if inicio_mes.month == 12:
+        fin_mes = datetime(inicio_mes.year + 1, 1, 1)
+    else:
+        fin_mes = datetime(inicio_mes.year, inicio_mes.month + 1, 1)
+        
+    mes_seleccionado = inicio_mes.strftime('%Y-%m')
+    
+    # Mapeo de meses en español
+    meses_es = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    nombre_mes = meses_es[inicio_mes.month - 1]
 
-    # Consultamos registros del mes y del año actual
+    # Consultamos registros del mes seleccionado
     query = Expense.query.filter(
-        extract('month', Expense.fecha_gasto) == mes_actual,
-        extract('year', Expense.fecha_gasto) == anio_actual
+        Expense.fecha_gasto >= inicio_mes,
+        Expense.fecha_gasto < fin_mes
     )
     
     # Restricción de visibilidad: 
@@ -70,10 +89,49 @@ def index():
 
     total_diarios = sum((g.monto for g in gastos_mes if g.tipo_gasto == 'Gasto Diario'))
     total_indirectos = sum((g.monto for g in gastos_mes if g.tipo_gasto == 'Costo Indirecto'))
+    total_mes = total_diarios + total_indirectos
+
+    # Agrupar egresos por categorías de manera ordenada
+    from decimal import Decimal
+    desglose_raw = {}
+    for g in gastos_mes:
+        cat = g.categoria.strip().title()
+        if cat not in desglose_raw:
+            desglose_raw[cat] = {
+                'total': Decimal('0.00'),
+                'tipo_gasto': g.tipo_gasto,
+                'cantidad': 0
+            }
+        desglose_raw[cat]['total'] += g.monto
+        desglose_raw[cat]['cantidad'] += 1
+        
+    # Calcular porcentajes y ordenar de mayor a menor monto
+    desglose_categorias = []
+    for cat, info in desglose_raw.items():
+        porcentaje = 0.0
+        if total_mes > 0:
+            porcentaje = round((float(info['total']) / float(total_mes)) * 100, 1)
+        desglose_categorias.append({
+            'nombre': cat,
+            'total': info['total'],
+            'tipo_gasto': info['tipo_gasto'],
+            'cantidad': info['cantidad'],
+            'porcentaje': porcentaje
+        })
+        
+    # Ordenar por el total gastado de forma descendente
+    desglose_categorias = sorted(desglose_categorias, key=lambda x: x['total'], reverse=True)
 
     # Provide today's date formatted for HTML5 <input type="date">
-    hoy_str = ahora.strftime('%Y-%m-%d')
-    return render_template('gastos/index.html', gastos=gastos_mes, total_diarios=total_diarios, total_indirectos=total_indirectos, hoy=hoy_str)
+    hoy_str = hoy.strftime('%Y-%m-%d')
+    return render_template('gastos/index.html', 
+                           gastos=gastos_mes, 
+                           total_diarios=total_diarios, 
+                           total_indirectos=total_indirectos, 
+                           desglose_categorias=desglose_categorias,
+                           mes_seleccionado=mes_seleccionado,
+                           nombre_mes=nombre_mes,
+                           hoy=hoy_str)
 
 @gastos_bp.route('/eliminar/<int:id>', methods=['POST'])
 @login_required

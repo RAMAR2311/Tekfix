@@ -401,3 +401,30 @@ class PriceApproval(db.Model):
     variante = db.relationship('ProductVariant', foreign_keys=[variant_id],  backref='solicitudes_precio', lazy=True)
 # =====================================================
 
+
+# ====== MÓDULO SIM CARDS (INDEPENDIENTE) ======
+class SimCard(db.Model):
+    __tablename__ = 'sim_cards'
+
+    id = db.Column(db.Integer, primary_key=True)
+    numero_telefono = db.Column(db.String(50), nullable=False, index=True)
+    iccid = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    operador = db.Column(db.String(50), nullable=False, index=True)
+    precio_costo = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    precio_venta = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    estado = db.Column(db.String(50), nullable=False, default='Disponible', index=True) # Disponible, Vendida, Dañada
+    fecha_registro = db.Column(db.DateTime, default=obtener_hora_bogota)
+    fecha_venta = db.Column(db.DateTime, nullable=True)
+    observacion = db.Column(db.String(255), nullable=True)
+
+    # Nuevos campos para registro y reporte independiente de ventas
+    vendedor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    metodo_pago = db.Column(db.String(50), nullable=True)
+    precio_venta_real = db.Column(db.Numeric(10, 2), nullable=True)
+    sale_id = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=True)
+    
+    # Relación
+    vendedor_rel = db.relationship('User', foreign_keys=[vendedor_id], backref='sims_vendidas_rel', lazy=True)
+    sale_rel = db.relationship('Sale', foreign_keys=[sale_id], backref='sims_vendidas', lazy=True)
+# =====================================================
+

@@ -202,13 +202,25 @@
                 <td class="col-sub">${{ (detalle.precio_venta_final * detalle.cantidad_vendida)|cop }}</td>
             </tr>
             {% endfor %}
+            
+            {% for sim in venta.sims_vendidas %}
+            <tr>
+                <td class="col-qty">1</td>
+                <td class="col-prod">[SIM {{ sim.operador|upper }}] {{ sim.numero_telefono }}</td>
+                <td class="col-sub">${{ (sim.precio_venta_real)|cop }}</td>
+            </tr>
+            {% endfor %}
         </tbody>
     </table>
 
     <div class="totals">
+        {% set ns = namespace(total_sims=0) %}
+        {% for sim in venta.sims_vendidas %}
+            {% set ns.total_sims = ns.total_sims + sim.precio_venta_real %}
+        {% endfor %}
         <div class="total-row">
             <span>TOTAL:</span>
-            <span>${{ (venta.monto_total)|cop }}</span>
+            <span>${{ (venta.monto_total + ns.total_sims)|cop }}</span>
         </div>
         
         {% if venta.pagos|length > 1 %}

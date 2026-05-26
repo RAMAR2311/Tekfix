@@ -6,7 +6,16 @@
         <h2 class="fw-bold text-tekfix-main mb-0">Dashboard Operativo</h2>
         <p class="text-tekfix-sec">Bienvenido al panel central, {{ current_user.nombre }}!</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 align-items-center">
+        <!-- Selector de Mes Dinámico -->
+        <form method="GET" action="{{ url_for('admin_bp.dashboard') }}" class="d-flex align-items-center gap-2 px-3 py-2 border rounded-pill shadow-sm bg-tekfix-card" style="border-color: var(--tekfix-border) !important;">
+            <i class="fa-solid fa-calendar-days text-tekfix-primary" style="color: var(--tekfix-primary) !important;"></i>
+            <span class="text-tekfix-sec small fw-bold text-nowrap d-none d-sm-inline" style="color: var(--tekfix-text-sec) !important; font-size: 0.85rem;">Ver Periodo:</span>
+            <input type="month" name="mes" class="form-control form-control-sm border-0 bg-transparent shadow-none p-0 text-tekfix-main" 
+                   value="{{ mes_seleccionado }}" onchange="this.form.submit()" 
+                   style="cursor: pointer; width: 145px; font-size: 0.9rem; color: var(--tekfix-text-main) !important; background: transparent !important; border: none !important; outline: none !important; box-shadow: none !important; font-weight: bold;">
+        </form>
+        
         <button type="button" class="btn btn-tekfix-secondary rounded-pill fw-bold shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#modalBalance">
             <i class="fa-solid fa-scale-balanced me-2"></i>Generar Balance
         </button>
@@ -40,19 +49,20 @@
 <div class="row g-3 mb-4">
 
     <!-- 1. Total Ventas -->
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card card-custom h-100 p-4 border" style="border-color: #DDB856 !important;">
             <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-sack-dollar fs-1" style="color: #DDB856;"></i></div>
-            <h5 class="text-tekfix-main fw-bold">Total Ventas</h5>
+            <h5 class="text-tekfix-main fw-bold">Ventas de {{ nombre_mes }}</h5>
             <h3 class="fw-bolder" style="color: #DDB856;">${{ (total_ventas)|cop }}</h3>
-            <div class="mt-auto pt-4">
+            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Total facturado en el mes seleccionado.</p>
+            <div class="mt-auto pt-2">
                 <a href="{{ url_for('sales_bp.historial') }}" class="btn btn-tekfix w-100 rounded-pill fw-bold"><i class="fa-solid fa-file-invoice-dollar me-2"></i> Ver Ventas</a>
             </div>
         </div>
     </div>
 
     <!-- 2. Inventario -->
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card card-custom h-100 p-4 border" style="border-color: #DDB856 !important;">
             <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-cubes fs-1" style="color: #DDB856;"></i></div>
             <h5 class="text-tekfix-main fw-bold">Inventario</h5>
@@ -63,60 +73,21 @@
         </div>
     </div>
 
-    <!-- 3. Alertas Stock -->
-    <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border" style="border-color: #dc3545 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-triangle-exclamation fs-1 text-danger"></i></div>
-            <h5 class="text-tekfix-main fw-bold">Alertas Stock</h5>
-            <h3 class="fw-bolder text-danger">{{ productos_bajo_stock }} items</h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Existencias limitadas o en falta.</p>
-            <div class="mt-auto pt-2">
-                <a href="/inventory/" class="btn btn-tekfix-secondary w-100 rounded-pill fw-bold border-danger text-danger"><i class="fa-solid fa-eye me-2"></i> Urgencias</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. Perdidas -->
-    <div class="col-md-3">
+    <!-- 3. Perdidas -->
+    <div class="col-md-4">
         <div class="card card-custom h-100 p-4 border" style="border-color: #dc3545 !important;">
             <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-heart-crack fs-1 text-danger"></i></div>
-            <h5 class="text-tekfix-main fw-bold">Perdidas</h5>
+            <h5 class="text-tekfix-main fw-bold">Pérdidas de {{ nombre_mes }}</h5>
             <h3 class="fw-bolder text-danger">${{ (total_perdidas)|cop }} <span class="fs-6 text-tekfix-sec">({{ porcentaje_perdidas }}%)</span></h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Impacto deducido contra los ingresos del mes.</p>
+            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Impacto de mermas en el mes seleccionado.</p>
             <div class="mt-auto pt-2">
                 <a href="{{ url_for('admin_bp.perdidas') }}" class="btn btn-tekfix-secondary w-100 rounded-pill fw-bold border-danger text-danger"><i class="fa-solid fa-expand me-2"></i> Ver Detalle</a>
             </div>
         </div>
     </div>
 
-    <!-- 5. Proveedores -->
-    <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border" style="border-color: #DDB856 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-address-book fs-1" style="color: #DDB856;"></i></div>
-            <h5 class="text-tekfix-main fw-bold">Proveedores</h5>
-            <h3 class="fw-bolder" style="color: #DDB856;">-${{ (deuda_proveedores)|cop }} <span class="fs-6 text-tekfix-sec">({{ total_proveedores }} prov)</span></h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Deuda activa con proveedores logisticos.</p>
-            <div class="mt-auto pt-2">
-                <a href="{{ url_for('providers_bp.index') }}" class="btn btn-tekfix w-100 rounded-pill fw-bold"><i class="fa-solid fa-money-check-dollar me-2"></i> Saldar Cuentas</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- 6. Garantias -->
-    <div class="col-md-3">
-        <div class="card card-custom h-100 p-4 border" style="border-color: #DDB856 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-shield-halved fs-1" style="color: #DDB856;"></i></div>
-            <h5 class="text-tekfix-main fw-bold">Garantias</h5>
-            <h3 class="fw-bolder" style="color: #DDB856;">{{ total_garantias_mes }} <span class="fs-6 text-tekfix-sec">Este mes</span></h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">{{ garantias_pendientes }} pendientes por resolucion tecnica.</p>
-            <div class="mt-auto pt-2">
-                <a href="{{ url_for('warranties_bp.index') }}" class="btn btn-tekfix w-100 rounded-pill fw-bold"><i class="fa-solid fa-screwdriver-wrench me-2"></i> Gestionar</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- 7. APROBACIONES DE PRECIO - TARJETA KPI -->
-    <div class="col-md-3">
+    <!-- 4. APROBACIONES DE PRECIO - TARJETA KPI -->
+    <div class="col-md-4">
         <div class="card card-custom h-100 p-4 border position-relative" id="card-aprobaciones"
              style="border-color: #DDB856 !important;">
             <span id="badge-aprobaciones-kpi"
@@ -135,6 +106,44 @@
                 <a href="{{ url_for('admin_bp.panel_aprobaciones') }}"
                    class="btn btn-tekfix w-100 rounded-pill fw-bold">
                     <i class="fa-solid fa-gavel me-2"></i> Gestionar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. SIM'S - TARJETA KPI -->
+    <div class="col-md-4">
+        <div class="card card-custom h-100 p-4 border" style="border-color: #DDB856 !important;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <i class="fa-solid fa-sim-card fs-1" style="color: #DDB856;"></i>
+            </div>
+            <h5 class="text-tekfix-main fw-bold">Chips SIM</h5>
+            <h3 class="fw-bolder" style="color: #DDB856;">
+                {{ sims_disponibles }} <span class="fs-6 text-tekfix-sec">Disponibles</span>
+            </h3>
+            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">{{ sims_vendidas_mes }} vendidas en {{ nombre_mes }} (control independiente).</p>
+            <div class="mt-auto pt-2">
+                <a href="{{ url_for('sims_bp.index') }}" class="btn btn-tekfix w-100 rounded-pill fw-bold">
+                    <i class="fa-solid fa-gear me-2"></i> Administrar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. GASTOS / EGRESOS - TARJETA KPI -->
+    <div class="col-md-4">
+        <div class="card card-custom h-100 p-4 border" style="border-color: #dc3545 !important;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <i class="fa-solid fa-receipt fs-1 text-danger"></i>
+            </div>
+            <h5 class="text-tekfix-main fw-bold">Egresos de {{ nombre_mes }}</h5>
+            <h3 class="fw-bolder text-danger">
+                ${{ (total_gastos_mes)|cop }}
+            </h3>
+            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Total de salidas de dinero registradas.</p>
+            <div class="mt-auto pt-2">
+                <a href="{{ url_for('gastos_bp.index') }}" class="btn btn-tekfix-secondary w-100 rounded-pill fw-bold border-danger text-danger">
+                    <i class="fa-solid fa-wallet me-2"></i> Control Gastos
                 </a>
             </div>
         </div>

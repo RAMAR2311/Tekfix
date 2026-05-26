@@ -355,6 +355,9 @@
                         <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('warranties_bp.index') }}"><i class="fa-solid fa-shield-halved me-2" style="color: #DDB856; width:20px; text-align:center;"></i> Garantías</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('sims_bp.index') }}"><i class="fa-solid fa-sim-card text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> SIM's</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-bold border-bottom" href="/sales/catalogo"><i class="fa-solid fa-book-open text-tekfix-primary me-2" style="width:20px; text-align:center;"></i> Catálogo Físico</a>
                     </li>
                     <li class="nav-item mt-2">
@@ -375,8 +378,14 @@
                     <li class="nav-item">
                         <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/gastos"><i class="fa-solid fa-money-bill-transfer text-success me-2" style="width:20px; text-align:center;"></i> Gastos</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('sims_bp.index') }}"><i class="fa-solid fa-sim-card text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> SIM's</a>
+                    </li>
                     <li class="nav-item mt-2">
                         <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-bold bg-tekfix-card border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Arqueo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('arqueo_bp.reporte') }}"><i class="fa-solid fa-file-invoice text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Reporte Arqueo</a>
                     </li>
                 {% elif current_user.rol == 'bodega' %}
                     <!-- Vistas Exclusivas para el Encargado de Bodega -->
@@ -415,7 +424,7 @@
             {% if messages %}
                 {% for category, message in messages %}
                     <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show border-0 shadow-sm rounded-3" role="alert">
-                        {{ message }}
+                        {{ message | safe }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}

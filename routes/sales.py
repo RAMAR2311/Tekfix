@@ -36,20 +36,64 @@ def procesar_venta():
     """
     data = request.get_json()
     items = data.get('items', [])
-    pagos_data = data.get('pagos', [])  # Nuevo: array de pagos mixtos
+    pagos_data = data.get('pagos', [])  # array de pagos mixtos
     metodo_pago_legacy = data.get('metodo_pago', 'efectivo')  # Retrocompatibilidad
     
     if not items:
         return jsonify({'error': 'No se enviaron productos para la venta'}), 400
 
-    # Si no se envían pagos en el nuevo formato, crear uno único con el método legacy
+    # Separar ítems regulares de chips SIM
+    regular_items = []
+    sim_items = []
+    for item in items:
+        if item.get('es_sim') is True:
+            sim_items.append(item)
+        else:
+            regular_items.append(item)
+
+    # Calcular montos de cada tipo de item
+    total_regulares_monto = Decimal('0.00')
+    for item in regular_items:
+        cantidad = int(item.get('cantidad', 0))
+        precio = Decimal(str(item.get('precio_final', '0.00')))
+        total_regulares_monto += (precio * cantidad)
+
+    total_sims_monto = Decimal('0.00')
+    for item in sim_items:
+        precio = Decimal(str(item.get('precio_final', '0.00')))
+        total_sims_monto += precio
+
+    total_cart_monto = total_regulares_monto + total_sims_monto
+
+    # Procesar pagos recibidos
     if not pagos_data:
-        pagos_data = [{'metodo_pago': metodo_pago_legacy, 'monto': None}]  # monto=None se llenará con el total
+        pagos_data = [{'metodo_pago': metodo_pago_legacy, 'monto': None}]
+
+    pagos_procesados = []
+    total_pagos = Decimal('0.00')
+    for pago_info in pagos_data:
+        metodo = pago_info.get('metodo_pago', 'efectivo')
+        monto_pago = pago_info.get('monto')
+        
+        if monto_pago is None:
+            monto_pago = total_cart_monto
+        else:
+            monto_pago = Decimal(str(monto_pago))
+        
+        if monto_pago <= 0:
+            raise ValueError(f"El monto del pago por '{metodo}' debe ser mayor a 0.")
+        
+        pagos_procesados.append({'metodo_pago': metodo, 'monto': monto_pago})
+        total_pagos += monto_pago
+
+    # Validar que la suma de pagos cubra el total exacto del carrito
+    if total_pagos != total_cart_monto:
+        raise ValueError(f"La suma de los pagos (${total_pagos}) no coincide con el total de la venta (${total_cart_monto}). Diferencia: ${total_cart_monto - total_pagos}.")
 
     try:
-        # Determinar el método de pago principal (para la columna legacy de retrocompatibilidad)
-        if len(pagos_data) == 1:
-            metodo_pago_principal = pagos_data[0].get('metodo_pago', 'efectivo')
+        # Determinar el método de pago principal
+        if len(pagos_procesados) == 1:
+            metodo_pago_principal = pagos_procesados[0]['metodo_pago']
         else:
             metodo_pago_principal = 'mixto'
 
@@ -65,18 +109,30 @@ def procesar_venta():
             except ValueError:
                 pass # Fallback silencioso a la hora actual si el formato falla
 
+        # Crear la venta general (su monto_total SOLO incluye los productos regulares)
         nueva_venta = Sale(
             vendedor_id=current_user.id,
-            monto_total=Decimal('0.00'),
+            monto_total=total_regulares_monto,
             metodo_pago=metodo_pago_principal,
             fecha_venta=fecha_venta_obj
         )
         db.session.add(nueva_venta)
         db.session.flush()
 
-        monto_total = Decimal('0.00')
+        # Descontar el valor de las SIMs de los pagos para registrar pagos de venta regular
+        restante_a_descontar = total_sims_monto
+        pagos_regulares_datos = []
+        for p in pagos_procesados:
+            m_reg = p['monto']
+            if restante_a_descontar > 0:
+                descuento = min(m_reg, restante_a_descontar)
+                m_reg -= descuento
+                restante_a_descontar -= descuento
+            if m_reg > 0:
+                pagos_regulares_datos.append({'metodo_pago': p['metodo_pago'], 'monto': m_reg})
 
-        for item in items:
+        # 1. Registrar productos del inventario regular
+        for item in regular_items:
             product_id = item.get('product_id')
             variant_id = item.get('variant_id') # Posible variante
             cantidad_vendida = int(item.get('cantidad', 0))
@@ -101,7 +157,6 @@ def procesar_venta():
                     precio_costo_manual=precio_costo_manual
                 )
                 db.session.add(detalle)
-                monto_total += (precio_venta_final * cantidad_vendida)
 
                 # Crear el gasto automático para descontar el ingreso prestado del balance final
                 if precio_costo_manual > 0:
@@ -169,37 +224,34 @@ def procesar_venta():
                     precio_venta_final=precio_venta_final
                 )
                 db.session.add(detalle)
+
+        # 2. Registrar venta independiente de SIMs asociadas
+        for item in sim_items:
+            sim_id = item.get('product_id')
+            precio_venta_real = Decimal(str(item.get('precio_final', '0.00')))
+            
+            from models import SimCard
+            sim = SimCard.query.with_for_update().get(sim_id)
+            if not sim:
+                raise ValueError(f"La SIM con ID {sim_id} no existe.")
+            if sim.estado == 'Vendida':
+                raise ValueError(f"La SIM con número {sim.numero_telefono} ya fue vendida previamente.")
                 
-                monto_total += (precio_venta_final * cantidad_vendida)
+            sim.estado = 'Vendida'
+            sim.vendedor_id = current_user.id
+            sim.precio_venta_real = precio_venta_real
+            sim.metodo_pago = pagos_procesados[0]['metodo_pago'] if pagos_procesados else 'efectivo'
+            sim.fecha_venta = fecha_venta_obj
+            sim.sale_id = nueva_venta.id
 
-        nueva_venta.monto_total = monto_total
-
-        # Registrar los pagos mixtos en la tabla sale_payments
-        total_pagos = Decimal('0.00')
-        for pago_info in pagos_data:
-            metodo = pago_info.get('metodo_pago', 'efectivo')
-            monto_pago = pago_info.get('monto')
-            
-            if monto_pago is None:
-                # Si solo hay un pago sin monto explícito, asignar el total completo
-                monto_pago = monto_total
-            else:
-                monto_pago = Decimal(str(monto_pago))
-            
-            if monto_pago <= 0:
-                raise ValueError(f"El monto del pago por '{metodo}' debe ser mayor a 0.")
-            
+        # 3. Registrar los pagos proporcionales de productos regulares
+        for pago_info in pagos_regulares_datos:
             pago = SalePayment(
                 sale_id=nueva_venta.id,
-                metodo_pago=metodo,
-                monto=monto_pago
+                metodo_pago=pago_info['metodo_pago'],
+                monto=pago_info['monto']
             )
             db.session.add(pago)
-            total_pagos += monto_pago
-
-        # Validar que la suma de pagos cubra el total de la venta
-        if total_pagos != monto_total:
-            raise ValueError(f"La suma de los pagos (${total_pagos}) no coincide con el total de la venta (${monto_total}). Diferencia: ${monto_total - total_pagos}.")
 
         db.session.commit()
         
@@ -207,7 +259,7 @@ def procesar_venta():
             'success': True, 
             'message': 'Venta registrada e inventario descontado con éxito.',
             'sale_id': nueva_venta.id,
-            'total': str(monto_total)
+            'total': str(total_cart_monto)
         }), 201
 
     except ValueError as val_err:
@@ -225,6 +277,21 @@ def api_buscar_producto(sku):
     producto = Product.query.filter_by(sku=sku, tipo_inventario='tienda').first()
     
     if not producto:
+        # Intentar buscar chip SIM disponible con este SKU (ICCID)
+        from models import SimCard
+        sim = SimCard.query.filter_by(iccid=sku, estado='Disponible').first()
+        if sim:
+            return jsonify({
+                'id': sim.id,
+                'nombre': f"[SIM {sim.operador.upper()}] {sim.numero_telefono}",
+                'sku': sim.iccid,
+                'cantidad_stock': 1,
+                'precio_minimo': float(sim.precio_costo),
+                'precio_limite': float(sim.precio_costo) if current_user.rol == 'admin' else float(sim.precio_venta),
+                'precio_sugerido': float(sim.precio_venta),
+                'es_sim': True,
+                'variantes': []
+            })
         return jsonify({'error': 'Código SKU no encontrado en el sistema'}), 404
         
     return jsonify({
@@ -243,7 +310,7 @@ def api_buscar_producto(sku):
 @login_required
 def api_search_productos():
     query_str = request.args.get('q', '').strip()
-    if not query_str or len(query_str) < 2:
+    if not query_str or len(query_str) < 1:
         return jsonify([])
     
     search_term = f"%{query_str}%"
@@ -262,6 +329,26 @@ def api_search_productos():
             'sku': p.sku,
             'stock': p.total_stock,
             'precio_sugerido': float(p.precio_sugerido)
+        })
+        
+    # Buscar SIMs disponibles complementariamente
+    from models import SimCard
+    sims = SimCard.query.filter_by(estado='Disponible').filter(
+        or_(
+            SimCard.numero_telefono.ilike(search_term),
+            SimCard.iccid.ilike(search_term),
+            SimCard.operador.ilike(search_term)
+        )
+    ).limit(10).all()
+    
+    for sim in sims:
+        results.append({
+            'id': sim.id,
+            'nombre': f"[SIM {sim.operador.upper()}] {sim.numero_telefono}",
+            'sku': sim.iccid,
+            'stock': 1,
+            'precio_sugerido': float(sim.precio_venta),
+            'es_sim': True
         })
     return jsonify(results)
 
@@ -363,7 +450,7 @@ def eliminar_venta(sale_id):
     venta = Sale.query.get_or_404(sale_id)
     
     try:
-        # Revertir Stock
+        # Revertir Stock de productos estándar
         for detalle in venta.detalles:
             if detalle.variant_id:
                 variante = ProductVariant.query.with_for_update().get(detalle.variant_id)
@@ -374,6 +461,17 @@ def eliminar_venta(sale_id):
                 if producto:
                     producto.cantidad_stock += detalle.cantidad_vendida
                     
+        # Revertir estado de SIMs asociadas a la transacción
+        from models import SimCard
+        sims_asociadas = SimCard.query.filter_by(sale_id=sale_id).all()
+        for sim in sims_asociadas:
+            sim.estado = 'Disponible'
+            sim.vendedor_id = None
+            sim.metodo_pago = None
+            sim.precio_venta_real = None
+            sim.fecha_venta = None
+            sim.sale_id = None
+
         # Eliminar Venta y Detalles (Cascada)
         db.session.delete(venta)
         db.session.commit()

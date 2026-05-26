@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, abort, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, Loss, Provider, ProviderInvoice, ProviderPayment, Warranty, DynamicKey, obtener_hora_bogota
+from models import db, Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, Loss, Provider, ProviderInvoice, ProviderPayment, Warranty, DynamicKey, obtener_hora_bogota, SimCard
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 from decorators import admin_required
@@ -125,6 +125,8 @@ def eliminar_vendedor(id):
 @login_required
 @admin_required
 def dashboard():
+    from datetime import datetime
+    
     # Se obtienen métricas clave para que el administrador tenga un resumen rápido de las operaciones del negocio
     total_productos = Product.query.count()
     
@@ -135,32 +137,60 @@ def dashboard():
     
     maneos_activos = Maneo.query.filter_by(estado='PENDIENTE').count()
     
-    # Se delega la suma al motor de base de datos para no saturar la memoria de la aplicación con registros a medida que crecen las ventas
-    total_ventas = db.session.query(func.sum(Sale.monto_total)).scalar() or 0.0
-    
-    # Cálculos para modulo de Pérdidas (Mermas) del mes actual
+    # Obtener el mes dinámico a filtrar (formato YYYY-MM)
     hoy = obtener_hora_bogota()
-    mes_actual = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    mes_str = request.args.get('mes')
     
-    perdidas_valor = float(db.session.query(func.sum(Loss.cost_at_loss * Loss.quantity)).filter(Loss.date >= mes_actual).scalar() or 0)
-    ventas_mes_actual = float(db.session.query(func.sum(Sale.monto_total)).filter(Sale.fecha_venta >= mes_actual).scalar() or 0)
+    if mes_str:
+        try:
+            inicio_mes = datetime.strptime(mes_str, '%Y-%m')
+        except ValueError:
+            inicio_mes = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    else:
+        inicio_mes = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+    # Calcular el primer día del siguiente mes para delimitar la consulta
+    if inicio_mes.month == 12:
+        fin_mes = datetime(inicio_mes.year + 1, 1, 1)
+    else:
+        fin_mes = datetime(inicio_mes.year, inicio_mes.month + 1, 1)
+        
+    mes_seleccionado = inicio_mes.strftime('%Y-%m')
+    
+    # Mapeo de meses en español
+    meses_es = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    nombre_mes = meses_es[inicio_mes.month - 1]
+    
+    # Se delega la suma al motor de base de datos para no saturar la memoria de la aplicación con registros a medida que crecen las ventas
+    total_ventas = db.session.query(func.sum(Sale.monto_total)).filter(Sale.fecha_venta >= inicio_mes, Sale.fecha_venta < fin_mes).scalar() or 0.0
+    
+    # Cálculos para modulo de Pérdidas (Mermas) del mes seleccionado
+    perdidas_valor = float(db.session.query(func.sum(Loss.cost_at_loss * Loss.quantity)).filter(Loss.date >= inicio_mes, Loss.date < fin_mes).scalar() or 0)
+    ventas_mes_actual = float(total_ventas)
     
     porcentaje_perdidas = 0
     if ventas_mes_actual > 0:
         porcentaje_perdidas = round((perdidas_valor / ventas_mes_actual) * 100, 2)
         
-    # Cálculos modulo Proveedores (Cuentas por Pagar)
+    # Cálculos modulo Proveedores (Cuentas por Pagar) - Permanecen globales por ser deudas activas
     total_deuda_facturas = db.session.query(func.sum(ProviderInvoice.monto_total)).scalar() or 0.0
     total_deuda_abonos = db.session.query(func.sum(ProviderPayment.monto_abonado)).scalar() or 0.0
     deuda_proveedores = float(total_deuda_facturas) - float(total_deuda_abonos)
     total_proveedores = Provider.query.count()
 
-    # Cálculos modulo Garantías
-    total_garantias_mes = Warranty.query.filter(Warranty.created_at >= mes_actual).count()
+    # Cálculos modulo Garantías del mes seleccionado
+    total_garantias_mes = Warranty.query.filter(Warranty.created_at >= inicio_mes, Warranty.created_at < fin_mes).count()
     garantias_pendientes = Warranty.query.filter(Warranty.resolution == 'Pendiente').count()
         
     from models import PriceApproval
     aprobaciones_pendientes = PriceApproval.query.filter_by(estado='pendiente').count()
+
+    # Módulo SIMs
+    sims_disponibles = SimCard.query.filter_by(estado='Disponible').count()
+    sims_vendidas_mes = SimCard.query.filter(SimCard.estado == 'Vendida', SimCard.fecha_venta >= inicio_mes, SimCard.fecha_venta < fin_mes).count()
+
+    # Módulo Gastos
+    total_gastos_mes = db.session.query(func.sum(Expense.monto)).filter(Expense.fecha_gasto >= inicio_mes, Expense.fecha_gasto < fin_mes).scalar() or 0.0
 
     return render_template('admin/dashboard.html', 
                            total_productos=total_productos,
@@ -173,7 +203,12 @@ def dashboard():
                            total_proveedores=total_proveedores,
                            total_garantias_mes=total_garantias_mes,
                            garantias_pendientes=garantias_pendientes,
-                           aprobaciones_pendientes=aprobaciones_pendientes)
+                           aprobaciones_pendientes=aprobaciones_pendientes,
+                           mes_seleccionado=mes_seleccionado,
+                           nombre_mes=nombre_mes,
+                           sims_disponibles=sims_disponibles,
+                           sims_vendidas_mes=sims_vendidas_mes,
+                           total_gastos_mes=total_gastos_mes)
 
 # --- ENDPOINTS MODULO PERDIDAS ---
 @admin_bp.route('/perdidas')

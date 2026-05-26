@@ -1,0 +1,672 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-tekfix-main m-0">SIM'S & Conectividad</h2>
+        <p class="text-tekfix-sec mb-0">Gestión independiente de inventario y facturación de chips móviles.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('sims_bp.nuevo') }}" class="btn btn-tekfix-secondary rounded-pill px-4 fw-bold shadow-sm">
+            <i class="fa-solid fa-plus me-1"></i> Registrar Chips
+        </a>
+    </div>
+</div>
+
+<!-- Pestañas de Navegación de Nivel de Módulo -->
+<ul class="nav nav-pills mb-4 gap-2 border-bottom pb-3 justify-content-start" id="module-tabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active rounded-pill px-4 fw-bold shadow-sm" id="tab-inventario-btn" data-bs-toggle="pill" data-bs-target="#tab-inventario" type="button" role="tab">
+            <i class="fa-solid fa-boxes-stacked me-1"></i> Inventario de Stock ({{ total_disponibles + total_danadas }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link rounded-pill px-4 fw-bold shadow-sm" id="tab-ventas-btn" data-bs-toggle="pill" data-bs-target="#tab-ventas" type="button" role="tab">
+            <i class="fa-solid fa-handshake me-1"></i> Reporte de Ventas ({{ total_vendidas }})
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="module-tabsContent">
+    
+    <!-- ==================== PESTAÑA 1: INVENTARIO DE STOCK ==================== -->
+    <div class="tab-pane fade show active" id="tab-inventario" role="tabpanel">
+        
+        <!-- Tarjetas Métricas de Stock -->
+        <div class="row g-3 mb-4">
+            <!-- Claro Card -->
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative" style="background: linear-gradient(135deg, rgba(220, 53, 69, 0.15) 0%, rgba(220, 53, 69, 0.02) 100%) !important;">
+                    <div class="card-body p-3 d-flex align-items-center gap-2">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:38px;height:38px;background: #dc3545; color: white;">
+                            <i class="fa-solid fa-square-phone fs-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-tekfix-sec mb-0 text-uppercase fw-bold" style="font-size:.65rem;letter-spacing:.5px;">Claro Dispo</p>
+                            <h5 class="fw-bold mb-0 text-tekfix-main" style="font-size:1.1rem;">{{ claro_count }} uds</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tigo Card -->
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative" style="background: linear-gradient(135deg, rgba(0, 82, 162, 0.15) 0%, rgba(0, 82, 162, 0.02) 100%) !important;">
+                    <div class="card-body p-3 d-flex align-items-center gap-2">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:38px;height:38px;background: #0052a2; color: white;">
+                            <i class="fa-solid fa-square-phone fs-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-tekfix-sec mb-0 text-uppercase fw-bold" style="font-size:.65rem;letter-spacing:.5px;">Tigo Dispo</p>
+                            <h5 class="fw-bold mb-0 text-tekfix-main" style="font-size:1.1rem;">{{ tigo_count }} uds</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Movistar Card -->
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative" style="background: linear-gradient(135deg, rgba(0, 169, 224, 0.15) 0%, rgba(0, 169, 224, 0.02) 100%) !important;">
+                    <div class="card-body p-3 d-flex align-items-center gap-2">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:38px;height:38px;background: #00a9e0; color: white;">
+                            <i class="fa-solid fa-square-phone fs-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-tekfix-sec mb-0 text-uppercase fw-bold" style="font-size:.65rem;letter-spacing:.5px;">Movistar Dispo</p>
+                            <h5 class="fw-bold mb-0 text-tekfix-main" style="font-size:1.1rem;">{{ movistar_count }} uds</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wom Card -->
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative" style="background: linear-gradient(135deg, rgba(233, 0, 114, 0.15) 0%, rgba(233, 0, 114, 0.02) 100%) !important;">
+                    <div class="card-body p-3 d-flex align-items-center gap-2">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:38px;height:38px;background: #e90072; color: white;">
+                            <i class="fa-solid fa-square-phone fs-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-tekfix-sec mb-0 text-uppercase fw-bold" style="font-size:.65rem;letter-spacing:.5px;">Wom Dispo</p>
+                            <h5 class="fw-bold mb-0 text-tekfix-main" style="font-size:1.1rem;">{{ wom_count }} uds</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Disponibles -->
+            <div class="col-6 col-md-6 col-lg-2">
+                <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative" style="background: linear-gradient(135deg, rgba(40, 167, 69, 0.12) 0%, transparent 80%) !important; border: 1px solid rgba(40, 167, 69, 0.25) !important;">
+                    <div class="card-body p-3 d-flex align-items-center gap-2">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 bg-success text-white" style="width:38px;height:38px;">
+                            <i class="fa-solid fa-circle-check fs-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-tekfix-sec mb-0 text-uppercase fw-bold" style="font-size:.65rem;letter-spacing:.5px;">Disponible</p>
+                            <h5 class="fw-bold mb-0 text-success" style="font-size:1.1rem;">{{ total_disponibles }} uds</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Dañadas -->
+            <div class="col-6 col-md-6 col-lg-2">
+                <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative" style="background: linear-gradient(135deg, rgba(220, 53, 69, 0.12) 0%, transparent 80%) !important; border: 1px solid rgba(220, 53, 69, 0.25) !important;">
+                    <div class="card-body p-3 d-flex align-items-center gap-2">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 bg-danger text-white" style="width:38px;height:38px;">
+                            <i class="fa-solid fa-triangle-exclamation fs-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-tekfix-sec mb-0 text-uppercase fw-bold" style="font-size:.65rem;letter-spacing:.5px;">Dañadas</p>
+                            <h5 class="fw-bold mb-0 text-danger" style="font-size:1.1rem;">{{ total_danadas }} uds</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buscador Filtros (Mismo formulario GET para recargar) -->
+        <div class="card card-custom p-3 mb-4 border-0 shadow-sm bg-tekfix-card">
+            <form method="GET" action="{{ url_for('sims_bp.index') }}" class="row g-3 align-items-center">
+                <div class="col-12 col-md-5 col-lg-6">
+                    <div class="input-group border rounded-pill overflow-hidden bg-tekfix-card">
+                        <span class="input-group-text border-0 bg-transparent ps-3"><i class="fa-solid fa-magnifying-glass text-tekfix-sec"></i></span>
+                        <input type="text" name="search" class="form-control form-control-sm border-0 bg-transparent shadow-none" placeholder="Buscar por Línea, ICCID o nota..." value="{{ search_query }}">
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <select name="operador" class="form-select form-select-sm rounded-pill border shadow-none" onchange="this.form.submit()">
+                        <option value="">-- Todos Operadores --</option>
+                        <option value="Claro" {% if operador_filter == 'Claro' %}selected{% endif %}>Claro</option>
+                        <option value="Tigo" {% if operador_filter == 'Tigo' %}selected{% endif %}>Tigo</option>
+                        <option value="Movistar" {% if operador_filter == 'Movistar' %}selected{% endif %}>Movistar</option>
+                        <option value="Wom" {% if operador_filter == 'Wom' %}selected{% endif %}>Wom</option>
+                        <option value="Virgin" {% if operador_filter == 'Virgin' %}selected{% endif %}>Virgin Móvil</option>
+                        <option value="Éxito" {% if operador_filter == 'Éxito' %}selected{% endif %}>Móvil Éxito</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-4 col-lg-4 text-end d-flex gap-2">
+                    <button type="submit" class="btn btn-tekfix btn-sm rounded-pill px-3 fw-bold w-100"><i class="fa-solid fa-filter me-1"></i> Filtrar</button>
+                    <a href="{{ url_for('sims_bp.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold w-100" style="color: var(--tekfix-text-main);"><i class="fa-solid fa-rotate-left me-1"></i> Reset</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabla Inventario Disponible/Dañada -->
+        <div class="card card-custom p-0 overflow-hidden shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover table-custom mb-0">
+                    <thead class="bg-tekfix-card">
+                        <tr>
+                            <th width="140" class="ps-4">OPERADOR</th>
+                            <th width="140">LÍNEA TELEFÓNICA</th>
+                            <th>ICCID / SERIAL DE CHIP</th>
+                            <th width="130" class="text-end">P. COSTO</th>
+                            <th width="130" class="text-end">P. VENTA SUG.</th>
+                            <th width="150" class="text-center">ESTADO</th>
+                            <th width="180" class="text-center pe-4">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sim in sims_disponibles_list %}
+                        <tr id="sim-row-{{ sim.id }}">
+                            <!-- Operador -->
+                            <td class="ps-4">
+                                {% if sim.operador == 'Claro' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white bg-danger"><i class="fa-solid fa-mobile-screen me-1"></i> Claro</span>
+                                {% elif sim.operador == 'Tigo' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #0052a2;"><i class="fa-solid fa-mobile-screen me-1"></i> Tigo</span>
+                                {% elif sim.operador == 'Movistar' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #00a9e0;"><i class="fa-solid fa-mobile-screen me-1"></i> Movistar</span>
+                                {% elif sim.operador == 'Wom' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #e90072;"><i class="fa-solid fa-mobile-screen me-1"></i> Wom</span>
+                                {% else %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold bg-secondary text-white"><i class="fa-solid fa-mobile-screen me-1"></i> {{ sim.operador }}</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Teléfono -->
+                            <td class="fw-bold text-tekfix-main">{{ sim.numero_telefono }}</td>
+
+                            <!-- ICCID -->
+                            <td class="text-tekfix-sec font-monospace"><small>{{ sim.iccid }}</small></td>
+
+                            <!-- Costo -->
+                            <td class="text-end fw-semibold text-tekfix-sec">${{ sim.precio_costo|cop }}</td>
+
+                            <!-- Venta Sugerida -->
+                            <td class="text-end fw-bold text-tekfix-primary">${{ sim.precio_venta|cop }}</td>
+
+                            <!-- Estado Interactivo (Disponible -> Dañada) -->
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm dropdown-toggle rounded-pill px-3 border border-0 shadow-none text-white
+                                        {% if sim.estado == 'Disponible' %}bg-success{% else %}bg-danger{% endif %}" 
+                                        type="button" data-bs-toggle="dropdown" id="state-btn-{{ sim.id }}">
+                                        <i class="fa-solid {% if sim.estado == 'Disponible' %}fa-check-circle{% else %}fa-circle-xmark{% endif %} me-1"></i> {{ sim.estado }}
+                                    </button>
+                                    <ul class="dropdown-menu border-0 bg-tekfix-card shadow-lg">
+                                        <li><a class="dropdown-item rounded-3 text-success fw-bold" href="javascript:void(0);" onclick="cambiarEstadoSim({{ sim.id }}, 'Disponible')"><i class="fa-solid fa-check-circle me-2"></i> Disponible</a></li>
+                                        <li><a class="dropdown-item rounded-3 text-danger fw-bold" href="javascript:void(0);" onclick="cambiarEstadoSim({{ sim.id }}, 'Dañada')"><i class="fa-solid fa-circle-xmark me-2"></i> Dañada</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+
+                            <!-- Acciones -->
+                            <td class="text-center pe-4">
+                                <div class="d-flex align-items-center justify-content-center gap-1">
+                                    
+                                    <!-- Botón Principal: VENDER (Modal Trigger) -->
+                                    {% if sim.estado == 'Disponible' %}
+                                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold d-flex align-items-center shadow-sm"
+                                            onclick="abrirModalVenta({{ sim.id }}, '{{ sim.numero_telefono }}', '{{ sim.operador }}', {{ sim.precio_venta|float }})">
+                                        <i class="fa-solid fa-handshake me-1"></i> Vender
+                                    </button>
+                                    {% else %}
+                                    <button class="btn btn-secondary btn-sm rounded-pill px-3" disabled style="opacity:0.4; cursor:not-allowed;"><i class="fa-solid fa-handshake me-1"></i> Vender</button>
+                                    {% endif %}
+
+                                    <!-- Editar -->
+                                    <button type="button" class="btn btn-outline-warning rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" 
+                                            style="width: 32px; height: 32px;" title="Editar Ficha"
+                                            data-bs-toggle="modal" data-bs-target="#editModal{{ sim.id }}">
+                                        <i class="fa-solid fa-pen" style="font-size: 0.8rem;"></i>
+                                    </button>
+
+                                    <!-- Eliminar -->
+                                    <form method="POST" action="{{ url_for('sims_bp.eliminar', sim_id=sim.id) }}" 
+                                          onsubmit="return confirm('¿Seguro que deseas eliminar permanentemente esta SIM?');" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-danger rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" 
+                                                style="width: 32px; height: 32px;" title="Eliminar">
+                                            <i class="fa-solid fa-trash-can" style="font-size: 0.8rem;"></i>
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Modal de Edición Individual -->
+                        <div class="modal fade" id="editModal{{ sim.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow">
+                                    <form method="POST" action="{{ url_for('sims_bp.editar', sim_id=sim.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="modal-header border-0 bg-tekfix-card">
+                                            <h5 class="modal-title fw-bold text-tekfix-main"><i class="fa-solid fa-pen-to-square me-2 text-warning"></i>Editar Ficha SIM</h5>
+                                            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body p-4 text-start">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Número de Línea</label>
+                                                    <input type="text" name="numero_telefono" class="form-control form-control-sm" value="{{ sim.numero_telefono }}" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">ICCID / Serial de Chip</label>
+                                                    <input type="text" name="iccid" class="form-control form-control-sm font-monospace" value="{{ sim.iccid }}" required>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Operador</label>
+                                                    <select name="operador" class="form-select form-select-sm" required>
+                                                        <option value="Claro" {% if sim.operador == 'Claro' %}selected{% endif %}>Claro</option>
+                                                        <option value="Tigo" {% if sim.operador == 'Tigo' %}selected{% endif %}>Tigo</option>
+                                                        <option value="Movistar" {% if sim.operador == 'Movistar' %}selected{% endif %}>Movistar</option>
+                                                        <option value="Wom" {% if sim.operador == 'Wom' %}selected{% endif %}>Wom</option>
+                                                        <option value="Virgin" {% if sim.operador == 'Virgin' %}selected{% endif %}>Virgin Móvil</option>
+                                                        <option value="Éxito" {% if sim.operador == 'Éxito' %}selected{% endif %}>Móvil Éxito</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Precio Costo</label>
+                                                    <input type="number" step="1" name="precio_costo" class="form-control form-control-sm" value="{{ "%.0f"|format(sim.precio_costo) }}" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Precio Venta Sugerido</label>
+                                                    <input type="number" step="1" name="precio_venta" class="form-control form-control-sm fw-bold text-tekfix-primary" value="{{ "%.0f"|format(sim.precio_venta) }}" required>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Notas u Observaciones</label>
+                                                    <textarea name="observacion" class="form-control form-control-sm" rows="2" placeholder="Detalles de planes, promociones..."></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-top-0 pt-0 bg-tekfix-card rounded-bottom">
+                                            <button type="button" class="btn btn-light btn-sm rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-tekfix btn-sm rounded-pill px-4 fw-bold shadow-sm">Actualizar Ficha</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-tekfix-sec">
+                                <i class="fa-solid fa-sim-card fs-1 mb-3 opacity-25"></i>
+                                <p class="mb-0">No hay chips disponibles en stock para esta búsqueda.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ==================== PESTAÑA 2: REPORTE DE VENTAS INDEPENDIENTES ==================== -->
+    <div class="tab-pane fade" id="tab-ventas" role="tabpanel">
+        
+        <!-- Métrica de Recaudación Financiera de SIMs -->
+        <div class="row mb-4">
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card card-custom border-0 shadow-lg overflow-hidden position-relative" style="background: linear-gradient(135deg, rgba(221, 184, 86, 0.2) 0%, transparent 80%) !important; border: 1px solid var(--tekfix-border) !important;">
+                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(var(--tekfix-primary-rgb,221,184,86),.08) 0%, transparent 70%); pointer-events:none;"></div>
+                    <div class="card-body p-4 d-flex align-items-center gap-3">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:54px;height:54px;background:linear-gradient(135deg,#c0a050,#ddb856);">
+                            <i class="fa-solid fa-sack-dollar text-white fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-tekfix-sec fw-semibold mb-1" style="font-size:.75rem;letter-spacing:.6px;text-transform:uppercase;">Recaudación SIM's</p>
+                            <h3 class="fw-bolder mb-0 text-tekfix-main" style="color: #DDB856 !important;">${{ total_recaudado|cop }}</h3>
+                            <small class="text-tekfix-sec" style="font-size:.7rem;">Caja total independiente por venta de chips</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla Historial de Ventas Independientes -->
+        <div class="card card-custom p-0 overflow-hidden shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover table-custom mb-0">
+                    <thead class="bg-tekfix-card">
+                        <tr>
+                            <th width="140" class="ps-4">OPERADOR</th>
+                            <th width="140">LÍNEA TELEFÓNICA</th>
+                            <th>ICCID / SERIAL CHIP</th>
+                            <th width="140">VENDIDO POR</th>
+                            <th width="150" class="text-center">MEDIO PAGO</th>
+                            <th width="130" class="text-end">P. COSTO</th>
+                            <th width="130" class="text-end">P. VENTA REAL</th>
+                            <th width="120" class="text-end">MARGEN</th>
+                            <th width="160" class="text-center">FECHA VENTA</th>
+                            {% if current_user.rol == 'admin' %}
+                            <th width="110" class="text-center pe-4">ACCIONES</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sim in sims_vendidas_list %}
+                        <tr>
+                            <!-- Operador -->
+                            <td class="ps-4">
+                                {% if sim.operador == 'Claro' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white bg-danger"><i class="fa-solid fa-mobile-screen me-1"></i> Claro</span>
+                                {% elif sim.operador == 'Tigo' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #0052a2;"><i class="fa-solid fa-mobile-screen me-1"></i> Tigo</span>
+                                {% elif sim.operador == 'Movistar' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #00a9e0;"><i class="fa-solid fa-mobile-screen me-1"></i> Movistar</span>
+                                {% elif sim.operador == 'Wom' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #e90072;"><i class="fa-solid fa-mobile-screen me-1"></i> Wom</span>
+                                {% else %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold bg-secondary text-white"><i class="fa-solid fa-mobile-screen me-1"></i> {{ sim.operador }}</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Teléfono -->
+                            <td class="fw-bold text-tekfix-main">{{ sim.numero_telefono }}</td>
+
+                            <!-- ICCID -->
+                            <td class="text-tekfix-sec font-monospace"><small>{{ sim.iccid }}</small></td>
+
+                            <!-- Vendedor -->
+                            <td class="text-tekfix-main fw-semibold">
+                                <i class="fa-solid fa-user-tag text-tekfix-sec me-1" style="font-size: 0.8rem;"></i>
+                                {{ sim.vendedor_rel.nombre if sim.vendedor_rel else 'Sistema' }}
+                            </td>
+
+                            <!-- Medio de Pago -->
+                            <td class="text-center">
+                                <span class="badge border text-tekfix-main rounded-pill px-3 py-1 fw-bold bg-tekfix-card" style="border-color: var(--tekfix-border) !important;">
+                                    <i class="fa-solid fa-wallet text-tekfix-primary me-1" style="font-size:0.75rem;"></i>
+                                    {{ sim.metodo_pago.capitalize() if sim.metodo_pago else 'Efectivo' }}
+                                </span>
+                            </td>
+
+                            <!-- Precio Costo -->
+                            <td class="text-end fw-semibold text-tekfix-sec">${{ sim.precio_costo|cop }}</td>
+
+                            <!-- Precio Venta Real -->
+                            <td class="text-end fw-bold text-success">${{ sim.precio_venta_real|cop }}</td>
+
+                            <!-- Margen / Ganancia -->
+                            {% set ganancia = (sim.precio_venta_real|float) - (sim.precio_costo|float) %}
+                            <td class="text-end fw-bold text-info">+${{ ganancia|cop }}</td>
+
+                            <!-- Fecha Venta -->
+                            <td class="text-center text-tekfix-sec small">
+                                <i class="fa-regular fa-clock me-1"></i>
+                                {{ sim.fecha_venta.strftime('%d/%m/%Y %H:%M') if sim.fecha_venta else 'N/A' }}
+                            </td>
+
+                            <!-- Acciones Revertir Venta (Administradores) -->
+                            {% if current_user.rol == 'admin' %}
+                            <td class="text-center pe-4">
+                                <form method="POST" action="{{ url_for('sims_bp.revertir_venta', sim_id=sim.id) }}"
+                                      onsubmit="return confirm('¿Seguro que deseas ANULAR la venta de este chip? El chip regresará al inventario y se descontará la caja.');" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold shadow-sm" title="Anular Venta">
+                                        <i class="fa-solid fa-arrows-rotate me-1"></i> Anular
+                                    </button>
+                                </form>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center py-5 text-tekfix-sec">
+                                <i class="fa-solid fa-receipt fs-1 mb-3 opacity-25"></i>
+                                <p class="mb-0">No se registran ventas de SIMs en este periodo.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ==================== MODAL GLOBAL DE VENTA RÁPIDA (CHIP DE SIM) ==================== -->
+<div class="modal fade" id="modalVentaSim" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg bg-tekfix-card">
+            
+            <div class="modal-header border-0 bg-tekfix-card">
+                <h5 class="modal-title fw-bold text-success"><i class="fa-solid fa-cash-register me-2"></i>Registrar Venta de SIM</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <div class="modal-body p-4 text-start">
+                
+                <!-- Datos Informativos de la SIM -->
+                <div class="d-flex align-items-center justify-content-between p-3 border rounded-3 bg-tekfix-card mb-4">
+                    <div>
+                        <small class="text-tekfix-sec d-block text-uppercase fw-bold" style="font-size:0.6rem; letter-spacing:0.5px;">Chip Seleccionado</small>
+                        <h4 class="fw-bold mb-0 text-tekfix-main" id="modal-sim-linea">3000000000</h4>
+                    </div>
+                    <div>
+                        <span class="badge rounded-pill px-3 py-2 fw-bold text-white shadow-sm" id="modal-sim-operador" style="font-size:0.9rem;">Claro</span>
+                    </div>
+                </div>
+
+                <form id="form-venta-sim">
+                    <input type="hidden" id="modal-sim-id">
+                    
+                    <div class="row g-3">
+                        <!-- Precio Venta Real -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-tekfix-main small">Precio Real de Venta ($)</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-tekfix-card text-success border-end-0 fw-bold">$</span>
+                                <input type="number" step="1" id="modal-sim-precio" class="form-control border-start-0 ps-0 fw-bold text-success" required>
+                            </div>
+                            <small class="text-tekfix-sec mt-1 d-block"><i class="fa-solid fa-circle-info text-info me-1"></i>Puedes ajustar el precio final si aplicaste algún descuento comercial.</small>
+                        </div>
+
+                        <!-- Método de Pago (Botones Selectores Premium) -->
+                        <div class="col-md-12 mt-4">
+                            <label class="form-label fw-bold text-tekfix-main small mb-3">Medio de Pago</label>
+                            <div class="d-flex flex-wrap gap-2 justify-content-start">
+                                <input type="radio" class="btn-check" name="pay_method" id="pay-efectivo" value="efectivo" checked>
+                                <label class="btn btn-outline-warning rounded-pill px-3 py-2 fw-bold shadow-sm" for="pay-efectivo"><i class="fa-solid fa-money-bill-1-wave me-1"></i> Efectivo</label>
+
+                                <input type="radio" class="btn-check" name="pay_method" id="pay-nequi" value="nequi">
+                                <label class="btn btn-outline-warning rounded-pill px-3 py-2 fw-bold shadow-sm" for="pay-nequi"><i class="fa-solid fa-mobile-screen-button me-1"></i> Nequi</label>
+
+                                <input type="radio" class="btn-check" name="pay_method" id="pay-bancolombia" value="bancolombia">
+                                <label class="btn btn-outline-warning rounded-pill px-3 py-2 fw-bold shadow-sm" for="pay-bancolombia"><i class="fa-solid fa-landmark me-1"></i> Bancolombia</label>
+
+                                <input type="radio" class="btn-check" name="pay_method" id="pay-daviplata" value="daviplata">
+                                <label class="btn btn-outline-warning rounded-pill px-3 py-2 fw-bold shadow-sm" for="pay-daviplata"><i class="fa-solid fa-wallet me-1"></i> Daviplata</label>
+
+                                <input type="radio" class="btn-check" name="pay_method" id="pay-tarjeta" value="tarjeta">
+                                <label class="btn btn-outline-warning rounded-pill px-3 py-2 fw-bold shadow-sm" for="pay-tarjeta"><i class="fa-solid fa-credit-card me-1"></i> Tarjeta</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer border-top-0 pt-0 bg-tekfix-card rounded-bottom">
+                <button type="button" class="btn btn-light rounded-pill px-4 btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm btn-sm" id="confirm-sell-btn" onclick="procesarVentaSim()">
+                    <i class="fa-solid fa-circle-check me-1"></i> Confirmar Venta de SIM
+                </button>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<style>
+/* Personalización de los Pills y radio buttons del modal */
+.nav-pills .nav-link.active {
+    background-color: var(--tekfix-primary) !important;
+    color: #1A1818 !important;
+}
+.nav-pills .nav-link {
+    color: var(--tekfix-text-sec);
+    background-color: var(--tekfix-card-bg);
+    border: 1px solid var(--tekfix-border) !important;
+    transition: all 0.2s ease-in-out;
+}
+.nav-pills .nav-link:hover:not(.active) {
+    color: var(--tekfix-hover);
+    border-color: var(--tekfix-primary) !important;
+}
+
+/* Radio buttons en botones en el modal */
+.btn-check:checked + .btn-outline-warning {
+    background-color: var(--tekfix-primary) !important;
+    border-color: var(--tekfix-primary) !important;
+    color: #1A1818 !important;
+}
+.btn-outline-warning {
+    color: var(--tekfix-primary);
+    border-color: var(--tekfix-primary) !important;
+}
+.btn-outline-warning:hover {
+    background-color: rgba(221, 184, 86, 0.1);
+    color: var(--tekfix-hover);
+}
+</style>
+
+<!-- ========== JAVASCRIPT AJAX AVANZADO DEL MÓDULO SIMS ========== -->
+<script>
+// Instancia global del modal Bootstrap
+let ventaModalObj = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    ventaModalObj = new bootstrap.Modal(document.getElementById('modalVentaSim'));
+});
+
+// Cambiar estado dinámico (Disponible / Dañada)
+async function cambiarEstadoSim(simId, nuevoEstado) {
+    const btn = document.getElementById(`state-btn-${simId}`);
+    const originalText = btn.innerHTML;
+    
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status"></span>...`;
+    
+    const formData = new FormData();
+    formData.append('nuevo_estado', nuevoEstado);
+    formData.append('csrf_token', "{{ csrf_token() }}");
+
+    try {
+        const response = await fetch(`/sims/cambiar-estado/${simId}`, {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            btn.className = "btn btn-sm dropdown-toggle rounded-pill px-3 border border-0 shadow-none text-white ";
+            let iconClass = '';
+            
+            if (nuevoEstado === 'Disponible') {
+                btn.classList.add('bg-success');
+                iconClass = 'fa-check-circle';
+            } else {
+                btn.classList.add('bg-danger');
+                iconClass = 'fa-circle-xmark';
+            }
+            btn.innerHTML = `<i class="fa-solid ${iconClass} me-1"></i> ${nuevoEstado}`;
+        } else {
+            alert("Error al actualizar el estado: " + result.error);
+            btn.innerHTML = originalText;
+        }
+    } catch(e) {
+        console.error(e);
+        alert("Error al conectar con el servidor.");
+        btn.innerHTML = originalText;
+    }
+}
+
+// Abrir el modal de venta inyectando datos
+function abrirModalVenta(simId, linea, operador, precioSugerido) {
+    document.getElementById('modal-sim-id').value = simId;
+    document.getElementById('modal-sim-linea').textContent = linea;
+    document.getElementById('modal-sim-precio').value = Math.round(precioSugerido);
+    
+    // Badge operador color
+    const opEl = document.getElementById('modal-sim-operador');
+    opEl.textContent = operador;
+    opEl.className = "badge rounded-pill px-3 py-2 fw-bold text-white shadow-sm ";
+    
+    if (operador === 'Claro') {
+        opEl.classList.add('bg-danger');
+    } else if (operador === 'Tigo') {
+        opEl.style.backgroundColor = '#0052a2';
+    } else if (operador === 'Movistar') {
+        opEl.style.backgroundColor = '#00a9e0';
+    } else if (operador === 'Wom') {
+        opEl.style.backgroundColor = '#e90072';
+    } else {
+        opEl.classList.add('bg-secondary');
+    }
+
+    // Resetear radio buttons
+    document.getElementById('pay-efectivo').checked = true;
+    
+    ventaModalObj.show();
+}
+
+// Procesar la venta dinámica por AJAX
+async function procesarVentaSim() {
+    const simId = document.getElementById('modal-sim-id').value;
+    const precioVentaReal = document.getElementById('modal-sim-precio').value;
+    const metodoPago = document.querySelector('input[name="pay_method"]:checked').value;
+    
+    const confirmBtn = document.getElementById('confirm-sell-btn');
+    const originalBtnHTML = confirmBtn.innerHTML;
+    
+    confirmBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status"></span> Procesando...`;
+    confirmBtn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('precio_venta_real', precioVentaReal);
+    formData.append('metodo_pago', metodoPago);
+    formData.append('csrf_token', "{{ csrf_token() }}");
+
+    try {
+        const response = await fetch(`/sims/vender/${simId}`, {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            // Éxito: ocultar modal
+            ventaModalObj.hide();
+            
+            // Recargar para actualizar ambos listados de pestañas y KPIs financieros
+            window.location.reload();
+        } else {
+            alert("Error: " + result.error);
+            confirmBtn.innerHTML = originalBtnHTML;
+            confirmBtn.disabled = false;
+        }
+    } catch(e) {
+        console.error(e);
+        alert("Error de red al intentar procesar la venta.");
+        confirmBtn.innerHTML = originalBtnHTML;
+        confirmBtn.disabled = false;
+    }
+}
+</script>
+
+{% endblock %}

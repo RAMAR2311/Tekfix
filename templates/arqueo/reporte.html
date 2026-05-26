@@ -89,14 +89,12 @@
                     <thead class="table-light text-center text-uppercase" style="font-size: 0.85rem;">
                         <tr>
                             <th width="8%">Fecha</th>
-                            {% if current_user.rol == 'admin' %}
-                            <th width="12%">Cajero(a)</th>
-                            {% endif %}
+                            <th width="14%">Cajero / Perfil</th>
                             <th width="10%" class="text-primary">Base</th>
                             <th width="10%" class="text-success">Ventas Cash</th>
                             <th width="12%" class="text-info">Bancos</th>
                             <th width="10%" class="text-danger">Gastos</th>
-                            <th width="10%" class="text- tekfix-main">Físico</th>
+                            <th width="10%" class="text-tekfix-main">Físico</th>
                             <th width="10%">Diferencia</th>
                             <th width="18%">Observaciones</th>
                         </tr>
@@ -106,9 +104,24 @@
                         <tr>
                             <td class="text-center text-secondary small">{{ arqueo.fecha_arqueo }}</td>
                             
-                            {% if current_user.rol == 'admin' %}
-                            <td class="text-truncate" style="max-width:100px;">{{ arqueo.cajero.nombre }}</td>
-                            {% endif %}
+                            <td style="min-width:120px;">
+                                {% if arqueo.cajero %}
+                                    <span class="fw-semibold d-block" style="font-size:0.85rem;">{{ arqueo.cajero.nombre }}</span>
+                                    {% if arqueo.cajero.rol == 'admin' %}
+                                        <span class="badge rounded-pill px-2 mt-1"
+                                              style="background:rgba(163,216,222,0.2); color:#1a6b72; border:1px solid rgba(163,216,222,0.5); font-size:0.65rem; letter-spacing:.03em;">
+                                            <i class="fa-solid fa-shield-halved me-1"></i>Administrador
+                                        </span>
+                                    {% else %}
+                                        <span class="badge rounded-pill px-2 mt-1"
+                                              style="background:rgba(249,200,211,0.25); color:#8c3a50; border:1px solid rgba(249,200,211,0.6); font-size:0.65rem; letter-spacing:.03em;">
+                                            <i class="fa-solid fa-user me-1"></i>Vendedor
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-secondary">Desconocido</span>
+                                {% endif %}
+                            </td>
 
                             <td class="text-end text-primary">${{ (arqueo.base_inicial)|cop }}</td>
                             <td class="text-end text-success">${{ (arqueo.total_efectivo_sistema)|cop }}</td>
@@ -134,7 +147,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="7" class="text-center text-tekfix-sec p-4">No hay datos encontrados en estas fechas.</td>
+                            <td colspan="9" class="text-center text-tekfix-sec p-4">No hay datos encontrados en estas fechas.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -200,9 +213,22 @@
                                         {% endif %}
                                     </li>
                                     {% endfor %}
+                                    {% for sim in v.sims_vendidas %}
+                                    <li>
+                                        <strong>1x</strong> 
+                                        [SIM {{ sim.operador|upper }}] {{ sim.numero_telefono }}
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border rounded-pill px-1" style="font-size: 0.65rem;">SIM Card</span>
+                                    </li>
+                                    {% endfor %}
                                 </ul>
                             </td>
-                            <td class="text-end fw-bold text-tekfix-main fs-6">${{ (v.monto_total)|cop }}</td>
+                            <td class="text-end fw-bold text-tekfix-main fs-6">
+                                {% set ns = namespace(total_sims=0) %}
+                                {% for sim in v.sims_vendidas %}
+                                    {% set ns.total_sims = ns.total_sims + sim.precio_venta_real %}
+                                {% endfor %}
+                                ${{ (v.monto_total + ns.total_sims)|cop }}
+                            </td>
                         </tr>
                         {% else %}
                         <tr>

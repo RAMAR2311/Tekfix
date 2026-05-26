@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, Sale, SalePayment, ArqueoCaja, Expense
+from models import db, Sale, SalePayment, ArqueoCaja, Expense, SimCard
 from decorators import admin_required
 from datetime import datetime, date
 from decimal import Decimal
@@ -47,6 +47,18 @@ def nuevo():
     ventas_del_dia = Sale.query.filter(db.func.date(Sale.fecha_venta) == fecha_seleccionada).all()
     total_efectivo, total_transferencia = calcular_totales_dia(ventas_del_dia)
 
+    # Sumar ventas de SIM Cards del día (caja única y consolidada)
+    sims_vendidas = SimCard.query.filter(
+        db.func.date(SimCard.fecha_venta) == fecha_seleccionada,
+        SimCard.estado == 'Vendida'
+    ).all()
+    for sim in sims_vendidas:
+        monto_sim = Decimal(str(sim.precio_venta_real or 0))
+        if sim.metodo_pago == 'efectivo':
+            total_efectivo += monto_sim
+        else:
+            total_transferencia += monto_sim
+
     # Calcular gastos automáticos del día
     gastos_diarios_registros = Expense.query.filter(
         db.func.date(Expense.fecha_gasto) == fecha_seleccionada,
@@ -54,8 +66,8 @@ def nuevo():
     ).all()
     gastos_automaticos = float(sum(g.monto for g in gastos_diarios_registros))
 
-    # Verificar si ya existe arqueo para esa fecha por este vendedor (Opcional, pero recomendado)
-    arqueo_existente = ArqueoCaja.query.filter_by(fecha_arqueo=fecha_seleccionada, vendedor_id=current_user.id).first()
+    # Verificar si ya existe un arqueo para esa fecha en el sistema (Caja Única Global)
+    arqueo_existente = ArqueoCaja.query.filter_by(fecha_arqueo=fecha_seleccionada).first()
 
     if request.method == 'POST':
         base_inicial = float(request.form.get('base_inicial', 0.0))
@@ -91,11 +103,22 @@ def nuevo():
         try:
             db.session.add(nuevo_arqueo)
             db.session.commit()
-            flash('Arqueo de caja guardado exitosamente.', 'success')
+            perfil_label = 'Administrador' if current_user.rol == 'admin' else 'Vendedor'
+            flash(
+                f'✅ Arqueo de caja guardado exitosamente. '
+                f'Cierre realizado por <strong>{current_user.nombre}</strong> '
+                f'({perfil_label}) el {fecha_str}.',
+                'success'
+            )
             return redirect(url_for('arqueo_bp.reporte', fecha_inicio=fecha_str, fecha_fin=fecha_str))
         except Exception as e:
             db.session.rollback()
             flash('Ocurrió un error al guardar el arqueo de caja.', 'danger')
+
+    # Ordenar ventas del día por hora para mostrar en el formulario
+    ventas_del_dia_ordenadas = Sale.query.filter(
+        db.func.date(Sale.fecha_venta) == fecha_seleccionada
+    ).order_by(Sale.fecha_venta.asc()).all()
 
     return render_template(
         'arqueo/form.html',
@@ -103,7 +126,9 @@ def nuevo():
         total_efectivo=total_efectivo,
         total_transferencia=total_transferencia,
         arqueo_existente=arqueo_existente,
-        gastos_automaticos=gastos_automaticos
+        gastos_automaticos=gastos_automaticos,
+        ventas_del_dia=ventas_del_dia_ordenadas,
+        sims_del_dia=sims_vendidas
     )
 
 @arqueo_bp.route('/reporte', methods=['GET'])
@@ -119,11 +144,8 @@ def reporte():
         fecha_inicio = obtener_hora_bogota().date()
         fecha_fin = obtener_hora_bogota().date()
 
-    # Si es admin puede ver todos los arqueos, si no, solo los suyos
+    # Al ser una caja única global, todos los usuarios autorizados ven los mismos arqueos
     query = ArqueoCaja.query.filter(ArqueoCaja.fecha_arqueo >= fecha_inicio, ArqueoCaja.fecha_arqueo <= fecha_fin)
-    
-    if current_user.rol != 'admin':
-        query = query.filter(ArqueoCaja.vendedor_id == current_user.id)
 
     arqueos = query.order_by(ArqueoCaja.fecha_arqueo.desc()).all()
 
@@ -138,13 +160,11 @@ def reporte():
     resumen['total_recaudado'] = resumen['total_efectivo'] + resumen['total_transferencia']
     resumen['efectivo_esperado'] = (resumen['total_base'] + resumen['total_efectivo']) - resumen['total_gastos']
 
-    # Obtener todas las ventas del periodo para el detalle en la "tirilla"
+    # Obtener todas las ventas consolidadas del periodo para el detalle en la "tirilla" (sin filtrar por vendedor)
     ventas_query = Sale.query.filter(
         db.func.date(Sale.fecha_venta) >= fecha_inicio,
         db.func.date(Sale.fecha_venta) <= fecha_fin
     )
-    if current_user.rol != 'admin':
-        ventas_query = ventas_query.filter(Sale.vendedor_id == current_user.id)
     
     ventas_periodo = ventas_query.order_by(Sale.fecha_venta.asc()).all()
 
