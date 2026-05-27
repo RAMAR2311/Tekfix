@@ -1,3 +1,4 @@
+# pyright: reportCallIssue=false
 import os
 from app import create_app
 from models import db, ArqueoCaja, User

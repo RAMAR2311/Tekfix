@@ -1,3 +1,4 @@
+# pyright: reportCallIssue=false
 from flask import Blueprint, request, jsonify, flash, redirect, render_template, abort, url_for
 from flask_login import login_required, current_user
 from models import db, Product, ProductVariant, Sale, SaleDetail, SalePayment, Expense, DynamicKey, obtener_hora_bogota

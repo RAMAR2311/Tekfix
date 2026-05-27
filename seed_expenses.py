@@ -1,3 +1,4 @@
+# pyright: reportCallIssue=false
 from app import create_app
 from models import db, User, Expense, obtener_hora_bogota
 from decimal import Decimal

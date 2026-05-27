@@ -1,3 +1,4 @@
+# pyright: reportCallIssue=false
 from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, jsonify
 from flask_login import login_required, current_user
 from decorators import bodega_required

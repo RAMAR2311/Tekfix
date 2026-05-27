@@ -53,11 +53,10 @@
                                 <select name="operador" class="form-select" required>
                                     <option value="" disabled selected>-- Selecciona un operador --</option>
                                     <option value="Claro">Claro</option>
+                                    <option value="Claro 20 Días">Claro 20 Días</option>
+                                    <option value="Claro 30 Días">Claro 30 Días</option>
                                     <option value="Tigo">Tigo</option>
-                                    <option value="Movistar">Movistar</option>
                                     <option value="Wom">Wom</option>
-                                    <option value="Virgin">Virgin Móvil</option>
-                                    <option value="Éxito">Móvil Éxito</option>
                                 </select>
                             </div>
 
@@ -100,7 +99,7 @@
                 <div class="card card-custom border-0 shadow-lg p-4 bg-tekfix-card">
                     <h5 class="fw-bold text-success mb-4 border-bottom pb-2"><i class="fa-solid fa-boxes-stacked me-2"></i>Carga Rápida en Lote</h5>
                     
-                    <form method="POST" action="{{ url_for('sims_bp.registrar_lote') }}">
+                    <form method="POST" action="{{ url_for('sims_bp.registrar_lote') }}" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         
                         <div class="row g-3">
@@ -110,11 +109,10 @@
                                 <select name="operador_lote" class="form-select" required>
                                     <option value="" disabled selected>-- Selecciona un operador --</option>
                                     <option value="Claro">Claro</option>
+                                    <option value="Claro 20 Días">Claro 20 Días</option>
+                                    <option value="Claro 30 Días">Claro 30 Días</option>
                                     <option value="Tigo">Tigo</option>
-                                    <option value="Movistar">Movistar</option>
                                     <option value="Wom">Wom</option>
-                                    <option value="Virgin">Virgin Móvil</option>
-                                    <option value="Éxito">Móvil Éxito</option>
                                 </select>
                             </div>
 
@@ -136,16 +134,16 @@
                                 </div>
                             </div>
 
-                            <!-- Área de Texto Masiva -->
+                            <!-- Carga de Archivo Excel -->
                             <div class="col-md-12">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <label class="form-label fw-bold text-tekfix-main small m-0">Lista de SIMs a Registrar (Un chip por línea)</label>
-                                    <span class="badge bg-success-soft text-success rounded-pill px-2 py-1" style="font-size:0.7rem;"><i class="fa-solid fa-info-circle me-1"></i>Formatos Flexibles</span>
+                                    <label class="form-label fw-bold text-tekfix-main small m-0">Archivo Excel de Lote (.xlsx, .xls)</label>
+                                    <span class="badge bg-success-soft text-success rounded-pill px-2 py-1" style="font-size:0.7rem;"><i class="fa-solid fa-file-excel me-1"></i>Formato de Columnas</span>
                                 </div>
-                                <textarea name="lote_texto" class="form-control font-monospace" rows="8" placeholder="Ingresa tus datos aquí en uno de los siguientes formatos:&#10;&#10;Formato 1 (Recomendado): número,serial&#10;3101234567,895710100000001&#10;3129876543,895710100000002&#10;&#10;Formato 2 (Solo seriales):&#10;895710100000001&#10;895710100000002&#10;&#10;Formato 3 (Solo números telefónicos):&#10;3145558899&#10;3154447788" required></textarea>
+                                <input type="file" name="archivo_excel" class="form-control" accept=".xlsx, .xls" required>
                                 <small class="text-tekfix-sec d-block mt-2">
                                     <i class="fa-solid fa-circle-question text-info me-1"></i>
-                                    Si introduces solo números de teléfono, el sistema auto-generará un serial de chip de prueba. Si introduces solo seriales, se asignará un teléfono provisional (`3000000000`).
+                                    El archivo debe tener las columnas <strong>Línea</strong> y <strong>ICCID</strong> (o Serial). Si solo incluyes una de las dos, el sistema generará la otra automáticamente.
                                 </small>
                             </div>
                         </div>

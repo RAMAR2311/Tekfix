@@ -49,6 +49,36 @@
                 </div>
             </div>
 
+            <!-- Claro 20 Días Card -->
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative" style="background: linear-gradient(135deg, rgba(220, 53, 69, 0.15) 0%, rgba(220, 53, 69, 0.02) 100%) !important;">
+                    <div class="card-body p-3 d-flex align-items-center gap-2">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:38px;height:38px;background: #dc3545; color: white;">
+                            <i class="fa-solid fa-square-phone fs-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-tekfix-sec mb-0 text-uppercase fw-bold" style="font-size:.65rem;letter-spacing:.5px;">Claro 20</p>
+                            <h5 class="fw-bold mb-0 text-tekfix-main" style="font-size:1.1rem;">{{ claro_20_count }} uds</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Claro 30 Días Card -->
+            <div class="col-6 col-md-3 col-lg-2">
+                <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative" style="background: linear-gradient(135deg, rgba(220, 53, 69, 0.15) 0%, rgba(220, 53, 69, 0.02) 100%) !important;">
+                    <div class="card-body p-3 d-flex align-items-center gap-2">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:38px;height:38px;background: #dc3545; color: white;">
+                            <i class="fa-solid fa-square-phone fs-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-tekfix-sec mb-0 text-uppercase fw-bold" style="font-size:.65rem;letter-spacing:.5px;">Claro 30</p>
+                            <h5 class="fw-bold mb-0 text-tekfix-main" style="font-size:1.1rem;">{{ claro_30_count }} uds</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Tigo Card -->
             <div class="col-6 col-md-3 col-lg-2">
                 <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative" style="background: linear-gradient(135deg, rgba(0, 82, 162, 0.15) 0%, rgba(0, 82, 162, 0.02) 100%) !important;">
@@ -59,21 +89,6 @@
                         <div>
                             <p class="text-tekfix-sec mb-0 text-uppercase fw-bold" style="font-size:.65rem;letter-spacing:.5px;">Tigo Dispo</p>
                             <h5 class="fw-bold mb-0 text-tekfix-main" style="font-size:1.1rem;">{{ tigo_count }} uds</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Movistar Card -->
-            <div class="col-6 col-md-3 col-lg-2">
-                <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative" style="background: linear-gradient(135deg, rgba(0, 169, 224, 0.15) 0%, rgba(0, 169, 224, 0.02) 100%) !important;">
-                    <div class="card-body p-3 d-flex align-items-center gap-2">
-                        <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:38px;height:38px;background: #00a9e0; color: white;">
-                            <i class="fa-solid fa-square-phone fs-6"></i>
-                        </div>
-                        <div>
-                            <p class="text-tekfix-sec mb-0 text-uppercase fw-bold" style="font-size:.65rem;letter-spacing:.5px;">Movistar Dispo</p>
-                            <h5 class="fw-bold mb-0 text-tekfix-main" style="font-size:1.1rem;">{{ movistar_count }} uds</h5>
                         </div>
                     </div>
                 </div>
@@ -138,11 +153,10 @@
                     <select name="operador" class="form-select form-select-sm rounded-pill border shadow-none" onchange="this.form.submit()">
                         <option value="">-- Todos Operadores --</option>
                         <option value="Claro" {% if operador_filter == 'Claro' %}selected{% endif %}>Claro</option>
+                        <option value="Claro 20 Días" {% if operador_filter == 'Claro 20 Días' %}selected{% endif %}>Claro 20 Días</option>
+                        <option value="Claro 30 Días" {% if operador_filter == 'Claro 30 Días' %}selected{% endif %}>Claro 30 Días</option>
                         <option value="Tigo" {% if operador_filter == 'Tigo' %}selected{% endif %}>Tigo</option>
-                        <option value="Movistar" {% if operador_filter == 'Movistar' %}selected{% endif %}>Movistar</option>
                         <option value="Wom" {% if operador_filter == 'Wom' %}selected{% endif %}>Wom</option>
-                        <option value="Virgin" {% if operador_filter == 'Virgin' %}selected{% endif %}>Virgin Móvil</option>
-                        <option value="Éxito" {% if operador_filter == 'Éxito' %}selected{% endif %}>Móvil Éxito</option>
                     </select>
                 </div>
                 <div class="col-6 col-md-4 col-lg-4 text-end d-flex gap-2">
@@ -174,10 +188,12 @@
                             <td class="ps-4">
                                 {% if sim.operador == 'Claro' %}
                                     <span class="badge rounded-pill px-3 py-2 fw-bold text-white bg-danger"><i class="fa-solid fa-mobile-screen me-1"></i> Claro</span>
+                                {% elif sim.operador == 'Claro 20 Días' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white bg-danger"><i class="fa-solid fa-mobile-screen me-1"></i> Claro 20 Días</span>
+                                {% elif sim.operador == 'Claro 30 Días' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white bg-danger"><i class="fa-solid fa-mobile-screen me-1"></i> Claro 30 Días</span>
                                 {% elif sim.operador == 'Tigo' %}
                                     <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #0052a2;"><i class="fa-solid fa-mobile-screen me-1"></i> Tigo</span>
-                                {% elif sim.operador == 'Movistar' %}
-                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #00a9e0;"><i class="fa-solid fa-mobile-screen me-1"></i> Movistar</span>
                                 {% elif sim.operador == 'Wom' %}
                                     <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #e90072;"><i class="fa-solid fa-mobile-screen me-1"></i> Wom</span>
                                 {% else %}
@@ -206,8 +222,8 @@
                                         <i class="fa-solid {% if sim.estado == 'Disponible' %}fa-check-circle{% else %}fa-circle-xmark{% endif %} me-1"></i> {{ sim.estado }}
                                     </button>
                                     <ul class="dropdown-menu border-0 bg-tekfix-card shadow-lg">
-                                        <li><a class="dropdown-item rounded-3 text-success fw-bold" href="javascript:void(0);" onclick="cambiarEstadoSim({{ sim.id }}, 'Disponible')"><i class="fa-solid fa-check-circle me-2"></i> Disponible</a></li>
-                                        <li><a class="dropdown-item rounded-3 text-danger fw-bold" href="javascript:void(0);" onclick="cambiarEstadoSim({{ sim.id }}, 'Dañada')"><i class="fa-solid fa-circle-xmark me-2"></i> Dañada</a></li>
+                                        <li><a class="dropdown-item rounded-3 text-success fw-bold" href="javascript:void(0);" onclick="cambiarEstadoSim('{{ sim.id }}', 'Disponible')"><i class="fa-solid fa-check-circle me-2"></i> Disponible</a></li>
+                                        <li><a class="dropdown-item rounded-3 text-danger fw-bold" href="javascript:void(0);" onclick="cambiarEstadoSim('{{ sim.id }}', 'Dañada')"><i class="fa-solid fa-circle-xmark me-2"></i> Dañada</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -219,7 +235,7 @@
                                     <!-- Botón Principal: VENDER (Modal Trigger) -->
                                     {% if sim.estado == 'Disponible' %}
                                     <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold d-flex align-items-center shadow-sm"
-                                            onclick="abrirModalVenta({{ sim.id }}, '{{ sim.numero_telefono }}', '{{ sim.operador }}', {{ sim.precio_venta|float }})">
+                                            onclick="abrirModalVenta('{{ sim.id }}', '{{ sim.numero_telefono }}', '{{ sim.operador }}', '{{ sim.precio_venta|float }}')">
                                         <i class="fa-solid fa-handshake me-1"></i> Vender
                                     </button>
                                     {% else %}
@@ -271,11 +287,10 @@
                                                     <label class="form-label small text-tekfix-sec mb-1 fw-bold">Operador</label>
                                                     <select name="operador" class="form-select form-select-sm" required>
                                                         <option value="Claro" {% if sim.operador == 'Claro' %}selected{% endif %}>Claro</option>
+                                                        <option value="Claro 20 Días" {% if sim.operador == 'Claro 20 Días' %}selected{% endif %}>Claro 20 Días</option>
+                                                        <option value="Claro 30 Días" {% if sim.operador == 'Claro 30 Días' %}selected{% endif %}>Claro 30 Días</option>
                                                         <option value="Tigo" {% if sim.operador == 'Tigo' %}selected{% endif %}>Tigo</option>
-                                                        <option value="Movistar" {% if sim.operador == 'Movistar' %}selected{% endif %}>Movistar</option>
                                                         <option value="Wom" {% if sim.operador == 'Wom' %}selected{% endif %}>Wom</option>
-                                                        <option value="Virgin" {% if sim.operador == 'Virgin' %}selected{% endif %}>Virgin Móvil</option>
-                                                        <option value="Éxito" {% if sim.operador == 'Éxito' %}selected{% endif %}>Móvil Éxito</option>
                                                     </select>
                                                 </div>
                                                 <div class="col-md-6">
@@ -364,10 +379,12 @@
                             <td class="ps-4">
                                 {% if sim.operador == 'Claro' %}
                                     <span class="badge rounded-pill px-3 py-2 fw-bold text-white bg-danger"><i class="fa-solid fa-mobile-screen me-1"></i> Claro</span>
+                                {% elif sim.operador == 'Claro 20 Días' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white bg-danger"><i class="fa-solid fa-mobile-screen me-1"></i> Claro 20 Días</span>
+                                {% elif sim.operador == 'Claro 30 Días' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white bg-danger"><i class="fa-solid fa-mobile-screen me-1"></i> Claro 30 Días</span>
                                 {% elif sim.operador == 'Tigo' %}
                                     <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #0052a2;"><i class="fa-solid fa-mobile-screen me-1"></i> Tigo</span>
-                                {% elif sim.operador == 'Movistar' %}
-                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #00a9e0;"><i class="fa-solid fa-mobile-screen me-1"></i> Movistar</span>
                                 {% elif sim.operador == 'Wom' %}
                                     <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #e90072;"><i class="fa-solid fa-mobile-screen me-1"></i> Wom</span>
                                 {% else %}
@@ -607,12 +624,10 @@ function abrirModalVenta(simId, linea, operador, precioSugerido) {
     opEl.textContent = operador;
     opEl.className = "badge rounded-pill px-3 py-2 fw-bold text-white shadow-sm ";
     
-    if (operador === 'Claro') {
+    if (operador === 'Claro' || operador === 'Claro 20 Días' || operador === 'Claro 30 Días') {
         opEl.classList.add('bg-danger');
     } else if (operador === 'Tigo') {
         opEl.style.backgroundColor = '#0052a2';
-    } else if (operador === 'Movistar') {
-        opEl.style.backgroundColor = '#00a9e0';
     } else if (operador === 'Wom') {
         opEl.style.backgroundColor = '#e90072';
     } else {

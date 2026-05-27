@@ -1,3 +1,4 @@
+# pyright: reportCallIssue=false
 import os
 from werkzeug.utils import secure_filename
 from flask import current_app, Blueprint, render_template, request, redirect, url_for, flash, abort, send_file, jsonify

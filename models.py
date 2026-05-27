@@ -406,6 +406,9 @@ class PriceApproval(db.Model):
 class SimCard(db.Model):
     __tablename__ = 'sim_cards'
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     id = db.Column(db.Integer, primary_key=True)
     numero_telefono = db.Column(db.String(50), nullable=False, index=True)
     iccid = db.Column(db.String(50), unique=True, nullable=False, index=True)

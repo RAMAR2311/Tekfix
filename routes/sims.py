@@ -1,9 +1,11 @@
+# pyright: reportCallIssue=false
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from models import db, SimCard, obtener_hora_bogota
 from decorators import admin_required
 from sqlalchemy.sql import func
 from datetime import datetime
+import pandas as pd
 
 sims_bp = Blueprint('sims_bp', __name__)
 
@@ -44,7 +46,8 @@ def index():
 
     # Desglose por operadores para las tarjetas métricas
     claro_count = SimCard.query.filter_by(operador='Claro', estado='Disponible').count()
-    movistar_count = SimCard.query.filter_by(operador='Movistar', estado='Disponible').count()
+    claro_20_count = SimCard.query.filter_by(operador='Claro 20 Días', estado='Disponible').count()
+    claro_30_count = SimCard.query.filter_by(operador='Claro 30 Días', estado='Disponible').count()
     tigo_count = SimCard.query.filter_by(operador='Tigo', estado='Disponible').count()
     wom_count = SimCard.query.filter_by(operador='Wom', estado='Disponible').count()
 
@@ -62,7 +65,8 @@ def index():
         total_danadas=total_danadas,
         total_sims=total_sims,
         claro_count=claro_count,
-        movistar_count=movistar_count,
+        claro_20_count=claro_20_count,
+        claro_30_count=claro_30_count,
         tigo_count=tigo_count,
         wom_count=wom_count,
         total_recaudado=total_recaudado
@@ -115,43 +119,66 @@ def registrar_lote():
     operador = request.form.get('operador_lote', '').strip()
     precio_costo = float(request.form.get('precio_costo_lote', 0.0) or 0.0)
     precio_venta = float(request.form.get('precio_venta_lote', 0.0) or 0.0)
-    lote_texto = request.form.get('lote_texto', '').strip()
+    archivo_excel = request.files.get('archivo_excel')
 
-    if not operador or not lote_texto:
-        flash('Error: El operador y la lista de SIMs son obligatorios.', 'danger')
+    if not operador or not archivo_excel or not archivo_excel.filename.endswith(('.xls', '.xlsx')):
+        flash('Error: Debes subir un archivo Excel (.xls o .xlsx) válido y seleccionar un operador.', 'danger')
         return redirect(url_for('sims_bp.nuevo'))
 
-    lineas = lote_texto.split('\n')
+    try:
+        df = pd.read_excel(archivo_excel)
+    except Exception as e:
+        flash(f'Error al leer el archivo Excel: {str(e)}', 'danger')
+        return redirect(url_for('sims_bp.nuevo'))
+
+    # Limpiar columnas: quitar espacios y pasar a string
+    df.columns = df.columns.astype(str).str.strip().str.upper()
+    
+    # Buscar posibles nombres de columnas
+    col_linea = next((col for col in df.columns if col in ['LINEA', 'LÍNEA', 'TELEFONO', 'TELÉFONO', 'NUMERO', 'NÚMERO']), None)
+    col_iccid = next((col for col in df.columns if col in ['ICCID', 'SERIAL', 'CHIP']), None)
+
+    if not col_linea and not col_iccid:
+        # Si hay solo 1 columna
+        if len(df.columns) == 1:
+            col_unica = df.columns[0]
+            # Evaluar si parecen números de 10 dígitos o seriales largos
+            muestra = str(df[col_unica].iloc[0]).strip()
+            if len(muestra) == 10 and muestra.isdigit():
+                col_linea = col_unica
+            else:
+                col_iccid = col_unica
+        else:
+            flash('Error: No se encontraron las columnas "Línea" ni "ICCID" en el Excel.', 'danger')
+            return redirect(url_for('sims_bp.nuevo'))
+
     creados = 0
     errores = 0
 
-    for idx, linea in enumerate(lineas):
-        linea = linea.strip()
-        if not linea:
-            continue
+    for index, row in df.iterrows():
+        # Extracción segura de valores
+        num = str(row[col_linea]).strip() if col_linea and pd.notna(row[col_linea]) else ""
+        icc = str(row[col_iccid]).strip() if col_iccid and pd.notna(row[col_iccid]) else ""
         
-        parts = linea.split(',')
-        if len(parts) >= 2:
-            num = parts[0].strip()
-            icc = parts[1].strip()
-        elif len(parts) == 1:
-            val = parts[0].strip()
-            if len(val) == 10 and val.isdigit(): # Es número telefónico
-                num = val
-                icc = "GEN-" + val + datetime.now().strftime("%f")[:4]
-            else: # Asumir ICCID/Serial
-                num = "3000000000"
-                icc = val
-        else:
-            errores += 1
-            continue
+        # Eliminar decimales si pandas los interpretó como float (ej: 3101234567.0)
+        if num.endswith('.0'): num = num[:-2]
+        if icc.endswith('.0'): icc = icc[:-2]
 
-        # Verificar unicidad de ICCID en lote
+        if not num and not icc:
+            continue
+            
+        if num and not icc:
+            icc = "GEN-" + num + datetime.now().strftime("%f")[:4]
+        elif icc and not num:
+            num = "3000000000"
+
+        # Verificar unicidad de ICCID
         if SimCard.query.filter_by(iccid=icc).first():
             errores += 1
             continue
 
         try:
+            # type: ignore
             nueva_sim = SimCard(
                 numero_telefono=num,
                 iccid=icc,
@@ -169,12 +196,12 @@ def registrar_lote():
     try:
         db.session.commit()
         if creados > 0:
-            flash(f'Carga masiva completada: {creados} SIMs creadas con éxito.' + (f' ({errores} errores/duplicados omitidos).' if errores > 0 else ''), 'success')
+            flash(f'Carga masiva desde Excel completada: {creados} SIMs creadas con éxito.' + (f' ({errores} filas omitidas por duplicado/error).' if errores > 0 else ''), 'success')
         else:
-            flash(f'No se inyectó ningún registro. Se omitieron {errores} filas por errores o duplicados.', 'warning')
+            flash(f'No se importó nada. Se omitieron {errores} filas por errores o duplicados.', 'warning')
     except Exception:
         db.session.rollback()
-        flash('Error grave al guardar el lote en la base de datos.', 'danger')
+        flash('Error grave al guardar el lote desde Excel en la base de datos.', 'danger')
 
     return redirect(url_for('sims_bp.index'))
 

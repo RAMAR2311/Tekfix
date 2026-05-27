@@ -1,0 +1,15 @@
+{
+  "reportCallIssue": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportIndexIssue": "none",
+  "reportOperatorIssue": "none",
+  "reportArgumentType": "none",
+  "reportReturnType": "none",
+  "reportOptionalMemberAccess": "none",
+  "reportOptionalCall": "none",
+  "reportOptionalIterable": "none",
+  "reportOptionalSubscript": "none",
+  "reportGeneralTypeIssues": "none",
+  "reportMissingImports": "none",
+  "reportMissingModuleSource": "none"
+}

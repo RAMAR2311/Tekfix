@@ -1,3 +1,4 @@
+# pyright: reportCallIssue=false
 from app import create_app
 from models import db, SimCard
 from decimal import Decimal
