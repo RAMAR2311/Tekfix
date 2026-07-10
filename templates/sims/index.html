@@ -299,59 +299,7 @@
                             </td>
                         </tr>
 
-                        <!-- Modal de Edición Individual -->
-                        <div class="modal fade" id="editModal{{ sim.id }}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content border-0 shadow">
-                                    <form method="POST" action="{{ url_for('sims_bp.editar', sim_id=sim.id) }}">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <div class="modal-header border-0 bg-tekfix-card">
-                                            <h5 class="modal-title fw-bold text-tekfix-main"><i class="fa-solid fa-pen-to-square me-2 text-warning"></i>Editar Ficha SIM</h5>
-                                            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <div class="modal-body p-4 text-start">
-                                            <div class="row g-3">
-                                                <div class="col-md-6">
-                                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Número de Línea</label>
-                                                    <input type="text" name="numero_telefono" class="form-control form-control-sm" value="{{ sim.numero_telefono }}" required>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">ICCID / Serial de Chip</label>
-                                                    <input type="text" name="iccid" class="form-control form-control-sm font-monospace" value="{{ sim.iccid }}" required>
-                                                </div>
-                                                <div class="col-md-12">
-                                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Operador</label>
-                                                    <select name="operador" class="form-select form-select-sm" required>
-                                                        <option value="Claro" {% if sim.operador == 'Claro' %}selected{% endif %}>Claro</option>
-                                                        <option value="Claro 20 Días" {% if sim.operador == 'Claro 20 Días' %}selected{% endif %}>Claro 20 Días</option>
-                                                        <option value="Claro 30 Días" {% if sim.operador == 'Claro 30 Días' %}selected{% endif %}>Claro 30 Días</option>
-                                                        <option value="Tigo" {% if sim.operador == 'Tigo' %}selected{% endif %}>Tigo</option>
-                                                        <option value="Wom" {% if sim.operador == 'Wom' %}selected{% endif %}>Wom</option>
-                                                        <option value="Movistar" {% if sim.operador == 'Movistar' %}selected{% endif %}>Movistar</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Precio Costo</label>
-                                                    <input type="number" step="1" name="precio_costo" class="form-control form-control-sm" value="{{ "%.0f"|format(sim.precio_costo) }}" required>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Precio Venta Sugerido</label>
-                                                    <input type="number" step="1" name="precio_venta" class="form-control form-control-sm fw-bold text-tekfix-primary" value="{{ "%.0f"|format(sim.precio_venta) }}" required>
-                                                </div>
-                                                <div class="col-md-12">
-                                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Notas u Observaciones</label>
-                                                    <textarea name="observacion" class="form-control form-control-sm" rows="2" placeholder="Detalles de planes, promociones..."></textarea>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer border-top-0 pt-0 bg-tekfix-card rounded-bottom">
-                                            <button type="button" class="btn btn-light btn-sm rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                                            <button type="submit" class="btn btn-tekfix btn-sm rounded-pill px-4 fw-bold shadow-sm">Actualizar Ficha</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
+
                         {% else %}
                         <tr>
                             <td colspan="7" class="text-center py-5 text-tekfix-sec">
@@ -364,6 +312,62 @@
                 </table>
             </div>
         </div>
+
+        <!-- Modales de Edición (Fuera de table-responsive) -->
+        {% for sim in sims_disponibles_list %}
+        <div class="modal fade" id="editModal{{ sim.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <form method="POST" action="{{ url_for('sims_bp.editar', sim_id=sim.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="modal-header border-0 bg-tekfix-card">
+                            <h5 class="modal-title fw-bold text-tekfix-main"><i class="fa-solid fa-pen-to-square me-2 text-warning"></i>Editar Ficha SIM</h5>
+                            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body p-4 text-start">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Número de Línea</label>
+                                    <input type="text" name="numero_telefono" class="form-control form-control-sm" value="{{ sim.numero_telefono }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">ICCID / Serial de Chip</label>
+                                    <input type="text" name="iccid" class="form-control form-control-sm font-monospace" value="{{ sim.iccid }}" required>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Operador</label>
+                                    <select name="operador" class="form-select form-select-sm" required>
+                                        <option value="Claro" {% if sim.operador == 'Claro' %}selected{% endif %}>Claro</option>
+                                        <option value="Claro 20 Días" {% if sim.operador == 'Claro 20 Días' %}selected{% endif %}>Claro 20 Días</option>
+                                        <option value="Claro 30 Días" {% if sim.operador == 'Claro 30 Días' %}selected{% endif %}>Claro 30 Días</option>
+                                        <option value="Tigo" {% if sim.operador == 'Tigo' %}selected{% endif %}>Tigo</option>
+                                        <option value="Wom" {% if sim.operador == 'Wom' %}selected{% endif %}>Wom</option>
+                                        <option value="Movistar" {% if sim.operador == 'Movistar' %}selected{% endif %}>Movistar</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Precio Costo</label>
+                                    <input type="number" step="1" name="precio_costo" class="form-control form-control-sm" value="{{ "%.0f"|format(sim.precio_costo) }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Precio Venta Sugerido</label>
+                                    <input type="number" step="1" name="precio_venta" class="form-control form-control-sm fw-bold text-tekfix-primary" value="{{ "%.0f"|format(sim.precio_venta) }}" required>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label small text-tekfix-sec mb-1 fw-bold">Notas u Observaciones</label>
+                                    <textarea name="observacion" class="form-control form-control-sm" rows="2" placeholder="Detalles de planes, promociones..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-top-0 pt-0 bg-tekfix-card rounded-bottom">
+                            <button type="button" class="btn btn-light btn-sm rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-tekfix btn-sm rounded-pill px-4 fw-bold shadow-sm">Actualizar Ficha</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
 
     </div>
 
