@@ -50,6 +50,7 @@ def index():
     claro_30_count = SimCard.query.filter_by(operador='Claro 30 Días', estado='Disponible').count()
     tigo_count = SimCard.query.filter_by(operador='Tigo', estado='Disponible').count()
     wom_count = SimCard.query.filter_by(operador='Wom', estado='Disponible').count()
+    movistar_count = SimCard.query.filter_by(operador='Movistar', estado='Disponible').count()
 
     # Recaudación total de SIMs (Independiente)
     total_recaudado = db.session.query(func.sum(SimCard.precio_venta_real)).filter_by(estado='Vendida').scalar() or 0.0
@@ -69,6 +70,7 @@ def index():
         claro_30_count=claro_30_count,
         tigo_count=tigo_count,
         wom_count=wom_count,
+        movistar_count=movistar_count,
         total_recaudado=total_recaudado
     )
 
