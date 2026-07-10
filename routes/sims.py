@@ -315,3 +315,37 @@ def eliminar(sim_id):
         flash('Error en servidor al eliminar la SIM.', 'danger')
         
     return redirect(url_for('sims_bp.index'))
+
+@sims_bp.route('/eliminar-lote', methods=['POST'])
+@login_required
+@admin_required
+def eliminar_lote():
+    sim_ids = request.form.getlist('sim_ids')
+    if not sim_ids:
+        flash('No se seleccionó ninguna SIM para eliminar.', 'warning')
+        return redirect(url_for('sims_bp.index'))
+
+    eliminadas = 0
+    errores = 0
+
+    for sim_id in sim_ids:
+        sim = SimCard.query.get(sim_id)
+        if sim and sim.estado != 'Vendida':
+            try:
+                db.session.delete(sim)
+                eliminadas += 1
+            except Exception:
+                errores += 1
+                
+    if eliminadas > 0 or errores > 0:
+        try:
+            db.session.commit()
+            if eliminadas > 0:
+                flash(f'{eliminadas} SIM(s) eliminadas exitosamente.', 'success')
+            if errores > 0:
+                flash(f'Hubo {errores} errores al intentar eliminar algunas SIMs.', 'warning')
+        except Exception:
+            db.session.rollback()
+            flash('Error en servidor al eliminar las SIMs en lote.', 'danger')
+            
+    return redirect(url_for('sims_bp.index'))

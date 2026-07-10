@@ -38,9 +38,7 @@
                     <br>
                     Generado el: <strong>{{ fecha_generacion }}</strong>
                 </p>
-                {% if current_user.rol != 'admin' %}
-                    <p class="mb-0 text-tekfix-main fw-bold">Usuario Solicitante: {{ current_user.nombre }}</p>
-                {% endif %}
+                <p class="mb-0 text-tekfix-main fw-bold">Usuario Solicitante: {{ current_user.nombre }} ({{ current_user.rol|capitalize }})</p>
             </div>
 
             <!-- Resumen Consolidado de Totales -->

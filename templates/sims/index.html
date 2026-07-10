@@ -157,6 +157,7 @@
                         <option value="Claro 30 Días" {% if operador_filter == 'Claro 30 Días' %}selected{% endif %}>Claro 30 Días</option>
                         <option value="Tigo" {% if operador_filter == 'Tigo' %}selected{% endif %}>Tigo</option>
                         <option value="Wom" {% if operador_filter == 'Wom' %}selected{% endif %}>Wom</option>
+                        <option value="Movistar" {% if operador_filter == 'Movistar' %}selected{% endif %}>Movistar</option>
                     </select>
                 </div>
                 <div class="col-6 col-md-4 col-lg-4 text-end d-flex gap-2">
@@ -166,13 +167,27 @@
             </form>
         </div>
 
+        <!-- Controles Lote -->
+        <div class="d-flex justify-content-end mb-2">
+            <form id="bulk-delete-form" method="POST" action="{{ url_for('sims_bp.eliminar_lote') }}" class="m-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div id="bulk-delete-inputs"></div>
+                <button type="button" id="btn-bulk-delete" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold shadow-sm d-none" onclick="submitBulkDelete()">
+                    <i class="fa-solid fa-trash-can me-1"></i> Eliminar Selección (<span id="bulk-delete-count">0</span>)
+                </button>
+            </form>
+        </div>
+
         <!-- Tabla Inventario Disponible/Dañada -->
         <div class="card card-custom p-0 overflow-hidden shadow-sm">
             <div class="table-responsive">
                 <table class="table table-hover table-custom mb-0">
                     <thead class="bg-tekfix-card">
                         <tr>
-                            <th width="140" class="ps-4">OPERADOR</th>
+                            <th width="40" class="ps-4 pe-0 text-center">
+                                <input class="form-check-input shadow-none border-secondary" type="checkbox" id="select-all-sims" onchange="toggleAllSims(this)">
+                            </th>
+                            <th width="140" class="ps-2">OPERADOR</th>
                             <th width="140">LÍNEA TELEFÓNICA</th>
                             <th>ICCID / SERIAL DE CHIP</th>
                             <th width="130" class="text-end">P. COSTO</th>
@@ -184,8 +199,12 @@
                     <tbody>
                         {% for sim in sims_disponibles_list %}
                         <tr id="sim-row-{{ sim.id }}">
+                            <!-- Checkbox -->
+                            <td class="ps-4 pe-0 text-center align-middle">
+                                <input class="form-check-input shadow-none border-secondary sim-checkbox" type="checkbox" value="{{ sim.id }}" onchange="toggleBulkDeleteBtn()">
+                            </td>
                             <!-- Operador -->
-                            <td class="ps-4">
+                            <td class="ps-2">
                                 {% if sim.operador == 'Claro' %}
                                     <span class="badge rounded-pill px-3 py-2 fw-bold text-white bg-danger"><i class="fa-solid fa-mobile-screen me-1"></i> Claro</span>
                                 {% elif sim.operador == 'Claro 20 Días' %}
@@ -196,6 +215,8 @@
                                     <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #0052a2;"><i class="fa-solid fa-mobile-screen me-1"></i> Tigo</span>
                                 {% elif sim.operador == 'Wom' %}
                                     <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #e90072;"><i class="fa-solid fa-mobile-screen me-1"></i> Wom</span>
+                                {% elif sim.operador == 'Movistar' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #019df4;"><i class="fa-solid fa-mobile-screen me-1"></i> Movistar</span>
                                 {% else %}
                                     <span class="badge rounded-pill px-3 py-2 fw-bold bg-secondary text-white"><i class="fa-solid fa-mobile-screen me-1"></i> {{ sim.operador }}</span>
                                 {% endif %}
@@ -291,6 +312,7 @@
                                                         <option value="Claro 30 Días" {% if sim.operador == 'Claro 30 Días' %}selected{% endif %}>Claro 30 Días</option>
                                                         <option value="Tigo" {% if sim.operador == 'Tigo' %}selected{% endif %}>Tigo</option>
                                                         <option value="Wom" {% if sim.operador == 'Wom' %}selected{% endif %}>Wom</option>
+                                                        <option value="Movistar" {% if sim.operador == 'Movistar' %}selected{% endif %}>Movistar</option>
                                                     </select>
                                                 </div>
                                                 <div class="col-md-6">
@@ -387,6 +409,8 @@
                                     <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #0052a2;"><i class="fa-solid fa-mobile-screen me-1"></i> Tigo</span>
                                 {% elif sim.operador == 'Wom' %}
                                     <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #e90072;"><i class="fa-solid fa-mobile-screen me-1"></i> Wom</span>
+                                {% elif sim.operador == 'Movistar' %}
+                                    <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background-color: #019df4;"><i class="fa-solid fa-mobile-screen me-1"></i> Movistar</span>
                                 {% else %}
                                     <span class="badge rounded-pill px-3 py-2 fw-bold bg-secondary text-white"><i class="fa-solid fa-mobile-screen me-1"></i> {{ sim.operador }}</span>
                                 {% endif %}
@@ -630,6 +654,8 @@ function abrirModalVenta(simId, linea, operador, precioSugerido) {
         opEl.style.backgroundColor = '#0052a2';
     } else if (operador === 'Wom') {
         opEl.style.backgroundColor = '#e90072';
+    } else if (operador === 'Movistar') {
+        opEl.style.backgroundColor = '#019df4';
     } else {
         opEl.classList.add('bg-secondary');
     }
@@ -681,6 +707,48 @@ async function procesarVentaSim() {
         confirmBtn.innerHTML = originalBtnHTML;
         confirmBtn.disabled = false;
     }
+}
+
+// Bulk Delete Logic
+function toggleAllSims(source) {
+    const checkboxes = document.querySelectorAll('.sim-checkbox');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+    toggleBulkDeleteBtn();
+}
+
+function toggleBulkDeleteBtn() {
+    const checkedBoxes = document.querySelectorAll('.sim-checkbox:checked');
+    const btn = document.getElementById('btn-bulk-delete');
+    const countSpan = document.getElementById('bulk-delete-count');
+    
+    countSpan.textContent = checkedBoxes.length;
+    
+    if (checkedBoxes.length > 0) {
+        btn.classList.remove('d-none');
+    } else {
+        btn.classList.add('d-none');
+    }
+}
+
+function submitBulkDelete() {
+    const checkedBoxes = document.querySelectorAll('.sim-checkbox:checked');
+    if (checkedBoxes.length === 0) return;
+    
+    if (!confirm(`¿Seguro que deseas eliminar permanentemente las ${checkedBoxes.length} SIM(s) seleccionadas?`)) return;
+    
+    const form = document.getElementById('bulk-delete-form');
+    const inputsContainer = document.getElementById('bulk-delete-inputs');
+    inputsContainer.innerHTML = ''; // Limpiar inputs previos
+    
+    checkedBoxes.forEach(cb => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'sim_ids';
+        input.value = cb.value;
+        inputsContainer.appendChild(input);
+    });
+    
+    form.submit();
 }
 </script>
 
