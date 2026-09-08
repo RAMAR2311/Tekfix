@@ -706,11 +706,12 @@
 
                 {% if current_user.is_authenticated and current_user.rol == 'admin' %}
                 <!-- Botón / Notificación en Vivo de Aprobaciones de Precios -->
-                <a href="{{ url_for('admin_bp.panel_aprobaciones') }}" 
+                <a href="javascript:void(0)" 
+                   onclick="abrirOverlayAprobacion()"
                    id="navbar-aprobaciones-btn"
                    class="btn btn-sm d-none align-items-center gap-1 shadow-sm px-2 px-md-3 py-1 rounded-pill pulse-aprobacion-live text-decoration-none"
-                   style="background: #FEF2F2; color: #DC2626; border: 1.5px solid #EF4444; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; transition: all 0.2s;"
-                   title="Solicitudes de precio especial pendientes">
+                   style="background: #FEF2F2; color: #DC2626; border: 1.5px solid #EF4444; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; transition: all 0.2s; cursor: pointer;"
+                   title="Toca para ver y autorizar solicitudes de precio en tiempo real">
                     <i class="fa-solid fa-bell-concierge text-danger"></i>
                     <span class="d-none d-md-inline">Aprobaciones</span>
                     <span id="navbar-aprobaciones-badge" class="badge rounded-pill bg-danger" style="font-size: 0.7rem;">0</span>
@@ -1418,9 +1419,11 @@
         document.addEventListener('DOMContentLoaded', updateGlobalCartUI);
 
         {% if current_user.is_authenticated and current_user.rol == 'admin' %}
-        // --- SISTEMA GLOBAL EN TIEMPO REAL DE NOTIFICACIONES DE APROBACIONES (ADMIN) ---
+        // --- SISTEMA GLOBAL EN TIEMPO REAL: OVERLAY SOBREPUESTO DE APROBACIONES (ADMIN) ---
         let prevAprobacionesCount = null;
         let audioNotificationCtx = null;
+        let overlayCerradoManualmente = false;
+        let itemsPendientesActuales = [];
 
         function sonarChimeAprobacion() {
             try {
@@ -1433,8 +1436,8 @@
                 const osc = audioNotificationCtx.createOscillator();
                 const gain = audioNotificationCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, audioNotificationCtx.currentTime); // D5
-                osc.frequency.exponentialRampToValueAtTime(880, audioNotificationCtx.currentTime + 0.12); // A5
+                osc.frequency.setValueAtTime(587.33, audioNotificationCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioNotificationCtx.currentTime + 0.12);
                 gain.gain.setValueAtTime(0.25, audioNotificationCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioNotificationCtx.currentTime + 0.35);
                 osc.connect(gain);
@@ -1444,11 +1447,12 @@
             } catch(e) {}
         }
 
-        async function pollingAprobacionesSistema() {
+        async function pollingAprobacionesSistema(forzarApertura = false) {
             try {
                 const r = await fetch('/admin/aprobaciones');
                 if (!r.ok) return;
                 const items = await r.json();
+                itemsPendientesActuales = items;
                 const n = items.length;
 
                 const btnNav = document.getElementById('navbar-aprobaciones-btn');
@@ -1477,70 +1481,231 @@
                     }
                 }
 
-                // 3. Si entró una nueva solicitud mientras el usuario navega
-                if (prevAprobacionesCount !== null && n > prevAprobacionesCount) {
+                // 3. Detectar si llegó una nueva solicitud
+                const llegoNueva = (prevAprobacionesCount !== null && n > prevAprobacionesCount);
+                if (llegoNueva) {
                     sonarChimeAprobacion();
-                    mostrarToastNuevaAprobacion(items[items.length - 1], n);
+                    overlayCerradoManualmente = false; // Se reabre automáticamente al llegar una nueva
+                }
+
+                // 4. Gestionar Overlay Sobrepuesto
+                if (n === 0) {
+                    removerOverlayAprobacion();
+                } else if (forzarApertura || (!overlayCerradoManualmente && (llegoNueva || prevAprobacionesCount === null))) {
+                    renderOverlayAprobacion(items[0], n);
                 }
 
                 prevAprobacionesCount = n;
             } catch(e) {}
         }
 
-        function mostrarToastNuevaAprobacion(item, total) {
-            let container = document.getElementById('toast-aprobaciones-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-aprobaciones-container';
-                container.className = 'toast-container position-fixed top-0 end-0 p-3';
-                container.style.zIndex = '1090';
-                document.body.appendChild(container);
+        function renderOverlayAprobacion(item, total) {
+            // Evitar duplicar en pantalla
+            let overlay = document.getElementById('overlay-aprobacion-flotante');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'overlay-aprobacion-flotante';
+                overlay.style.position = 'fixed';
+                overlay.style.top = '16px';
+                overlay.style.left = '50%';
+                overlay.style.transform = 'translateX(-50%)';
+                overlay.style.zIndex = '105000';
+                overlay.style.width = '94%';
+                overlay.style.maxWidth = '460px';
+                overlay.style.animation = 'slideInRightToast 0.3s ease-out';
+                document.body.appendChild(overlay);
             }
 
-            const toastDiv = document.createElement('div');
-            toastDiv.className = 'toast show border-0 shadow-lg rounded-4 overflow-hidden mb-2';
-            toastDiv.setAttribute('role', 'alert');
-            toastDiv.setAttribute('aria-live', 'assertive');
-            toastDiv.setAttribute('aria-atomic', 'true');
-            toastDiv.style.background = '#FFFFFF';
-            toastDiv.style.borderLeft = '5px solid #EF4444';
-            toastDiv.style.minWidth = '310px';
-            toastDiv.style.animation = 'slideInRightToast 0.35s ease-out';
+            const fmt = n => '$' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-            const precioFmt = '$' + Math.round(item.precio_solicitado).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-            const precioOrigFmt = '$' + Math.round(item.precio_original).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            overlay.innerHTML = `
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden" 
+                     style="background: #FFFFFF; border: 2px solid #EF4444 !important; box-shadow: 0 15px 45px rgba(0,0,0,0.28) !important;">
+                    <!-- Cabecera Alerta Roja / Oro -->
+                    <div class="d-flex align-items-center justify-content-between px-3 py-2 text-white" 
+                         style="background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge rounded-pill bg-white text-danger fw-bold" style="font-size: 0.7rem;">
+                                <i class="fa-solid fa-bell-concierge me-1"></i>EN VIVO
+                            </span>
+                            <span class="fw-bold" style="font-size: 0.85rem; letter-spacing: 0.02em;">
+                                Solicitud de Precio Especial (${total} pendiente${total > 1 ? 's' : ''})
+                            </span>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" style="font-size: 0.72rem;" onclick="cerrarOverlayAprobacion()"></button>
+                    </div>
 
-            toastDiv.innerHTML = `
-                <div class="p-3">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="badge rounded-pill bg-danger text-white fw-bold px-2 py-1" style="font-size: 0.72rem;">
-                            <i class="fa-solid fa-bell-concierge me-1"></i>¡Nueva Solicitud de Precio!
-                        </span>
-                        <button type="button" class="btn-close" style="font-size: 0.75rem;" onclick="this.closest('.toast').remove()"></button>
+                    <!-- Contenido Interactivo -->
+                    <div class="p-3" id="overlay-card-body-${item.id}">
+                        <!-- Info Producto y Vendedor -->
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0 fs-6">
+                                    ${item.producto}
+                                    ${item.variante ? `<span class="badge bg-light text-dark border ms-1">${item.variante}</span>` : ''}
+                                </h6>
+                                <small class="text-secondary">
+                                    <i class="fa-solid fa-user me-1 text-primary"></i>${item.vendedor} &bull; <span class="badge bg-warning text-dark rounded-pill" style="font-size:0.65rem;">${item.hace}</span>
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Comparativa Precios -->
+                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded-3 mb-3 border">
+                            <div class="text-center flex-grow-1">
+                                <span class="d-block text-muted text-uppercase" style="font-size: 0.62rem; font-weight: 700;">Precio Sugerido</span>
+                                <span class="text-decoration-line-through text-muted fw-bold">${fmt(item.precio_original)}</span>
+                            </div>
+                            <div class="vr my-1"></div>
+                            <div class="text-center flex-grow-1">
+                                <span class="d-block text-primary text-uppercase" style="font-size: 0.62rem; font-weight: 700;">Solicitado POS</span>
+                                <span class="text-primary fw-bolder fs-6">${fmt(item.precio_solicitado)}</span>
+                            </div>
+                            <div class="vr my-1"></div>
+                            <div class="text-center flex-grow-1">
+                                <span class="d-block text-danger text-uppercase" style="font-size: 0.62rem; font-weight: 700;">Diferencia</span>
+                                <span class="text-danger fw-bold">-${fmt(item.precio_original - item.precio_solicitado)}</span>
+                            </div>
+                        </div>
+
+                        <!-- Input Precio a Autorizar -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark mb-1 d-flex justify-content-between">
+                                <span><i class="fa-solid fa-pen-to-square me-1 text-primary"></i>Precio a Autorizar:</span>
+                                <small class="text-muted fw-normal">Puedes editar el valor</small>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text fw-bold border bg-light text-dark">$</span>
+                                <input type="number" step="1" 
+                                       class="form-control text-end fw-bold fs-6 shadow-sm" 
+                                       id="overlay-precio-input-${item.id}" 
+                                       value="${Math.round(item.precio_solicitado)}">
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción Inmediata (1 Clic) -->
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-success rounded-pill fw-bold flex-grow-1 py-2 shadow-sm"
+                                    id="btn-aprobar-overlay-${item.id}"
+                                    onclick="aprobarOverlayDirecto(${item.id})">
+                                <i class="fa-solid fa-circle-check me-1"></i> Aprobar Precio
+                            </button>
+                            <button type="button" class="btn btn-outline-danger rounded-pill fw-bold px-3 py-2"
+                                    onclick="rechazarOverlayDirecto(${item.id})">
+                                <i class="fa-solid fa-ban me-1"></i> Rechazar
+                            </button>
+                        </div>
+                        <div class="text-center mt-2">
+                            <a href="/admin/aprobaciones/panel" class="text-secondary small text-decoration-none" style="font-size: 0.72rem;">
+                                <i class="fa-solid fa-up-right-from-square me-1"></i>Abrir Panel Completo de Aprobaciones
+                            </a>
+                        </div>
                     </div>
-                    <div class="fw-bold text-dark fs-6 lh-sm mb-1">${item.producto} ${item.variante ? `<span class="badge bg-light text-secondary border ms-1">${item.variante}</span>` : ''}</div>
-                    <div class="text-secondary small mb-2">
-                        <i class="fa-solid fa-user me-1"></i><strong>${item.vendedor}</strong> solicita: <strong class="text-primary">${precioFmt}</strong> <span class="text-decoration-line-through text-muted small">(${precioOrigFmt})</span>
-                    </div>
-                    <a href="/admin/aprobaciones/panel" class="btn btn-sm btn-danger rounded-pill fw-bold w-100 py-1 shadow-sm d-flex align-items-center justify-content-center gap-1">
-                        <i class="fa-solid fa-gavel"></i> Revisar y Aprobar
-                    </a>
                 </div>
             `;
-
-            container.appendChild(toastDiv);
-
-            setTimeout(() => {
-                toastDiv.style.opacity = '0';
-                toastDiv.style.transform = 'translateY(-10px)';
-                toastDiv.style.transition = 'all 0.4s ease';
-                setTimeout(() => toastDiv.remove(), 400);
-            }, 8000);
         }
+
+        window.aprobarOverlayDirecto = async function(id) {
+            const inp = document.getElementById(`overlay-precio-input-${id}`);
+            const precio = inp ? parseFloat(inp.value) : null;
+            const btn = document.getElementById(`btn-aprobar-overlay-${id}`);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Autorizando...';
+            }
+            try {
+                const r = await fetch(`/admin/aprobaciones/${id}/aprobar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ precio_aprobado: precio })
+                });
+                if (r.ok) {
+                    const card = document.getElementById(`overlay-card-body-${id}`);
+                    if (card) {
+                        card.innerHTML = `
+                            <div class="p-3 text-center">
+                                <i class="fa-solid fa-circle-check text-success fa-3x mb-2 d-block"></i>
+                                <h6 class="fw-bold text-success mb-1">¡Precio Autorizado con Éxito!</h6>
+                                <small class="text-secondary">El vendedor en caja ya tiene el precio cargado para facturar.</small>
+                            </div>
+                        `;
+                    }
+                    setTimeout(() => {
+                        pollingAprobacionesSistema(true);
+                    }, 1200);
+                } else {
+                    alert('No se pudo autorizar la solicitud.');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Aprobar Precio';
+                    }
+                }
+            } catch(e) {
+                alert('Error de red al autorizar.');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Aprobar Precio';
+                }
+            }
+        };
+
+        window.rechazarOverlayDirecto = async function(id) {
+            const motivo = prompt('Motivo del rechazo (opcional, será visible al vendedor):') || 'Sin motivo especificado.';
+            try {
+                const r = await fetch(`/admin/aprobaciones/${id}/rechazar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ motivo: motivo })
+                });
+                if (r.ok) {
+                    const card = document.getElementById(`overlay-card-body-${id}`);
+                    if (card) {
+                        card.innerHTML = `
+                            <div class="p-3 text-center">
+                                <i class="fa-solid fa-ban text-danger fa-3x mb-2 d-block"></i>
+                                <h6 class="fw-bold text-danger mb-1">Solicitud Denegada</h6>
+                                <small class="text-secondary">Se notificó el rechazo al vendedor en el POS.</small>
+                            </div>
+                        `;
+                    }
+                    setTimeout(() => {
+                        pollingAprobacionesSistema(true);
+                    }, 1200);
+                }
+            } catch(e) {
+                alert('Error de red al rechazar.');
+            }
+        };
+
+        window.cerrarOverlayAprobacion = function() {
+            overlayCerradoManualmente = true;
+            removerOverlayAprobacion();
+        };
+
+        function removerOverlayAprobacion() {
+            const el = document.getElementById('overlay-aprobacion-flotante');
+            if (el) {
+                el.style.opacity = '0';
+                el.style.transform = 'translate(-50%, -15px)';
+                el.style.transition = 'all 0.25s ease';
+                setTimeout(() => el.remove(), 250);
+            }
+        }
+
+        window.abrirOverlayAprobacion = function() {
+            overlayCerradoManualmente = false;
+            pollingAprobacionesSistema(true);
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
             pollingAprobacionesSistema();
-            setInterval(pollingAprobacionesSistema, 4000);
+            setInterval(() => pollingAprobacionesSistema(false), 4000);
         });
         {% endif %}
     </script>

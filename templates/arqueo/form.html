@@ -408,9 +408,9 @@
                                         </ul>
                                     </td>
                                     <td class="text-end pe-3 fw-bolder text-dark" style="font-size: 0.95rem;">
-                                        {% set ns = namespace(ts=0) %}
-                                        {% for sim in v.sims_vendidas %}{% set ns.ts = ns.ts + sim.precio_venta_real %}{% endfor %}
-                                        ${{ (v.monto_total + ns.ts)|cop }}
+                                        {% set ns = namespace(ts=0.0) %}
+                                        {% for sim in v.sims_vendidas %}{% set ns.ts = (ns.ts|float) + (sim.precio_venta_real|float if sim.precio_venta_real else 0.0) %}{% endfor %}
+                                        ${{ (v.monto_total|float + ns.ts|float)|cop }}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -586,10 +586,10 @@
                             </span>
                         </div>
 
-                        {% set ef_sys = arqueo_existente.total_efectivo_sistema if arqueo_existente else total_efectivo %}
-                        {% set dig_sys = arqueo_existente.total_transferencia_sistema if arqueo_existente else total_transferencia %}
-                        {% set gas_sys = arqueo_existente.gastos_del_dia if arqueo_existente else gastos_automaticos %}
-                        {% set neto_sys = (ef_sys + dig_sys) - gas_sys %}
+                        {% set ef_sys = (arqueo_existente.total_efectivo_sistema if arqueo_existente else total_efectivo)|float %}
+                        {% set dig_sys = (arqueo_existente.total_transferencia_sistema if arqueo_existente else total_transferencia)|float %}
+                        {% set gas_sys = (arqueo_existente.gastos_del_dia if arqueo_existente else gastos_automaticos)|float %}
+                        {% set neto_sys = (ef_sys|float + dig_sys|float) - gas_sys|float %}
 
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="text-secondary" style="font-size: 0.85rem;">Efectivo Sistema:</span>
@@ -717,7 +717,7 @@
                                 <span class="fw-bold fs-5" style="color: var(--tekfix-primary);">${{ arqueo_existente.efectivo_fisico|cop }}</span>
                             </div>
 
-                            {% set esp_cerrado = (arqueo_existente.base_inicial + arqueo_existente.total_efectivo_sistema) - arqueo_existente.gastos_del_dia %}
+                            {% set esp_cerrado = (arqueo_existente.base_inicial|float + arqueo_existente.total_efectivo_sistema|float) - arqueo_existente.gastos_del_dia|float %}
                             <div class="p-3 rounded-3 text-center my-3"
                                  style="background: {% if arqueo_existente.diferencia == 0 %}rgba(16, 185, 129, 0.08){% elif arqueo_existente.diferencia > 0 %}rgba(221, 184, 86, 0.12){% else %}rgba(239, 68, 68, 0.08){% endif %}; border: 1.5px solid {% if arqueo_existente.diferencia == 0 %}#10B981{% elif arqueo_existente.diferencia > 0 %}#DDB856{% else %}#EF4444{% endif %};">
                                 <span class="fw-bold text-uppercase d-block" style="font-size: 0.78rem; letter-spacing: 0.06em; color: {% if arqueo_existente.diferencia == 0 %}#059669{% elif arqueo_existente.diferencia > 0 %}#9A7B1C{% else %}#DC2626{% endif %};">

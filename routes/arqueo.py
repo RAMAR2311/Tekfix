@@ -160,11 +160,11 @@ def nuevo():
     return render_template(
         'arqueo/form.html',
         fecha=fecha_str,
-        total_efectivo=total_efectivo,
-        total_transferencia=total_transferencia,
-        desglose_digital=desglose_digital,
+        total_efectivo=float(total_efectivo or 0),
+        total_transferencia=float(total_transferencia or 0),
+        desglose_digital={k: float(v or 0) for k, v in desglose_digital.items()},
         arqueo_existente=arqueo_existente,
-        gastos_automaticos=gastos_automaticos,
+        gastos_automaticos=float(gastos_automaticos or 0),
         gastos_diarios_registros=gastos_diarios_registros,
         ventas_del_dia=ventas_del_dia_ordenadas,
         sims_del_dia=sims_vendidas
@@ -195,10 +195,10 @@ def reporte():
 
     # Cálculos globales para el reporte
     resumen = {
-        'total_base': sum(a.base_inicial for a in arqueos),
-        'total_efectivo': sum(a.total_efectivo_sistema for a in arqueos),
-        'total_transferencia': sum(a.total_transferencia_sistema for a in arqueos),
-        'total_gastos': sum(a.gastos_del_dia for a in arqueos)
+        'total_base': float(sum(a.base_inicial or 0 for a in arqueos)),
+        'total_efectivo': float(sum(a.total_efectivo_sistema or 0 for a in arqueos)),
+        'total_transferencia': float(sum(a.total_transferencia_sistema or 0 for a in arqueos)),
+        'total_gastos': float(sum(a.gastos_del_dia or 0 for a in arqueos))
     }
     
     resumen['total_recaudado'] = resumen['total_efectivo'] + resumen['total_transferencia']
