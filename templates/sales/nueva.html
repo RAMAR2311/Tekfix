@@ -1581,10 +1581,21 @@
             const data = await response.json();
 
             if (response.ok) {
+                const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                                       (window.innerWidth < 768 && ('ontouchstart' in window || navigator.maxTouchPoints > 0));
                 const imprimir = document.getElementById('imprimir_ticket').checked;
-                const ticketUrl = `/sales/recibo/${data.sale_id}${imprimir ? '' : '?silent=1'}`;
+                // En celulares siempre enviar la URL limpia sin ?silent=1 para que el recibo sea 100% visible
+                const ticketUrl = `/sales/recibo/${data.sale_id}${(!isMobileDevice && !imprimir) ? '?silent=1' : ''}`;
 
-                // FIX: Abre el Recibo PRIMERO antes de detener el código con la alerta. Así Chrome no lo detecta como Spam
+                if (isMobileDevice) {
+                    // En celular: Redirigir directamente al ticket en la misma pestaña.
+                    // Esto previene que Safari/Chrome móvil bloquee la ventana emergente,
+                    // se quede en 'about:blank' o muestre una pantalla en blanco.
+                    window.location.href = ticketUrl;
+                    return;
+                }
+
+                // En escritorio (PC con impresora térmica de mostrador):
                 let reciboWindow = window.open(ticketUrl, '_blank');
                 
                 // Si el navegador tiene un bloqueador de ventanas emergentes muy agresivo:
