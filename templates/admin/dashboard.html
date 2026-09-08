@@ -311,7 +311,7 @@
 
 </div>
 
-<!-- FILA 3: OTRAS MÉTRICAS OPERATIVAS COMPACTAS (Pérdidas, Maneos, Chips SIM, Garantías) -->
+<!-- FILA 3: OTRAS MÉTRICAS OPERATIVAS COMPACTAS (Pérdidas, Chips SIM, Garantías) -->
 <div class="mt-4 pt-2">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <h6 class="fw-bold text-tekfix-sec text-uppercase mb-0" style="letter-spacing: 0.1em; font-size: 0.8rem;">
@@ -321,7 +321,7 @@
 
     <div class="row g-3">
         <!-- Pérdidas / Mermas -->
-        <div class="col-xl-3 col-md-6 col-12">
+        <div class="col-lg-4 col-md-6 col-12">
             <div class="dash-card h-100 p-3" style="border-radius: 16px;">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="small fw-bold text-muted">Pérdidas (Mermas)</span>
@@ -335,23 +335,8 @@
             </div>
         </div>
 
-        <!-- Maneos Activos -->
-        <div class="col-xl-3 col-md-6 col-12">
-            <div class="dash-card h-100 p-3" style="border-radius: 16px;">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="small fw-bold text-muted">Maneos Activos</span>
-                    <i class="fa-solid fa-handshake text-tekfix-primary fs-5"></i>
-                </div>
-                <div class="fs-4 fw-bolder text-tekfix-main mb-1">{{ maneos_activos }} <span class="fs-6 text-muted">pendientes</span></div>
-                <div class="small text-muted mb-3">Mercancía prestada por cobrar o devolver</div>
-                <a href="{{ url_for('admin_bp.maneos') }}" class="btn btn-sm btn-outline-dark rounded-pill fw-bold w-100 py-1" style="font-size: 0.8rem;">
-                    Ver Maneos
-                </a>
-            </div>
-        </div>
-
         <!-- Chips SIM -->
-        <div class="col-xl-3 col-md-6 col-12">
+        <div class="col-lg-4 col-md-6 col-12">
             <div class="dash-card h-100 p-3" style="border-radius: 16px;">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="small fw-bold text-muted">Chips SIM</span>
@@ -366,7 +351,7 @@
         </div>
 
         <!-- Garantías -->
-        <div class="col-xl-3 col-md-6 col-12">
+        <div class="col-lg-4 col-md-6 col-12">
             <div class="dash-card h-100 p-3" style="border-radius: 16px;">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="small fw-bold text-muted">Garantías (Mes)</span>

@@ -1,7 +1,7 @@
 # pyright: reportCallIssue=false
 from flask import Blueprint, render_template, abort, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment, StockAdjustment, Expense, Loss, Provider, ProviderInvoice, ProviderPayment, Warranty, DynamicKey, obtener_hora_bogota, SimCard
+from models import db, Product, ProductVariant, Sale, User, SaleDetail, SalePayment, StockAdjustment, Expense, Loss, Provider, ProviderInvoice, ProviderPayment, Warranty, DynamicKey, obtener_hora_bogota, SimCard
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash
 from decorators import admin_required
@@ -128,7 +128,7 @@ def eliminar_vendedor(id):
 def dashboard():
     from datetime import datetime
     from models import (
-        Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment,
+        Product, ProductVariant, Sale, User, SaleDetail, SalePayment,
         StockAdjustment, Expense, Loss, Provider, ProviderInvoice, ProviderPayment,
         Warranty, SimCard, PriceApproval, obtener_hora_bogota
     )
@@ -262,7 +262,6 @@ def dashboard():
     perdidas_valor = float(db.session.query(func.sum(Loss.cost_at_loss * Loss.quantity)).filter(Loss.date >= inicio_mes, Loss.date < fin_mes).scalar() or 0.0)
     porcentaje_perdidas = round((perdidas_valor / total_ventas * 100), 2) if total_ventas > 0 else 0.0
 
-    maneos_activos = Maneo.query.filter_by(estado='PENDIENTE').count()
     total_garantias_mes = Warranty.query.filter(Warranty.created_at >= inicio_mes, Warranty.created_at < fin_mes).count()
     garantias_pendientes = Warranty.query.filter(Warranty.resolution == 'Pendiente').count()
 
@@ -298,7 +297,6 @@ def dashboard():
                            aprobaciones_pendientes=aprobaciones_pendientes,
                            total_perdidas=perdidas_valor,
                            porcentaje_perdidas=porcentaje_perdidas,
-                           maneos_activos=maneos_activos,
                            total_garantias_mes=total_garantias_mes,
                            garantias_pendientes=garantias_pendientes,
                            sims_disponibles=sims_disponibles,
@@ -391,247 +389,6 @@ def registrar_perdida():
     return redirect(url_for('admin_bp.perdidas'))
 # ---------------------------------
 
-
-@admin_bp.route('/maneos')
-@login_required
-def maneos():
-    lista_maneos = Maneo.query.order_by(Maneo.fecha_prestamo.desc()).all()
-    # Priorizar PENDIENTE temporalmente
-    lista_maneos.sort(key=lambda m: 0 if m.estado == 'PENDIENTE' else 1)
-    
-    productos = Product.query.order_by(Product.nombre).all()
-    return render_template('admin/maneos.html', maneos=lista_maneos, productos=productos)
-
-@admin_bp.route('/maneos/prestar', methods=['POST'])
-@login_required
-def maneos_prestar():
-    sku = request.form.get('sku')
-    cantidad = int(request.form.get('cantidad', 0))
-    local_vecino = request.form.get('local_vecino')
-    variant_id_str = request.form.get('variant_id')
-
-    if not sku:
-        flash('Asegúrate de escanear o ingresar un SKU válido.', 'danger')
-        return redirect(url_for('admin_bp.maneos'))
-
-    producto = Product.query.filter_by(sku=sku.strip()).first()
-    if not producto:
-        flash(f'Error: El producto con SKU "{sku}" no existe en el catálogo.', 'danger')
-        return redirect(url_for('admin_bp.maneos'))
-
-    # Determinar si se seleccionó una variante
-    variante = None
-    if variant_id_str and variant_id_str.strip():
-        variante = ProductVariant.query.get(int(variant_id_str))
-        if not variante or variante.product_id != producto.id:
-            flash('La subcategoría seleccionada no pertenece a este producto.', 'danger')
-            return redirect(url_for('admin_bp.maneos'))
-        
-        if variante.cantidad_stock < cantidad:
-            flash(f'Stock insuficiente en la subcategoría "{variante.nombre_variante}" para prestar {cantidad} uds. (Stock actual: {variante.cantidad_stock}).', 'danger')
-            return redirect(url_for('admin_bp.maneos'))
-    else:
-        if producto.cantidad_stock < cantidad:
-            flash(f'Stock insuficiente para prestar {cantidad} unids. (Stock actual: {producto.cantidad_stock}).', 'danger')
-            return redirect(url_for('admin_bp.maneos'))
-
-    try:
-        # Descontar stock de la variante o del producto base
-        if variante:
-            stock_anterior = variante.cantidad_stock
-            variante.cantidad_stock -= cantidad
-        else:
-            stock_anterior = producto.cantidad_stock
-            producto.cantidad_stock -= cantidad
-
-        nuevo_maneo = Maneo(
-            product_id=producto.id,
-            variant_id=variante.id if variante else None,
-            local_vecino=local_vecino.strip(),
-            cantidad=cantidad,
-            estado='PENDIENTE'
-        )
-        db.session.add(nuevo_maneo)
-
-        # Registro en el Kardex
-        ajuste = StockAdjustment(
-            product_id=producto.id,
-            admin_id=current_user.id,
-            tipo_movimiento=f'Préstamo (Maneo) a {local_vecino}' + (f' [{variante.nombre_variante}]' if variante else ''),
-            stock_anterior=stock_anterior,
-            stock_nuevo=variante.cantidad_stock if variante else producto.cantidad_stock
-        )
-        db.session.add(ajuste)
-
-        db.session.commit()
-        flash('Maneo registrado y stock descontado exitosamente.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash('Error al registrar el maneo. Transacción revertida.', 'danger')
-
-    return redirect(url_for('admin_bp.maneos'))
-
-@admin_bp.route('/maneos/facturar/<int:id>', methods=['POST'])
-@login_required
-def maneos_facturar(id):
-    maneo = Maneo.query.get_or_404(id)
-    if maneo.estado != 'PENDIENTE':
-        flash('Este maneo ya fue resuelto.', 'warning')
-        return redirect(url_for('admin_bp.maneos'))
-    
-    # Determinar precios según variante o producto base
-    if maneo.variante:
-        precio_sugerido_ref = float(maneo.variante.precio_sugerido or maneo.producto.precio_sugerido)
-        precio_costo_ref = float(maneo.variante.precio_costo or maneo.producto.precio_costo)
-        precio_minimo_ref = float(maneo.variante.precio_minimo or maneo.producto.precio_minimo)
-    else:
-        precio_sugerido_ref = float(maneo.producto.precio_sugerido)
-        precio_costo_ref = float(maneo.producto.precio_costo)
-        precio_minimo_ref = float(maneo.producto.precio_minimo)
-
-    precio_venta = float(request.form.get('precio_venta', precio_sugerido_ref))
-    cantidad_vendida = int(request.form.get('cantidad_vendida', maneo.cantidad))
-
-    if cantidad_vendida <= 0 or cantidad_vendida > maneo.cantidad:
-        flash(f'Operación rechazada: La cantidad vendida ({cantidad_vendida}) es inválida.', 'danger')
-        return redirect(url_for('admin_bp.maneos'))
-
-    precio_limite = precio_costo_ref if current_user.rol == 'admin' else precio_minimo_ref
-
-    if float(precio_venta) < float(precio_limite):
-        flash(f'Operación rechazada: El precio ingresado (${precio_venta}) es menor al límite autorizado para tu perfil de usuario (${precio_limite}).', 'danger')
-        return redirect(url_for('admin_bp.maneos'))
-
-    try:
-        cantidad_no_vendida = maneo.cantidad - cantidad_vendida
-
-        maneo.estado = 'FACTURADO'
-        maneo.fecha_resolucion = obtener_hora_bogota()
-
-        # Si hubo un cobro parcial, las unidades restantes vuelven al inventario
-        if cantidad_no_vendida > 0:
-            if maneo.variante:
-                stock_anterior = maneo.variante.cantidad_stock
-                maneo.variante.cantidad_stock += cantidad_no_vendida
-                stock_nuevo = maneo.variante.cantidad_stock
-            else:
-                stock_anterior = maneo.producto.cantidad_stock
-                maneo.producto.cantidad_stock += cantidad_no_vendida
-                stock_nuevo = maneo.producto.cantidad_stock
-
-            variante_label = f' [{maneo.variante.nombre_variante}]' if maneo.variante else ''
-            ajuste_retorno = StockAdjustment(
-                product_id=maneo.product_id,
-                admin_id=current_user.id,
-                tipo_movimiento=f'Dev. Parcial de Maneo ({maneo.local_vecino}){variante_label}',
-                stock_anterior=stock_anterior,
-                stock_nuevo=stock_nuevo
-            )
-            db.session.add(ajuste_retorno)
-            
-            # Actualizamos la cantidad del maneo a la realmente facturada para que el historial sea claro
-            maneo.cantidad = cantidad_vendida
-
-        metodo_pago_seleccionado = request.form.get('metodo_pago', 'efectivo')
-        
-        # Registrar la venta real del Maneo
-        nueva_venta = Sale(
-            vendedor_id=current_user.id,
-            monto_total=(precio_venta * cantidad_vendida),
-            metodo_pago=metodo_pago_seleccionado
-        )
-        db.session.add(nueva_venta)
-        db.session.flush() # forzar DB a darnos un ID para nueva_venta
-        
-        detalle = SaleDetail(
-            sale_id=nueva_venta.id,
-            product_id=maneo.product_id,
-            variant_id=maneo.variant_id,
-            cantidad_vendida=cantidad_vendida,
-            precio_venta_final=precio_venta
-        )
-        db.session.add(detalle)
-
-        # Registrar el pago en SalePayment para consistencia con pagos mixtos
-        pago = SalePayment(
-            sale_id=nueva_venta.id,
-            metodo_pago=metodo_pago_seleccionado,
-            monto=(precio_venta * cantidad_vendida)
-        )
-        db.session.add(pago)
-        
-        db.session.commit()
-
-        if cantidad_no_vendida > 0:
-            flash(f'Maneo facturado parcialmente. Se registró la venta de ${precio_venta * cantidad_vendida} y se devolvieron {cantidad_no_vendida} uds al inventario.', 'success')
-        else:
-            flash(f'Maneo facturado totalmente. Se registró la venta de ${precio_venta * cantidad_vendida} en la caja.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash('Error al facturar el maneo.', 'danger')
-
-    return redirect(url_for('admin_bp.maneos'))
-
-@admin_bp.route('/maneos/devolver/<int:id>', methods=['POST'])
-@login_required
-def maneos_devolver(id):
-    maneo = Maneo.query.get_or_404(id)
-    if maneo.estado != 'PENDIENTE':
-        flash('Este maneo ya fue resuelto.', 'warning')
-        return redirect(url_for('admin_bp.maneos'))
-
-    cantidad_devuelta = int(request.form.get('cantidad_devuelta', maneo.cantidad))
-
-    if cantidad_devuelta <= 0:
-        flash('La cantidad a devolver debe ser mayor a 0.', 'danger')
-        return redirect(url_for('admin_bp.maneos'))
-
-    if cantidad_devuelta > maneo.cantidad:
-        flash(f'No puedes devolver más de {maneo.cantidad} unidades (las que están prestadas).', 'danger')
-        return redirect(url_for('admin_bp.maneos'))
-
-    try:
-        # Devolver stock a la variante o al producto base
-        if maneo.variante:
-            stock_anterior = maneo.variante.cantidad_stock
-            maneo.variante.cantidad_stock += cantidad_devuelta
-            stock_nuevo = maneo.variante.cantidad_stock
-        else:
-            stock_anterior = maneo.producto.cantidad_stock
-            maneo.producto.cantidad_stock += cantidad_devuelta
-            stock_nuevo = maneo.producto.cantidad_stock
-
-        variante_label = f' [{maneo.variante.nombre_variante}]' if maneo.variante else ''
-
-        # Registro en el Kardex del retorno
-        ajuste = StockAdjustment(
-            product_id=maneo.product_id,
-            admin_id=current_user.id,
-            tipo_movimiento=f'Devolución de Maneo ({maneo.local_vecino}){variante_label}',
-            stock_anterior=stock_anterior,
-            stock_nuevo=stock_nuevo
-        )
-        db.session.add(ajuste)
-
-        # Determinar si es devolución total o parcial
-        if cantidad_devuelta >= maneo.cantidad:
-            # Devolución total: se cierra el maneo
-            maneo.estado = 'DEVUELTO'
-            maneo.fecha_resolucion = obtener_hora_bogota()
-            db.session.commit()
-            flash(f'Maneo cerrado. Se devolvieron {cantidad_devuelta} unidades al inventario.', 'success')
-        else:
-            # Devolución parcial: se reduce la cantidad y el maneo sigue PENDIENTE
-            unidades_restantes = maneo.cantidad - cantidad_devuelta
-            maneo.cantidad = unidades_restantes
-            db.session.commit()
-            flash(f'Devolución parcial registrada. Se devolvieron {cantidad_devuelta} uds al inventario. Quedan {unidades_restantes} uds pendientes de cobrar.', 'info')
-
-    except Exception as e:
-        db.session.rollback()
-        flash('Error al procesar la devolución.', 'danger')
-
-    return redirect(url_for('admin_bp.maneos'))
 
 @admin_bp.route('/balance-financiero', methods=['GET', 'POST'])
 @login_required

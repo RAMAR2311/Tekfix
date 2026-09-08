@@ -290,17 +290,16 @@ def eliminar_producto(id):
     if producto.tipo_inventario != tipo:
         abort(403)
         
-    from models import SaleDetail, Maneo, FacturaBodegaDetalle, Loss
+    from models import SaleDetail, FacturaBodegaDetalle, Loss
     
     # Comprobar si el producto tiene historial que requiera preservación financiera
     tiene_ventas = SaleDetail.query.filter_by(product_id=producto.id).first() is not None
-    tiene_maneos = Maneo.query.filter_by(product_id=producto.id).first() is not None
     tiene_facturas = FacturaBodegaDetalle.query.filter_by(producto_id=producto.id).first() is not None
     tiene_perdidas = Loss.query.filter_by(product_id=producto.id).first() is not None
 
     nombre = producto.nombre
     
-    if tiene_ventas or tiene_maneos or tiene_facturas or tiene_perdidas:
+    if tiene_ventas or tiene_facturas or tiene_perdidas:
         # Modo Desactivación / Archivado Seguro:
         # Las ventas, recibos, reportes y detalles históricos se mantienen 100% intactos.
         # El producto se desactiva, su stock se ajusta a 0 y se libera su SKU para poder reutilizarlo.

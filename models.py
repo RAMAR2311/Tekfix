@@ -200,21 +200,6 @@ class ArqueoCaja(db.Model):
     observacion_diferencia = db.Column(db.String(500), nullable=True)
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
 
-class Maneo(db.Model):
-    __tablename__ = 'maneos'
-
-    id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
-    variant_id = db.Column(db.Integer, db.ForeignKey('product_variants.id'), nullable=True)
-    local_vecino = db.Column(db.String(150), nullable=False)
-    cantidad = db.Column(db.Integer, nullable=False)
-    estado = db.Column(db.String(50), nullable=False, default='PENDIENTE') # PENDIENTE, FACTURADO, DEVUELTO
-    fecha_prestamo = db.Column(db.DateTime, default=obtener_hora_bogota)
-    fecha_resolucion = db.Column(db.DateTime, nullable=True)
-
-    producto = db.relationship('Product', backref='maneos', lazy=True)
-    variante = db.relationship('ProductVariant', backref='maneos_rel', lazy=True)
-
 class Expense(db.Model):
     __tablename__ = 'expenses'
     

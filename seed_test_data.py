@@ -1,7 +1,7 @@
 # pyright: reportCallIssue=false
 import os
 from app import create_app
-from models import db, User, Product, ProductVariant, Loss, Sale, SalePayment, SaleDetail, StockAdjustment, ArqueoCaja, Maneo, Expense, Cliente, FacturaBodega, FacturaBodegaDetalle, AbonoBodega, Provider, ProviderInvoice, ProviderPayment, Warranty
+from models import db, User, Product, ProductVariant, Loss, Sale, SalePayment, SaleDetail, StockAdjustment, ArqueoCaja, Expense, Cliente, FacturaBodega, FacturaBodegaDetalle, AbonoBodega, Provider, ProviderInvoice, ProviderPayment, Warranty
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timedelta
 import pytz
@@ -148,13 +148,7 @@ def seed_test_data():
         db.session.commit()
         print("[OK] Pérdida registrada.")
 
-        # 9. Maneos (Préstamos Locales)
-        maneo = Maneo(product_id=prod_tienda.id, local_vecino='Local 102 (Demo)', cantidad=2, estado='PENDIENTE')
-        db.session.add(maneo)
-        db.session.commit()
-        print("[OK] Maneo (Préstamo a local vecino) creado.")
-
-        # 10. Ajustes de Stock
+        # 9. Ajustes de Stock
         ajuste = StockAdjustment(product_id=prod_tienda.id, admin_id=test_users['admin'].id, tipo_movimiento='Ajuste Manual Demo', stock_anterior=50, stock_nuevo=48)
         db.session.add(ajuste)
         db.session.commit()
