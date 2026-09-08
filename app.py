@@ -121,6 +121,35 @@ def create_app():
     def manifest():
         return app.send_static_file('manifest.json')
 
+    # ---------------- MANEJADORES DE ERRORES GLOBALES ----------------
+    @app.errorhandler(403)
+    def forbidden_error(e):
+        from flask import flash, request, jsonify
+        if request.path.startswith('/api/'):
+            return jsonify({'error': 'Acceso denegado: No cuentas con los permisos requeridos para esta acción.'}), 403
+        flash('Acceso restringido: No cuentas con permisos para ingresar a ese módulo.', 'warning')
+        if current_user.is_authenticated:
+            if current_user.rol == 'vendedor':
+                return redirect(url_for('sales_bp.procesar_venta'))
+            elif current_user.rol == 'bodega':
+                return redirect(url_for('bodega_bp.dashboard'))
+            return redirect(url_for('admin_bp.dashboard'))
+        return redirect(url_for('auth_bp.login'))
+
+    @app.errorhandler(404)
+    def not_found_error(e):
+        from flask import flash, request, jsonify
+        if request.path.startswith('/api/'):
+            return jsonify({'error': 'El recurso solicitado no fue encontrado en el servidor.'}), 404
+        flash('La página solicitada no fue encontrada o fue trasladada.', 'info')
+        if current_user.is_authenticated:
+            if current_user.rol == 'vendedor':
+                return redirect(url_for('sales_bp.procesar_venta'))
+            elif current_user.rol == 'bodega':
+                return redirect(url_for('bodega_bp.dashboard'))
+            return redirect(url_for('admin_bp.dashboard'))
+        return redirect(url_for('auth_bp.login'))
+
     return app
 
 if __name__ == '__main__':
