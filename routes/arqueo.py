@@ -12,65 +12,98 @@ arqueo_bp = Blueprint('arqueo_bp', __name__)
 def obtener_hora_bogota():
     return datetime.now(pytz.timezone('America/Bogota')).replace(tzinfo=None)
 
-def calcular_totales_dia(ventas_del_dia):
-    """Calcula los totales de efectivo y transferencias del día.
-    Usa SalePayment si está disponible, de lo contrario usa metodo_pago legacy."""
+def calcular_totales_y_desglose(ventas_del_dia, sims_del_dia):
+    """Calcula los totales de efectivo, transferencias y desglose de billeteras digitales."""
     total_efectivo = Decimal('0')
     total_transferencia = Decimal('0')
-    
+    desglose_digital = {
+        'nequi': Decimal('0'),
+        'bancolombia': Decimal('0'),
+        'daviplata': Decimal('0'),
+        'tarjeta': Decimal('0'),
+        'credito': Decimal('0'),
+        'otros': Decimal('0')
+    }
+
+    def sumar_metodo(metodo, monto):
+        nonlocal total_efectivo, total_transferencia
+        monto = Decimal(str(monto or 0))
+        m = (metodo or '').strip().lower()
+        if m == 'efectivo':
+            total_efectivo += monto
+        else:
+            total_transferencia += monto
+            if 'nequi' in m:
+                desglose_digital['nequi'] += monto
+            elif 'bancolombia' in m:
+                desglose_digital['bancolombia'] += monto
+            elif 'daviplata' in m:
+                desglose_digital['daviplata'] += monto
+            elif any(k in m for k in ['tarjeta', 'datafono', 'datáfono', 'bolt']):
+                desglose_digital['tarjeta'] += monto
+            elif 'credito' in m or 'crédito' in m:
+                desglose_digital['credito'] += monto
+            else:
+                desglose_digital['otros'] += monto
+
     for v in ventas_del_dia:
-        if v.pagos:  # Ventas nuevas con tabla sale_payments
-            for pago in v.pagos:
-                if pago.metodo_pago == 'efectivo':
-                    total_efectivo += pago.monto
-                else:  # nequi, bancolombia, daviplata, transferencia, tarjeta
-                    total_transferencia += pago.monto
-        else:  # Retrocompatibilidad con ventas antiguas
-            if v.metodo_pago == 'efectivo':
-                total_efectivo += v.monto_total
-            elif v.metodo_pago in ['transferencia', 'nequi', 'bancolombia', 'daviplata', 'tarjeta']:
-                total_transferencia += v.monto_total
-    
-    return total_efectivo, total_transferencia
+        if v.pagos:
+            for p in v.pagos:
+                sumar_metodo(p.metodo_pago, p.monto)
+        else:
+            sumar_metodo(v.metodo_pago, v.monto_total)
+
+    for sim in sims_del_dia:
+        sumar_metodo(sim.metodo_pago, sim.precio_venta_real)
+
+    return total_efectivo, total_transferencia, desglose_digital
+
+@arqueo_bp.route('/')
+@login_required
+def index():
+    return redirect(url_for('arqueo_bp.nuevo'))
 
 @arqueo_bp.route('/nuevo', methods=['GET', 'POST'])
 @login_required
 def nuevo():
-    # Obtener fecha de la URL o usar hoy
-    fecha_str = request.args.get('fecha', obtener_hora_bogota().strftime('%Y-%m-%d'))
-    try:
-        fecha_seleccionada = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-    except ValueError:
-        fecha_seleccionada = obtener_hora_bogota().date()
-        fecha_str = fecha_seleccionada.strftime('%Y-%m-%d')
+    hoy = obtener_hora_bogota().date()
+    
+    # REGLA DE SEGURIDAD: El vendedor SOLO puede ver y operar el arqueo del día de hoy
+    if current_user.rol != 'admin':
+        fecha_seleccionada = hoy
+        fecha_str = hoy.strftime('%Y-%m-%d')
+    else:
+        fecha_str = request.args.get('fecha', hoy.strftime('%Y-%m-%d'))
+        try:
+            fecha_seleccionada = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except ValueError:
+            fecha_seleccionada = hoy
+            fecha_str = fecha_seleccionada.strftime('%Y-%m-%d')
 
-    # Calcular ventas del día usando el sistema híbrido (SalePayment + legacy)
+    # Calcular ventas y SIMs del día
     ventas_del_dia = Sale.query.filter(db.func.date(Sale.fecha_venta) == fecha_seleccionada).all()
-    total_efectivo, total_transferencia = calcular_totales_dia(ventas_del_dia)
-
-    # Sumar ventas de SIM Cards del día (caja única y consolidada)
     sims_vendidas = SimCard.query.filter(
         db.func.date(SimCard.fecha_venta) == fecha_seleccionada,
         SimCard.estado == 'Vendida'
     ).all()
-    for sim in sims_vendidas:
-        monto_sim = Decimal(str(sim.precio_venta_real or 0))
-        if sim.metodo_pago == 'efectivo':
-            total_efectivo += monto_sim
-        else:
-            total_transferencia += monto_sim
 
-    # Calcular gastos automáticos del día
+    total_efectivo, total_transferencia, desglose_digital = calcular_totales_y_desglose(ventas_del_dia, sims_vendidas)
+
+    # Calcular gastos automáticos del día y cargar lista detallada
     gastos_diarios_registros = Expense.query.filter(
         db.func.date(Expense.fecha_gasto) == fecha_seleccionada,
         Expense.tipo_gasto == 'Gasto Diario'
-    ).all()
+    ).order_by(Expense.fecha_gasto.asc()).all()
     gastos_automaticos = float(sum(g.monto for g in gastos_diarios_registros))
 
     # Verificar si ya existe un arqueo para esa fecha en el sistema (Caja Única Global)
     arqueo_existente = ArqueoCaja.query.filter_by(fecha_arqueo=fecha_seleccionada).first()
 
     if request.method == 'POST':
+        if arqueo_existente:
+            flash('Este arqueo ya fue cerrado previamente y no puede modificarse.', 'warning')
+            return redirect(url_for('arqueo_bp.nuevo'))
+
         base_inicial = float(request.form.get('base_inicial', 0.0))
         
         # Recalcular gastos automáticos por seguridad en el backend
@@ -111,7 +144,10 @@ def nuevo():
                 f'({perfil_label}) el {fecha_str}.',
                 'success'
             )
-            return redirect(url_for('arqueo_bp.reporte', fecha_inicio=fecha_str, fecha_fin=fecha_str))
+            if current_user.rol == 'admin':
+                return redirect(url_for('arqueo_bp.reporte', fecha_inicio=fecha_str, fecha_fin=fecha_str))
+            else:
+                return redirect(url_for('arqueo_bp.nuevo'))
         except Exception as e:
             db.session.rollback()
             flash('Ocurrió un error al guardar el arqueo de caja.', 'danger')
@@ -126,8 +162,10 @@ def nuevo():
         fecha=fecha_str,
         total_efectivo=total_efectivo,
         total_transferencia=total_transferencia,
+        desglose_digital=desglose_digital,
         arqueo_existente=arqueo_existente,
         gastos_automaticos=gastos_automaticos,
+        gastos_diarios_registros=gastos_diarios_registros,
         ventas_del_dia=ventas_del_dia_ordenadas,
         sims_del_dia=sims_vendidas
     )
@@ -135,6 +173,11 @@ def nuevo():
 @arqueo_bp.route('/reporte', methods=['GET'])
 @login_required
 def reporte():
+    # REGLA DE SEGURIDAD: Los vendedores no tienen acceso al histórico de arqueos ya cerrados
+    if current_user.rol != 'admin':
+        flash('Acceso restringido: Los arqueos ya cerrados solo pueden ser consultados por el Administrador.', 'warning')
+        return redirect(url_for('arqueo_bp.nuevo'))
+
     fecha_inicio_str = request.args.get('fecha_inicio', obtener_hora_bogota().strftime('%Y-%m-%d'))
     fecha_fin_str = request.args.get('fecha_fin', obtener_hora_bogota().strftime('%Y-%m-%d'))
 

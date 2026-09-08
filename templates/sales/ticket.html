@@ -3,24 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket de Compra #{{ venta.id }} - Tekfix Oficial</title>
-    <!-- Incluir solo la fuente base "Roboto Mono" (Letra de ticketera 58mm) -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <title>Ticket de Compra #{{ venta.id }} - Tekfix - Accesorios & Tecnología</title>
+    <!-- Fuentes: Roboto Mono para impresión térmica limpia y Cinzel / Montserrat para marca -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@600;700&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Colores Base Ticket (Papel) */
             --paper-bg: #FFFFFF;
             --paper-text: #1A1A1A;
-            --desktop-bg: #f0f2f5; /* Color claro por defecto */
-            --btn-bg: #1A1A1A;
-            --btn-text: #FFFFFF;
-        }
-
-        /* Detectar Modo Oscuro desde el Body (inyectado por JS) */
-        body.dark-mode {
-            --desktop-bg: #1A1818;
-            --btn-bg: #DDB856;
-            --btn-text: #1A1818;
+            --desktop-bg: #F8F9FA;
+            --tekfix-gold: #C5A059;
+            --tekfix-gold-hover: #DFBA73;
+            --tekfix-border: #EAEAEA;
         }
 
         body {
@@ -30,44 +25,57 @@
             display: flex;
             justify-content: center;
             font-family: 'Roboto Mono', monospace, sans-serif;
-            transition: background-color 0.3s;
+            color: var(--paper-text);
         }
         
         .ticket {
             background-color: var(--paper-bg);
             width: 100%;
-            max-width: 300px; /* Ajustado para impresora térmica 58mm */
-            padding: 20px 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            color: var(--paper-text);
+            max-width: 320px;
+            padding: 24px 18px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--tekfix-border);
+            border-radius: 6px;
             box-sizing: border-box;
-            border-radius: 2px;
         }
 
         .header {
             text-align: center;
             border-bottom: 2px dashed #1A1A1A;
             padding-bottom: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .logo {
-            font-size: 1.8rem; /* Reducido para 58mm */
+            font-family: 'Cinzel', 'Roboto Mono', monospace;
+            font-size: 1.7rem;
             font-weight: 700;
-            margin: 0 0 10px 0;
-            letter-spacing: -1px;
+            margin: 0;
+            letter-spacing: 0.05em;
+            color: var(--paper-text);
+            line-height: 1.1;
+        }
+
+        .descriptor {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            color: var(--tekfix-gold);
+            margin: 4px 0 10px 0;
+            text-transform: uppercase;
         }
 
         .info {
-            font-size: 0.8rem; /* Reducido para 58mm */
-            margin: 2px 0;
+            font-size: 0.8rem;
+            margin: 3px 0;
             line-height: 1.4;
         }
 
         .table-items {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.75rem; /* Reducido para 58mm */
+            font-size: 0.76rem;
             margin-bottom: 15px;
         }
 
@@ -76,72 +84,124 @@
             border-bottom: 1px solid #1A1A1A;
             padding-bottom: 8px;
             font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
         }
 
         .table-items td {
-            padding: 10px 0;
+            padding: 8px 0;
             vertical-align: top;
+            border-bottom: 1px dotted #EAEAEA;
         }
 
-        .col-qty { width: 15%; text-align: center; }
-        .col-prod { width: 55%; padding-right: 10px; }
-        .col-sub { width: 30%; text-align: right; }
+        .col-qty { width: 15%; text-align: center; font-weight: 600; }
+        .col-prod { width: 55%; padding-right: 8px; }
+        .col-sub { width: 30%; text-align: right; font-weight: 600; }
 
         .totals {
             border-top: 2px dashed #1A1A1A;
-            padding-top: 20px;
-            margin-bottom: 25px;
+            padding-top: 15px;
+            margin-bottom: 20px;
         }
 
         .total-row {
             display: flex;
             justify-content: space-between;
-            font-size: 1.2rem; /* Reducido para 58mm */
+            align-items: center;
+            font-size: 1.15rem;
             font-weight: 700;
-            /* Branding Inyectado: Resalte estricto en Azul Turquesa (#A3D8DE) */
-            background-color: #A3D8DE;
+            background-color: rgba(197, 160, 89, 0.12);
+            color: var(--paper-text);
             padding: 10px 12px;
             border-radius: 6px;
-            border: 1px solid #1A1A1A;
+            border: 1.5px solid var(--tekfix-gold);
+        }
+
+        .total-amount {
+            color: var(--tekfix-gold);
+            font-weight: 700;
         }
 
         .footer {
             text-align: center;
-            font-size: 0.85rem;
-            margin-top: 30px;
+            font-size: 0.8rem;
+            margin-top: 25px;
+            line-height: 1.5;
+            color: #5A5A5A;
+        }
+
+        .footer strong {
+            color: var(--paper-text);
         }
 
         .btn-print {
             display: block;
             width: 100%;
-            padding: 15px;
-            background-color: var(--btn-bg);
-            color: var(--btn-text);
-            border: 2px solid var(--btn-bg);
-            font-size: 1.1rem;
-            border-radius: 6px;
-            font-weight: bold;
+            padding: 14px;
+            background-color: var(--tekfix-gold);
+            color: #FFFFFF;
+            border: none;
+            font-size: 0.95rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
             cursor: pointer;
-            margin-top: 30px;
-            font-family: inherit;
-            transition: 0.2s;
+            margin-top: 25px;
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.25);
+            transition: all 0.25s ease;
         }
 
         .btn-print:hover {
-            background-color: #FFFFFF;
-            color: #1A1A1A;
+            background-color: var(--tekfix-gold-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(197, 160, 89, 0.35);
         }
 
-        /* MEDIA QUERY DE IMPRESIÓN RIGUROSA: Las reglas CSS aquí omiten UI inútil al imprimir en papel */
+        /* =========================================================================
+           MEDIA QUERY DE IMPRESIÓN TÉRMICA (58mm / 80mm): 100% MONOCROMÁTICA
+           Evita empastes térmicos, omite colores y fondos grises
+           ========================================================================= */
         @media print {
-            body { background-color: #FFFFFF; padding: 0; display: block; }
-            .ticket { box-shadow: none; max-width: 100%; padding: 0; margin: 0 auto; width: 58mm; border: none; }
-            .btn-print { display: none; }
-            .total-row { background-color: transparent !important; border: none !important; padding: 8px 0 !important; }
-            .total-row * { color: #1A1A1A !important; } /* Desactivar Azul para impresiones monocromas */
+            body { 
+                background-color: #FFFFFF !important; 
+                padding: 0 !important; 
+                margin: 0 !important; 
+                display: block !important; 
+                color: #000000 !important;
+            }
+            .ticket { 
+                box-shadow: none !important; 
+                max-width: 100% !important; 
+                padding: 0 !important; 
+                margin: 0 auto !important; 
+                width: 58mm !important; 
+                border: none !important; 
+                border-radius: 0 !important;
+            }
+            .btn-print { display: none !important; }
+            .descriptor { color: #000000 !important; }
+            .total-row { 
+                background-color: transparent !important; 
+                border-top: 1px dashed #000000 !important; 
+                border-bottom: 1px dashed #000000 !important; 
+                border-left: none !important;
+                border-right: none !important;
+                border-radius: 0 !important;
+                padding: 8px 0 !important; 
+                color: #000000 !important;
+            }
+            .total-row * { 
+                color: #000000 !important; 
+            }
+            .table-items td {
+                border-bottom: 1px dotted #000000 !important;
+            }
         }
 
-        /* MODO SILENCIOSO (SOLO APERTURA DE CAJÓN) */
+        /* MODO SILENCIOSO (Apertura de cajón) */
         @page {
             margin: 0 !important;
         }
@@ -164,7 +224,8 @@
 
 <div class="ticket">
     <div class="header">
-        <h1 class="logo">Tekfix Oficial</h1>
+        <h1 class="logo">TEKFIX</h1>
+        <p class="descriptor">ACCESORIOS & TECNOLOGÍA</p>
         <p class="info">Folio / Ticket: #{{ venta.id }}</p>
         <p class="info">Expedido: {{ venta.fecha_venta.strftime('%d/%m/%Y %H:%M') }}</p>
         <p class="info">Cajero Asignado: {{ venta.vendedor.nombre }}</p>
@@ -191,7 +252,6 @@
             {% for detalle in venta.detalles %}
             <tr>
                 <td class="col-qty">{{ detalle.cantidad_vendida }}</td>
-                <!-- Cortar la longitud del título si es gigantesco para no descuadrar la ticketera -->
                 <td class="col-prod">
                     {% if detalle.nombre_manual %}
                         {{ detalle.nombre_manual[:20] }}{% if detalle.nombre_manual|length > 20 %}...{% endif %}
@@ -218,17 +278,29 @@
         {% for sim in venta.sims_vendidas %}
             {% set ns.total_sims = ns.total_sims + sim.precio_venta_real %}
         {% endfor %}
-        <div class="total-row">
+
+        {% if venta.comision_tarjeta and venta.comision_tarjeta > 0 %}
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 3px 0; color: #555;">
+            <span>Subtotal Productos:</span>
+            <span style="font-weight: 600;">${{ (venta.monto_total - venta.comision_tarjeta + ns.total_sims)|cop }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 3px 0; color: #b8860b; font-weight: 600;">
+            <span>⚡ Comisión Tarjeta / Bolt (5%):</span>
+            <span>+${{ (venta.comision_tarjeta)|cop }}</span>
+        </div>
+        {% endif %}
+
+        <div class="total-row" style="{% if venta.comision_tarjeta and venta.comision_tarjeta > 0 %}margin-top: 8px;{% endif %}">
             <span>TOTAL:</span>
-            <span>${{ (venta.monto_total + ns.total_sims)|cop }}</span>
+            <span class="total-amount">${{ (venta.monto_total + ns.total_sims)|cop }}</span>
         </div>
         
         {% if venta.pagos|length > 1 %}
         <!-- Desglose de pagos mixtos -->
         <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc;">
-            <p style="font-weight: 700; font-size: 0.9rem; margin-bottom: 8px; text-align: center;">DESGLOSE DE PAGOS:</p>
+            <p style="font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; text-align: center; font-family: 'Montserrat', sans-serif;">DESGLOSE DE PAGOS:</p>
             {% for pago in venta.pagos %}
-            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 3px 0;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; padding: 3px 0;">
                 <span style="text-transform: capitalize;">{{ pago.metodo_pago }}:</span>
                 <span style="font-weight: 700;">${{ (pago.monto)|cop }}</span>
             </div>
@@ -238,20 +310,18 @@
     </div>
 
     <div class="footer">
-        <p style="font-size: 0.9rem; font-weight: bold;">¡Gracias por tu compra!</p>
-        <p style="font-size: 0.75rem;">Políticas: Devoluciones únicamente presentando ticket impreso o digital.</p>
-        <p style="font-size: 0.75rem;">Soporte: ventas@Tekfix Oficial</p>
+        <p style="font-weight: bold; margin-bottom: 5px;">¡Gracias por tu compra!</p>
+        <p style="margin: 2px 0;">Políticas: Devoluciones únicamente presentando ticket impreso o digital.</p>
+        <p style="margin: 2px 0;">Tekfix - Accesorios & Tecnología</p>
     </div>
 
     <button class="btn-print" onclick="window.print()">
-        [ IMPRIMIR TICKET ]
+        Imprimir Ticket
     </button>
 </div>
 
 <script>
-    // Lógica de Auto-Impresión y Sincronización de Tema
     (function() {
-        // Detectar modo silencioso (solo apertura)
         const urlParams = new URLSearchParams(window.location.search);
         const isSilent = urlParams.get('silent') === '1';
         
@@ -259,18 +329,11 @@
             document.body.classList.add('silent-mode');
         }
 
-        const theme = localStorage.getItem('theme');
-        if (theme === 'dark' && !isSilent) {
-            document.body.classList.add('dark-mode');
-        }
-
-        // Evento silencioso que detona el pop-up de impresora nativo de Windows al renderizar
         window.onload = function() {
             const delay = isSilent ? 100 : 700;
             setTimeout(() => {
                 window.print();
                 if (isSilent) {
-                    // Cerrar la ventana inmediatamente después de mandar el pulso en modo silencioso
                     setTimeout(() => { window.close(); }, 500);
                 }
             }, delay);

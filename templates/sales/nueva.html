@@ -11,15 +11,15 @@
     <div class="col-lg-8 mb-4">
         
         <!-- Panel de Escaneo -->
-        <div class="card card-custom p-4 mb-4">
+        <div class="card card-custom p-4 mb-4" id="panel_escaneo_card" style="position: relative; z-index: 20; overflow: visible !important;">
             <label class="form-label fw-bold text-tekfix-main">Buscar o Escanear Código</label>
             <div class="d-flex gap-2">
-                <div class="input-group input-group-lg shadow-sm border-0 rounded-3 flex-grow-1 position-relative">
+                <div class="input-group input-group-lg shadow-sm border-0 rounded-3 flex-grow-1 position-relative" style="z-index: 2;">
                     <span class="input-group-text bg-tekfix-card border-0" style="border-radius: 12px 0 0 12px;"><i class="fa-solid fa-barcode text-tekfix-sec"></i></span>
                     <input type="text" class="form-control border-0" id="sku_input" placeholder="Buscar por nombre o SKU..." autofocus autocomplete="off">
-                    <!-- Contenedor Resultados Autocomplete -->
-                    <div id="autocomplete-results" class="position-absolute w-100 shadow-lg border d-none" 
-                         style="top: 100%; left: 0; z-index: 1050; background: var(--tekfix-card-bg); border-radius: 0 0 12px 12px; max-height: 350px; overflow-y: auto; border-color: var(--tekfix-border) !important;">
+                    <!-- Contenedor Resultados Autocomplete (Tabla de Búsqueda) -->
+                    <div id="autocomplete-results" class="position-absolute shadow-lg border d-none" 
+                         style="top: calc(100% + 4px); left: 0; width: 100%; z-index: 100 !important; background: #FFFFFF !important; border-radius: 0 0 14px 14px; max-height: 440px; overflow-y: auto; border-color: var(--tekfix-primary) !important; box-shadow: 0 20px 48px rgba(0,0,0,0.25) !important;">
                     </div>
                     <!-- Botón Secundario Rosa Pastel -->
                     <button class="btn btn-tekfix px-4" type="button" id="btn_add_product" style="border-radius: 0 12px 12px 0;">
@@ -33,7 +33,7 @@
         </div>
 
         <!-- Tabla Carrito de Compras -->
-        <div class="card card-custom p-0 overflow-hidden">
+        <div class="card card-custom p-0 overflow-hidden" id="panel_carrito_card" style="position: relative; z-index: 1;">
             <div class="table-responsive">
                 <table class="table table-custom mb-0 align-middle">
                     <thead class="bg-tekfix-card">
@@ -63,59 +63,140 @@
 
     <!-- Panel Vertical Cobro Total -->
     <div class="col-lg-4">
-        <div class="card card-custom p-4 position-sticky" style="top: 100px;">
-            <h4 class="fw-bold text-tekfix-main mb-4 pb-3 border-bottom">Balance</h4>
-            
-            <div class="d-flex justify-content-between mb-3">
-                <span class="text-tekfix-sec fw-bold">Unidades Totales:</span>
-                <span class="fw-bold fs-5" id="total_items">0</span>
-            </div>
-            
-            <div class="d-flex justify-content-between mb-4">
-                <span class="text-tekfix-sec fw-bold align-self-center">Total a Cobrar:</span>
-                <span class="fw-bolder fs-1 text-tekfix-main" id="total_amount">$0</span>
+        <div class="card card-custom p-4 position-sticky" style="top: 100px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
+            <!-- Encabezado Balance -->
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-cart-shopping fs-5 text-dark"></i>
+                    <h4 class="fw-bold text-dark m-0" style="font-family: 'Montserrat', sans-serif;">Balance</h4>
+                </div>
+                <span class="badge rounded-pill fw-semibold" id="badge_items_count" style="background: #64748b; color: white; font-size: 0.78rem; padding: 6px 14px;">0 items</span>
+                <span class="d-none" id="total_items">0</span>
             </div>
 
-            {% if current_user.rol == 'admin' %}
-            <!-- Selector de Fecha de Venta (colapsable) exclusivo para Admin -->
+            <!-- Estado Vacío Carrito -->
+            <div id="balance_empty_cart" class="text-center py-4 my-2">
+                <div class="mb-2" style="font-size: 2.8rem; color: #94a3b8; opacity: 0.7;">
+                    <i class="fa-solid fa-basket-shopping"></i>
+                </div>
+                <div class="text-secondary small fw-semibold">Tu carrito está vacío.</div>
+            </div>
+
+            <!-- Tarjeta Total a Cobrar -->
+            <div class="card border-0 mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0 !important; border-radius: 14px; padding: 18px 20px;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-secondary fw-bold" style="font-size: 0.82rem; letter-spacing: 0.05em;">TOTAL A COBRAR:</span>
+                        <div id="comision_badge_info" style="display:none;" class="small fw-bold mt-1 text-warning">
+                            <i class="fa-solid fa-bolt me-1"></i>Incluye 5% comisión (<span id="comision_badge_monto">+$0</span>)
+                        </div>
+                    </div>
+                    <span class="fw-bolder text-dark" style="font-size: 2.1rem; font-weight: 800; font-family: 'Montserrat', sans-serif;" id="total_amount">$0</span>
+                </div>
+            </div>
+
+            <!-- Fecha de Venta -->
             <div class="mb-3">
-                <div class="d-flex align-items-center justify-content-between">
-                    <small class="text-tekfix-sec fw-semibold"><i class="fa-regular fa-calendar me-1"></i> Fecha de Venta:</small>
-                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" id="btn_toggle_fecha" onclick="toggleFechaVenta()">
-                        <span id="fecha_display_label" class="badge bg-tekfix-card text-tekfix-main border rounded-pill px-3 py-1" style="font-size: 0.8rem; cursor: pointer;">
-                            📅 Hoy
-                        </span>
+                <label class="form-label text-dark fw-bold small mb-1" for="fecha_venta_input">
+                    <i class="fa-regular fa-calendar me-1"></i> Fecha de Venta:
+                </label>
+                <div class="input-group">
+                    <input type="date" id="fecha_venta_input" class="form-control fw-semibold" style="border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem; padding: 7px 12px; background: #ffffff;">
+                </div>
+            </div>
+
+            <!-- Método de Pago Header + Switch Dividir Pago -->
+            <div class="d-flex align-items-center justify-content-between mb-2 mt-1">
+                <label class="form-label fw-bold text-dark small text-uppercase m-0" style="letter-spacing: 0.05em;">MÉTODO DE PAGO</label>
+                <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                    <input class="form-check-input" type="checkbox" id="toggle_pago_mixto" style="cursor: pointer; width: 2.6rem; height: 1.35rem;">
+                    <label class="form-check-label fw-bold small text-secondary" for="toggle_pago_mixto" style="cursor: pointer; font-size: 0.85rem;">Dividir Pago</label>
+                </div>
+            </div>
+
+            <!-- Selector 5 Métodos de Pago Segmentados (Pago Único) -->
+            <div id="pago_unico_section">
+                <!-- Select oculto para mantener compatibilidad -->
+                <select id="metodo-pago" class="d-none">
+                    <option value="efectivo" selected>efectivo</option>
+                    <option value="nequi">nequi</option>
+                    <option value="bancolombia">bancolombia</option>
+                    <option value="daviplata">daviplata</option>
+                    <option value="tarjeta">tarjeta</option>
+                </select>
+
+                <!-- 5 Botones Segmentados idénticos a la imagen -->
+                <div class="pay-methods-grid mb-3">
+                    <button type="button" class="pay-method-btn active" data-method="efectivo" onclick="seleccionarMetodo('efectivo')">
+                        <i class="fa-solid fa-money-bill-wave text-success fs-5"></i>
+                        <span>Efectivo</span>
+                    </button>
+                    <button type="button" class="pay-method-btn" data-method="nequi" onclick="seleccionarMetodo('nequi')">
+                        <i class="fa-solid fa-qrcode fs-5" style="color: #7c3aed;"></i>
+                        <span>Nequi</span>
+                    </button>
+                    <button type="button" class="pay-method-btn" data-method="bancolombia" onclick="seleccionarMetodo('bancolombia')">
+                        <i class="fa-solid fa-building-columns fs-5" style="color: #2563eb;"></i>
+                        <span>Bancolombia</span>
+                    </button>
+                    <button type="button" class="pay-method-btn" data-method="daviplata" onclick="seleccionarMetodo('daviplata')">
+                        <i class="fa-solid fa-mobile-screen fs-5" style="color: #dc2626;"></i>
+                        <span>Daviplata</span>
+                    </button>
+                    <button type="button" class="pay-method-btn" data-method="tarjeta" onclick="seleccionarMetodo('tarjeta')">
+                        <i class="fa-solid fa-bolt fs-5" style="color: #f59e0b;"></i>
+                        <span>Bolt</span>
                     </button>
                 </div>
-                <div id="fecha_venta_container" style="display: none; margin-top: 8px;">
-                    <input type="date" id="fecha_venta_input" class="form-control form-control-sm" value="">
-                    <small class="form-text text-tekfix-sec"><i class="fa-solid fa-circle-info text-primary me-1"></i>Cambia la fecha para registrar ventas de días anteriores.</small>
-                </div>
             </div>
-            {% endif %}
 
-            <hr class="mb-4">
-
-            <!-- Toggle: Pago Único vs Pago Dividido -->
-            <div class="mb-3">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <label class="form-label fw-bold text-tekfix-main small text-uppercase m-0">Método de Pago</label>
-                    <div class="form-check form-switch ms-auto">
-                        <input class="form-check-input" type="checkbox" id="toggle_pago_mixto" style="cursor: pointer; width: 3rem; height: 1.5rem;">
-                        <label class="form-check-label fw-bold small text-tekfix-sec" for="toggle_pago_mixto" style="cursor: pointer;">Dividir Pago</label>
+            <!-- Botón Dinámico Comisión 5% (Solo se activa con Tarjeta / Bolt) -->
+            <div id="card_commission_box" class="card border-0 p-3 mb-3 shadow-sm" style="display: none; background: linear-gradient(135deg, rgba(197, 160, 89, 0.12) 0%, rgba(197, 160, 89, 0.04) 100%); border: 1.5px dashed var(--tekfix-primary) !important; border-radius: 12px;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: var(--tekfix-primary); color: white;">
+                            <i class="fa-solid fa-bolt fs-6"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size: 0.85rem;">Comisión Tarjeta / Bolt (+5%)</div>
+                            <small class="text-secondary" style="font-size: 0.72rem;">Recargo por pago con datáfono</small>
+                        </div>
+                    </div>
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" id="btn_toggle_comision" onchange="toggleComisionTarjeta()" style="cursor: pointer; width: 2.8rem; height: 1.4rem;">
                     </div>
                 </div>
+                <div id="comision_desglose" class="mt-2 pt-2 border-top d-flex justify-content-between text-secondary small" style="display: none !important;">
+                    <span>Comisión 5% agregada:</span>
+                    <span class="fw-bold text-dark" id="comision_amount_text">+$0</span>
+                </div>
             </div>
 
-            <!-- Modo 1: Pago Único (por defecto) -->
-            <div id="pago_unico_section">
-                <select id="metodo-pago" class="form-select form-select-lg border-0 shadow-sm bg-tekfix-card mb-3" style="cursor: pointer;">
-                    <option value="efectivo">💵 Efectivo</option>
-                    <option value="nequi">📱 Nequi</option>
-                    <option value="bancolombia">🏦 Bancolombia</option>
-                    <option value="daviplata">📱 Daviplata</option>
-                    <option value="tarjeta">💳 Tarjeta</option>
-                </select>
+            <!-- Calculadora de Efectivo (Monto Recibido y Vueltas) -->
+            <div id="seccion_calculadora_efectivo" class="card border-0 mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0 !important; border-radius: 14px; padding: 16px;">
+                <label class="form-label text-secondary fw-bold small text-uppercase mb-2" style="letter-spacing: 0.05em;">MONTO RECIBIDO</label>
+                
+                <div class="input-group mb-3 shadow-sm" style="border-radius: 10px; overflow: hidden; border: 1px solid #cbd5e1;">
+                    <span class="input-group-text bg-white border-0 fw-bold text-dark ps-3" style="font-size: 1.15rem;">$</span>
+                    <input type="number" id="monto_recibido_input" class="form-control border-0 fw-bold fs-5 text-dark" placeholder="0" step="100" min="0" style="background: white;" oninput="calcularCambio()">
+                </div>
+
+                <!-- Botones rápidos de incremento -->
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button type="button" class="btn btn-sm btn-quick-cash" onclick="agregarMontoRecibido(2000)">+2k</button>
+                    <button type="button" class="btn btn-sm btn-quick-cash" onclick="agregarMontoRecibido(5000)">+5k</button>
+                    <button type="button" class="btn btn-sm btn-quick-cash" onclick="agregarMontoRecibido(10000)">+10k</button>
+                    <button type="button" class="btn btn-sm btn-quick-cash" onclick="agregarMontoRecibido(20000)">+20k</button>
+                    <button type="button" class="btn btn-sm btn-quick-cash" onclick="agregarMontoRecibido(50000)">+50k</button>
+                    <button type="button" class="btn btn-sm btn-quick-cash" onclick="agregarMontoRecibido(100000)">+100k</button>
+                    <button type="button" class="btn btn-sm btn-quick-exact" onclick="fijarMontoExacto()">Exacto</button>
+                </div>
+
+                <!-- Cambio / Vueltas -->
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                    <span class="text-secondary fw-bold" style="font-size: 0.9rem;">Cambio / Vueltas:</span>
+                    <span class="fw-bolder fs-4" id="cambio_vueltas_txt" style="color: #059669;">$0</span>
+                </div>
             </div>
 
             <!-- Modo 2: Pago Dividido/Mixto (oculto por defecto) -->
@@ -128,7 +209,7 @@
                     </div>
                     <!-- Barra de progreso visual -->
                     <div class="progress mt-2" style="height: 6px; border-radius: 10px; background-color: var(--tekfix-border);">
-                        <div class="progress-bar" id="barra_progreso_pago" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #DDB856, #F9E491); border-radius: 10px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar" id="barra_progreso_pago" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #C5A059, #DFBA73); border-radius: 10px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                 </div>
 
@@ -142,19 +223,19 @@
                 </button>
             </div>
 
-            <div class="form-check mb-3 mt-4">
-                <input class="form-check-input" type="checkbox" id="imprimir_ticket" checked style="cursor: pointer; width: 1.5rem; height: 1.5rem;">
-                <label class="form-check-label fw-bold text-tekfix-sec ms-2" for="imprimir_ticket" style="cursor: pointer; position: relative; top: 3px;">
+            <div class="form-check mb-3 mt-2">
+                <input class="form-check-input" type="checkbox" id="imprimir_ticket" checked style="cursor: pointer; width: 1.3rem; height: 1.3rem;">
+                <label class="form-check-label fw-bold text-secondary ms-2 small" for="imprimir_ticket" style="cursor: pointer; position: relative; top: 1px;">
                     <i class="fa-solid fa-print me-1"></i> Imprimir Recibo / Abrir Cajón
                 </label>
             </div>
 
-            <!-- Botón de Cobro Masivo Azul Turquesa -->
-            <div class="d-grid gap-2 mt-2">
-                <button type="button" class="btn btn-tekfix-secondary btn-lg rounded-3 py-3 shadow-sm text-uppercase" id="btn_process_sale">
-                    <i class="fa-solid fa-credit-card me-2"></i> Procesar Cobro
+            <!-- Botones de Acción -->
+            <div class="d-grid gap-2 mt-1">
+                <button type="button" class="btn btn-lg rounded-3 py-3 shadow-sm text-uppercase fw-bold" id="btn_process_sale" style="background: linear-gradient(135deg, #C5A059 0%, #DFBA73 100%); color: #1A1A1A; border: none; font-size: 0.95rem; letter-spacing: 0.05em;">
+                    <i class="fa-solid fa-circle-check me-2"></i> Procesar Cobro
                 </button>
-                <button type="button" class="btn btn-outline-secondary mt-2 fw-bold" id="btn_clear_cart">
+                <button type="button" class="btn btn-outline-secondary fw-semibold py-2" id="btn_clear_cart" style="border-radius: 8px; font-size: 0.85rem;">
                     Limpiar Venta
                 </button>
             </div>
@@ -162,8 +243,75 @@
     </div>
 </div>
 
-<!-- Estilos para animaciones del pago mixto -->
+<!-- Estilos para el nuevo diseño de caja -->
 <style>
+    .pay-methods-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+    .pay-method-btn {
+        border: none;
+        border-right: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #334155;
+        padding: 9px 3px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+    }
+    .pay-method-btn:last-child {
+        border-right: none;
+    }
+    .pay-method-btn:hover {
+        background: #f8fafc;
+    }
+    .pay-method-btn.active {
+        background: #5c6779 !important;
+        color: #ffffff !important;
+    }
+    .pay-method-btn.active i {
+        color: #ffffff !important;
+    }
+    .btn-quick-cash {
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        color: #334155;
+        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 4px 10px;
+        border-radius: 8px;
+        transition: all 0.15s ease-in-out;
+    }
+    .btn-quick-cash:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+        color: #0f172a;
+    }
+    .btn-quick-exact {
+        background: #e0f2fe;
+        border: 1px solid #7dd3fc;
+        color: #0369a1;
+        font-weight: 700;
+        font-size: 0.8rem;
+        padding: 4px 12px;
+        border-radius: 8px;
+        transition: all 0.15s ease-in-out;
+    }
+    .btn-quick-exact:hover {
+        background: #bae6fd;
+        border-color: #38bdf8;
+        color: #075985;
+    }
     #pago_mixto_section .pago-item {
         animation: slideDown 0.25s ease-out;
     }
@@ -279,17 +427,33 @@
         }
     });
 
-    // --- LÓGICA DE BÚSQUEDA ASÍNCRONA (AUTOCOMPLETE) ---
+    // --- LÓGICA DE BÚSQUEDA ASÍNCRONA (AUTOCOMPLETE & TABLA DE RESULTADOS) ---
     const skuInput = document.getElementById('sku_input');
     const resultsContainer = document.getElementById('autocomplete-results');
     let searchTimeout;
+    let currentSearchResults = [];
+    let highlightedResultIndex = -1;
+
+    // Resaltado seguro de caracteres coincidentes
+    function resaltarCoincidencia(texto, query) {
+        if (!texto || !query) return texto || '';
+        try {
+            const cleanQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${cleanQuery})`, 'gi');
+            return texto.replace(regex, '<mark class="p-0 fw-bold" style="background: rgba(221,184,86,0.38); color: inherit; border-radius: 2px;">$1</mark>');
+        } catch (e) {
+            return texto;
+        }
+    }
 
     skuInput.addEventListener('input', function() {
         clearTimeout(searchTimeout);
         const query = this.value.trim();
 
-        if (query.length < 1) { // Cambiado a 1 para mayor rapidez
+        if (query.length < 1) {
             resultsContainer.classList.add('d-none');
+            currentSearchResults = [];
+            highlightedResultIndex = -1;
             return;
         }
 
@@ -297,39 +461,184 @@
             try {
                 const res = await fetch(`/sales/api/productos/search?q=${encodeURIComponent(query)}`);
                 const data = await res.json();
+                currentSearchResults = data;
+                highlightedResultIndex = -1;
 
                 if (data.length > 0) {
-                    renderSearchResults(data);
+                    renderSearchResults(data, query);
                     resultsContainer.classList.remove('d-none');
                 } else {
-                    resultsContainer.classList.add('d-none');
+                    resultsContainer.innerHTML = `
+                        <div class="text-center py-4 text-muted bg-tekfix-card" style="border-radius: 0 0 14px 14px;">
+                            <i class="fa-solid fa-magnifying-glass me-2 text-tekfix-primary opacity-50 fs-5 mb-2 d-block"></i>
+                            No se encontraron productos coincidentes con "<strong>${query}</strong>"
+                        </div>`;
+                    resultsContainer.classList.remove('d-none');
                 }
             } catch (e) {
                 console.error("Error en búsqueda:", e);
             }
-        }, 150); // Reducido a 150ms para respuesta casi instantánea
+        }, 120);
     });
 
-    function renderSearchResults(products) {
-        resultsContainer.innerHTML = products.map(p => `
-            <div class="search-result-item p-3 border-bottom d-flex justify-content-between align-items-center cursor-pointer" 
-                 style="cursor: pointer; transition: background 0.2s;"
-                 onclick="seleccionarProducto('${p.sku}')"
-                 onmouseover="this.style.background='rgba(221, 184, 86, 0.1)'"
-                 onmouseout="this.style.background='transparent'">
-                <div class="d-flex flex-column">
-                    <span class="fw-bold text-tekfix-main">${p.nombre}</span>
-                    <small class="text-tekfix-sec">${p.sku} • Stock: ${p.stock}</small>
+    // Control de navegación por teclado en la tabla de búsqueda
+    skuInput.addEventListener('keydown', function(e) {
+        if (resultsContainer.classList.contains('d-none') || currentSearchResults.length === 0) {
+            return;
+        }
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            highlightedResultIndex = (highlightedResultIndex + 1) % currentSearchResults.length;
+            actualizarFilaSeleccionada();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            highlightedResultIndex = (highlightedResultIndex - 1 + currentSearchResults.length) % currentSearchResults.length;
+            actualizarFilaSeleccionada();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (highlightedResultIndex >= 0 && highlightedResultIndex < currentSearchResults.length) {
+                seleccionarProducto(currentSearchResults[highlightedResultIndex].sku);
+            } else if (currentSearchResults.length > 0) {
+                seleccionarProducto(currentSearchResults[0].sku);
+            } else {
+                buscarYAgregarProducto();
+            }
+        } else if (e.key === 'Escape') {
+            resultsContainer.classList.add('d-none');
+            highlightedResultIndex = -1;
+        }
+    });
+
+    function actualizarFilaSeleccionada() {
+        const rows = resultsContainer.querySelectorAll('.search-result-row');
+        rows.forEach((row, idx) => {
+            if (idx === highlightedResultIndex) {
+                row.classList.add('row-highlighted');
+                row.style.background = 'rgba(221, 184, 86, 0.16)';
+                row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            } else {
+                row.classList.remove('row-highlighted');
+                row.style.background = '';
+            }
+        });
+    }
+
+    function renderSearchResults(products, query) {
+        let rowsHtml = products.map((p, index) => {
+            // Badges de Stock prominentes antes de la selección
+            let stockBadge = '';
+            if (p.stock > 5) {
+                stockBadge = `
+                    <span class="badge rounded-pill px-3 py-1 fw-bold" 
+                          style="background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.82rem;">
+                        <i class="fa-solid fa-boxes-stacked me-1"></i>${p.stock} unid.
+                    </span>`;
+            } else if (p.stock > 0) {
+                stockBadge = `
+                    <span class="badge rounded-pill px-3 py-1 fw-bold" 
+                          style="background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.82rem;">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i>${p.stock} unid. (Bajo)
+                    </span>`;
+            } else {
+                stockBadge = `
+                    <span class="badge rounded-pill px-3 py-1 fw-bold" 
+                          style="background: rgba(239, 68, 68, 0.12); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.82rem;">
+                        <i class="fa-solid fa-ban me-1"></i>Sin stock (0)
+                    </span>`;
+            }
+
+            // Desglose de subcategorías / variantes con stock previo a la selección
+            let variantesHtml = '';
+            if (p.variantes && p.variantes.length > 0) {
+                variantesHtml = `
+                    <div class="d-flex flex-wrap gap-1 mt-1 align-items-center">
+                        <span class="text-secondary small me-1" style="font-size: 0.72rem; font-weight: 600;">
+                            <i class="fa-solid fa-layer-group me-1 text-tekfix-sec"></i>Subcategorías:
+                        </span>
+                        ${p.variantes.map(v => `
+                            <span class="badge ${v.stock > 0 ? 'bg-white text-dark border' : 'bg-light text-muted border text-decoration-line-through'}" 
+                                  style="font-size: 0.71rem; padding: 2px 7px; cursor: pointer; transition: all 0.2s;"
+                                  title="Clic para agregar variante ${v.nombre}"
+                                  onmouseover="this.style.borderColor='var(--tekfix-primary)'; this.style.transform='scale(1.05)';"
+                                  onmouseout="this.style.borderColor=''; this.style.transform='scale(1)';"
+                                  onclick="event.stopPropagation(); seleccionarProductoConVariante('${p.sku}', ${v.id})">
+                                ${resaltarCoincidencia(v.nombre, query)}: <strong class="${v.stock > 0 ? 'text-success' : 'text-danger'}">${v.stock}</strong>
+                            </span>
+                        `).join('')}
+                    </div>`;
+            }
+
+            return `
+                <tr class="search-result-row align-middle border-bottom" 
+                    data-sku="${p.sku}" 
+                    data-index="${index}"
+                    style="cursor: pointer; background: #FFFFFF !important; transition: background 0.15s ease;"
+                    onclick="seleccionarProducto('${p.sku}')"
+                    onmouseenter="highlightedResultIndex = ${index}; actualizarFilaSeleccionada();">
+                    <td class="ps-3 py-2" style="background: inherit !important;">
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold text-tekfix-main" style="font-size: 0.95rem; line-height: 1.25;">
+                                ${resaltarCoincidencia(p.nombre, query)}
+                            </span>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <span class="badge bg-light text-secondary border fw-medium" style="font-size: 0.72rem; font-family: var(--font-mono);">
+                                    <i class="fa-solid fa-barcode me-1 text-tekfix-sec"></i>${resaltarCoincidencia(p.sku, query)}
+                                </span>
+                                ${p.es_sim ? '<span class="badge rounded-pill" style="background:#0284c7; color:white; font-size:0.68rem;"><i class="fa-solid fa-sim-card me-1"></i>SIM Card</span>' : ''}
+                            </div>
+                            ${variantesHtml}
+                        </div>
+                    </td>
+                    <td class="text-center py-2 text-nowrap" style="width: 140px; background: inherit !important;">
+                        ${stockBadge}
+                    </td>
+                    <td class="text-end pe-3 py-2 text-nowrap" style="width: 130px; background: inherit !important;">
+                        <span class="fw-bold text-tekfix-primary" style="font-family: 'Montserrat', sans-serif; font-size: 1rem;">
+                            ${formatoCOP(p.precio_sugerido)}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        resultsContainer.innerHTML = `
+            <div class="search-table-wrapper" style="background: #FFFFFF !important; border-radius: 0 0 14px 14px; overflow: hidden;">
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom" 
+                     style="background: #FFFDF5 !important; font-size: 0.73rem; font-weight: 700; letter-spacing: 0.05em; color: var(--tekfix-primary); text-transform: uppercase;">
+                    <span><i class="fa-solid fa-bolt me-1"></i> ${products.length} Resultado${products.length > 1 ? 's' : ''} encontrado${products.length > 1 ? 's' : ''} (priorizando iniciales)</span>
+                    <span class="text-secondary fw-normal" style="text-transform: none;">
+                        Navega con <kbd class="px-1 py-0 bg-white border text-dark">↑</kbd> <kbd class="px-1 py-0 bg-white border text-dark">↓</kbd> y <kbd class="px-1 py-0 bg-white border text-dark">Enter</kbd>
+                    </span>
                 </div>
-                <span class="fw-bold text-tekfix-primary">$${new Intl.NumberFormat('es-CO').format(p.precio_sugerido)}</span>
+                <div class="table-responsive m-0" style="background: #FFFFFF !important; max-height: 380px; overflow-y: auto;">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem; background: #FFFFFF !important;">
+                        <thead style="background: #FAF8F2 !important; border-bottom: 2px solid var(--tekfix-primary); font-size: 0.70rem; letter-spacing: 0.06em; text-transform: uppercase; color: #1A1A1A; position: sticky; top: 0; z-index: 10;">
+                            <tr>
+                                <th class="ps-3 py-2" style="background: #FAF8F2 !important;">Producto & Referencia</th>
+                                <th class="text-center py-2" style="width: 140px; background: #FAF8F2 !important;">Stock Disponible</th>
+                                <th class="text-end pe-3 py-2" style="width: 130px; background: #FAF8F2 !important;">Precio PVP</th>
+                            </tr>
+                        </thead>
+                        <tbody style="background: #FFFFFF !important;">
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        `).join('');
+        `;
     }
 
     window.seleccionarProducto = function(sku) {
         skuInput.value = sku;
         resultsContainer.classList.add('d-none');
-        buscarYAgregarProducto(); // Corregido: Llama a la función correcta
+        buscarYAgregarProducto();
+    };
+
+    window.seleccionarProductoConVariante = function(sku, variantId) {
+        skuInput.value = sku;
+        resultsContainer.classList.add('d-none');
+        buscarYAgregarProducto(variantId);
     };
 
     // Cerrar autocomplete si se hace clic fuera
@@ -339,10 +648,21 @@
         }
     });
 
-    // Inicializar fecha de venta con la fecha de hoy (Solo Admin)
-    (function() {
+    // Cerrar autocomplete si se abre cualquier modal
+    document.querySelectorAll('.modal').forEach(m => {
+        m.addEventListener('show.bs.modal', () => {
+            if (resultsContainer) resultsContainer.classList.add('d-none');
+        });
+    });
+
+    // --- ESTADO GLOBAL DE CAJA ---
+    let metodoActual = 'efectivo';
+    let comisionTarjetaActiva = false;
+
+    // Inicializar fecha de venta con la fecha de hoy
+    (function initFechaVenta() {
         const fechaInput = document.getElementById('fecha_venta_input');
-        if (!fechaInput) return; // Si no es admin, no existe en el DOM
+        if (!fechaInput) return;
         
         const hoy = new Date();
         const yyyy = hoy.getFullYear();
@@ -351,58 +671,39 @@
         
         fechaInput.value = `${yyyy}-${mm}-${dd}`;
         fechaInput.max = `${yyyy}-${mm}-${dd}`; // No permitir fechas futuras
-        fechaInput.addEventListener('change', actualizarLabelFecha);
     })();
 
-    function toggleFechaVenta() {
-        const container = document.getElementById('fecha_venta_container');
-        if (container) {
-            container.style.display = container.style.display === 'none' ? 'block' : 'none';
-        }
-    }
-
-    function actualizarLabelFecha() {
-        const fechaInput = document.getElementById('fecha_venta_input');
-        const label = document.getElementById('fecha_display_label');
-        if (!fechaInput || !label) return;
-
-        const hoy = new Date();
-        const yyyy = hoy.getFullYear();
-        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-        const dd = String(hoy.getDate()).padStart(2, '0');
-        const hoyStr = `${yyyy}-${mm}-${dd}`;
-
-        if (fechaInput.value === hoyStr || !fechaInput.value) {
-            label.innerHTML = '📅 Hoy';
-            label.className = 'badge bg-tekfix-card text-tekfix-main border rounded-pill px-3 py-1';
-        } else {
-            const partes = fechaInput.value.split('-');
-            const fechaFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-            label.innerHTML = `⚠️ ${fechaFormateada}`;
-            label.className = 'badge bg-warning bg-opacity-25 text-tekfix-main border border-warning rounded-pill px-3 py-1';
-        }
-    }
     const METODOS_DISPONIBLES = [
         { value: 'efectivo', label: '💵 Efectivo' },
         { value: 'nequi', label: '📱 Nequi' },
         { value: 'bancolombia', label: '🏦 Bancolombia' },
         { value: 'daviplata', label: '📱 Daviplata' },
-        { value: 'tarjeta', label: '💳 Tarjeta' }
+        { value: 'tarjeta', label: '⚡ Bolt (Tarjeta)' }
     ];
 
     // Capturar el ESCANER ("Enter" en el teclado sin enviar un formulario)
     document.getElementById('sku_input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            buscarYAgregarProducto();
+            // Si el autocomplete está oculto o sin resultados, ejecutar búsqueda directa por SKU
+            if (resultsContainer.classList.contains('d-none') || currentSearchResults.length === 0) {
+                buscarYAgregarProducto();
+            }
         }
     });
 
     document.getElementById('btn_add_product').addEventListener('click', buscarYAgregarProducto);
     document.getElementById('btn_clear_cart').addEventListener('click', () => {
         carrito = [];
+        pagosMixtos = [];
+        comisionTarjetaActiva = false;
+        const toggleCom = document.getElementById('btn_toggle_comision');
+        if (toggleCom) toggleCom.checked = false;
+        const inputMonto = document.getElementById('monto_recibido_input');
+        if (inputMonto) inputMonto.value = '';
         renderizarCarrito();
         resetPagosMixtos();
+        actualizarTotalesUI();
     });
     document.getElementById('btn_process_sale').addEventListener('click', procesarPago);
 
@@ -444,23 +745,134 @@
         document.getElementById('manual_cantidad').value = '1';
     });
 
+    // --- SELECTOR DE MÉTODOS Y COMISIÓN TARJETA ---
+    function seleccionarMetodo(metodo) {
+        metodoActual = metodo;
+        const selectLegacy = document.getElementById('metodo-pago');
+        if (selectLegacy) selectLegacy.value = metodo;
+
+        // Actualizar apariencia activa de botones
+        document.querySelectorAll('.pay-method-btn').forEach(btn => {
+            if (btn.getAttribute('data-method') === metodo) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Mostrar / ocultar control de comisión 5% (Solo activo cuando es tarjeta / Bolt)
+        const comisionBox = document.getElementById('card_commission_box');
+        if (metodo === 'tarjeta') {
+            if (comisionBox) comisionBox.style.display = 'block';
+        } else {
+            if (comisionBox) comisionBox.style.display = 'none';
+            comisionTarjetaActiva = false;
+            const toggleCom = document.getElementById('btn_toggle_comision');
+            if (toggleCom) toggleCom.checked = false;
+        }
+
+        // Mostrar / ocultar calculadora de efectivo
+        const calcEfectivo = document.getElementById('seccion_calculadora_efectivo');
+        if (calcEfectivo) {
+            calcEfectivo.style.display = (metodo === 'efectivo') ? 'block' : 'none';
+        }
+
+        actualizarTotalesUI();
+    }
+
+    // Toggle de la comisión 5% por tarjeta
+    function toggleComisionTarjeta() {
+        const toggle = document.getElementById('btn_toggle_comision');
+        comisionTarjetaActiva = toggle ? toggle.checked : false;
+        actualizarTotalesUI();
+    }
+
+    function esMetodoTarjeta() {
+        const esMixto = document.getElementById('toggle_pago_mixto')?.checked;
+        if (!esMixto) return metodoActual === 'tarjeta';
+        return pagosMixtos.some(p => p.metodo_pago === 'tarjeta');
+    }
+
+    function obtenerSubtotal() {
+        return carrito.reduce((sum, item) => sum + (item.cantidad * item.precio_final), 0);
+    }
+
+    function obtenerComisionTarjeta() {
+        if (!comisionTarjetaActiva || !esMetodoTarjeta()) return 0;
+        const subtotal = obtenerSubtotal();
+        return Math.round(subtotal * 0.05);
+    }
+
+    function obtenerGranTotal() {
+        return obtenerSubtotal() + obtenerComisionTarjeta();
+    }
+
+    function obtenerTotalCobrar() {
+        return obtenerGranTotal();
+    }
+
+    const formatoCOP = (num) => "$" + Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    // Calculadora de cambio / vueltas
+    function agregarMontoRecibido(valor) {
+        const input = document.getElementById('monto_recibido_input');
+        if (!input) return;
+        const actual = parseFloat(input.value) || 0;
+        input.value = actual + valor;
+        calcularCambio();
+    }
+
+    function fijarMontoExacto() {
+        const input = document.getElementById('monto_recibido_input');
+        if (!input) return;
+        input.value = Math.round(obtenerTotalCobrar());
+        calcularCambio();
+    }
+
+    function calcularCambio() {
+        const input = document.getElementById('monto_recibido_input');
+        const cambioEl = document.getElementById('cambio_vueltas_txt');
+        if (!input || !cambioEl) return;
+        const recibido = parseFloat(input.value) || 0;
+        const total = obtenerTotalCobrar();
+
+        if (recibido === 0) {
+            cambioEl.innerText = '$0';
+            cambioEl.style.color = '#059669';
+            return;
+        }
+
+        const diff = recibido - total;
+        if (diff >= 0) {
+            cambioEl.innerText = formatoCOP(diff);
+            cambioEl.style.color = '#059669';
+        } else {
+            cambioEl.innerText = `Falta: ${formatoCOP(Math.abs(diff))}`;
+            cambioEl.style.color = '#dc2626';
+        }
+    }
+
     // Toggle entre Pago Único y Pago Mixto
     document.getElementById('toggle_pago_mixto').addEventListener('change', function() {
         const unicoSec = document.getElementById('pago_unico_section');
         const mixtoSec = document.getElementById('pago_mixto_section');
+        const calcEfectivo = document.getElementById('seccion_calculadora_efectivo');
         
         if (this.checked) {
             unicoSec.style.display = 'none';
             mixtoSec.style.display = 'block';
-            // Inicializar con un primer pago parcial
+            if (calcEfectivo) calcEfectivo.style.display = 'none';
             if (pagosMixtos.length === 0) {
                 agregarPagoParcial();
             }
-            actualizarSaldoRestante();
         } else {
             unicoSec.style.display = 'block';
             mixtoSec.style.display = 'none';
+            if (calcEfectivo) {
+                calcEfectivo.style.display = (metodoActual === 'efectivo') ? 'block' : 'none';
+            }
         }
+        actualizarTotalesUI();
     });
 
     document.getElementById('btn_agregar_pago').addEventListener('click', agregarPagoParcial);
@@ -477,6 +889,7 @@
         }
         pagosMixtos.splice(index, 1);
         renderizarPagosMixtos();
+        actualizarTotalesUI();
     }
 
     function actualizarPagoParcial(index, campo, valor) {
@@ -486,24 +899,18 @@
         if (campo === 'monto') {
             pagosMixtos[index].monto = parseFloat(valor) || 0;
         }
-        actualizarSaldoRestante();
+        actualizarTotalesUI();
     }
 
     function resetPagosMixtos() {
         pagosMixtos = [];
         const toggle = document.getElementById('toggle_pago_mixto');
-        if (toggle.checked) {
+        if (toggle && toggle.checked) {
             agregarPagoParcial();
         }
         renderizarPagosMixtos();
-        actualizarSaldoRestante();
+        actualizarTotalesUI();
     }
-
-    function obtenerGranTotal() {
-        return carrito.reduce((sum, item) => sum + (item.cantidad * item.precio_final), 0);
-    }
-    
-    const formatoCOP = (num) => "$" + Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
     function actualizarSaldoRestante() {
         const granTotal = obtenerGranTotal();
@@ -513,6 +920,7 @@
         const saldoEl = document.getElementById('saldo_restante');
         const alertEl = document.getElementById('saldo_restante_alert');
         const barraEl = document.getElementById('barra_progreso_pago');
+        if (!saldoEl || !alertEl || !barraEl) return;
         
         saldoEl.innerText = formatoCOP(Math.abs(saldo));
         
@@ -535,13 +943,14 @@
             document.querySelector('#saldo_restante_alert small').innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> Excedente:';
         } else {
             saldoEl.style.color = 'var(--tekfix-primary)';
-            barraEl.style.background = 'linear-gradient(90deg, #A3D8DE, #7BC8D0)';
+            barraEl.style.background = 'linear-gradient(90deg, #C5A059, #DFBA73)';
             document.querySelector('#saldo_restante_alert small').innerHTML = '<i class="fa-solid fa-scale-balanced me-1"></i> Saldo por cubrir:';
         }
     }
 
     function renderizarPagosMixtos() {
         const container = document.getElementById('pagos_list');
+        if (!container) return;
         container.innerHTML = '';
 
         pagosMixtos.forEach((pago, index) => {
@@ -570,10 +979,63 @@
             container.appendChild(div);
         });
 
-        actualizarSaldoRestante();
+        actualizarTotalesUI();
     }
 
-    async function buscarYAgregarProducto() {
+    function actualizarTotalesUI() {
+        const subtotal = obtenerSubtotal();
+        const comision = obtenerComisionTarjeta();
+        const totalCobrar = subtotal + comision;
+        const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+
+        // Badge de items en cabecera
+        const badgeItems = document.getElementById('badge_items_count');
+        if (badgeItems) badgeItems.innerText = `${totalItems} items`;
+        const totalItemsEl = document.getElementById('total_items');
+        if (totalItemsEl) totalItemsEl.innerText = totalItems;
+
+        // Estado vacío en balance
+        const emptyCartEl = document.getElementById('balance_empty_cart');
+        if (emptyCartEl) {
+            emptyCartEl.style.display = (totalItems === 0) ? 'block' : 'none';
+        }
+
+        // Total principal
+        const totalAmountEl = document.getElementById('total_amount');
+        if (totalAmountEl) totalAmountEl.innerText = formatoCOP(totalCobrar);
+
+        // Desglose de comisión tarjeta
+        const comisionBox = document.getElementById('card_commission_box');
+        const comisionDesglose = document.getElementById('comision_desglose');
+        const comisionAmountTxt = document.getElementById('comision_amount_text');
+        const comisionBadgeInfo = document.getElementById('comision_badge_info');
+        const comisionBadgeMonto = document.getElementById('comision_badge_monto');
+
+        const esTarjeta = esMetodoTarjeta();
+        if (comisionBox) {
+            comisionBox.style.display = esTarjeta ? 'block' : 'none';
+        }
+
+        if (comisionTarjetaActiva && esTarjeta) {
+            if (comisionDesglose) comisionDesglose.style.setProperty('display', 'flex', 'important');
+            if (comisionAmountTxt) comisionAmountTxt.innerText = `+${formatoCOP(comision)}`;
+            if (comisionBadgeInfo) comisionBadgeInfo.style.display = 'block';
+            if (comisionBadgeMonto) comisionBadgeMonto.innerText = `+${formatoCOP(comision)}`;
+        } else {
+            if (comisionDesglose) comisionDesglose.style.setProperty('display', 'none', 'important');
+            if (comisionBadgeInfo) comisionBadgeInfo.style.display = 'none';
+        }
+
+        // Calculadora de cambio
+        calcularCambio();
+
+        // Saldo restante para pago mixto
+        if (document.getElementById('toggle_pago_mixto')?.checked) {
+            actualizarSaldoRestante();
+        }
+    }
+
+    async function buscarYAgregarProducto(preselectedVariantId = null) {
         const inputStr = document.getElementById('sku_input');
         const sku = inputStr.value.trim();
         if (!sku) return;
@@ -598,32 +1060,38 @@
                 }
             }
 
-            const existente = carrito.find(item => item.id === producto.id && (!item.variantes || item.variantes.length === 0) && !item.es_sim);
-            if (existente) {
-                // Validación Estricta: Sobreventa (Stock) en productos planos
-                if (existente.cantidad + 1 > producto.cantidad_stock) {
-                    alert(`¡Stock insuficiente! Solo te quedan ${producto.cantidad_stock} unidades de ${producto.nombre}.`);
-                } else {
-                    existente.cantidad++;
+            // Manejo de productos con variantes
+            if (producto.variantes && producto.variantes.length > 0) {
+                let defaultVar = null;
+                if (preselectedVariantId) {
+                    defaultVar = producto.variantes.find(v => v.id == preselectedVariantId);
                 }
-            } else {
-                if (producto.cantidad_stock <= 0) {
-                    alert(`¡Sin Stock Físico! No puedes vender o agregar ${producto.nombre}.`);
+                if (!defaultVar) {
+                    // Seleccionar por defecto la primera variante con stock disponible
+                    defaultVar = producto.variantes.find(v => v.stock > 0) || producto.variantes[0];
+                }
+
+                const initial_variant_id = defaultVar.id;
+                const initial_precio = defaultVar.precio_sugerido;
+                const initial_limite = defaultVar.precio_limite;
+                const initial_minimo = defaultVar.precio_minimo;
+
+                // Verificar si ya existe este producto con esta misma variante en el carrito
+                const existenteVar = carrito.find(item => item.id === producto.id && item.variant_id === initial_variant_id);
+                if (existenteVar) {
+                    if (existenteVar.cantidad + 1 > defaultVar.stock) {
+                        alert(`¡Stock insuficiente en la subcategoría "${defaultVar.nombre}"! Solo quedan ${defaultVar.stock} unidades.`);
+                    } else {
+                        existenteVar.cantidad++;
+                    }
+                    inputStr.value = '';
+                    renderizarCarrito();
                     return;
                 }
-                
-                // Si es nuevo, inicializar con el array. Permite encolar un renglón nuevo si tiene variantes.
-                let initial_variant_id = null;
-                let initial_precio = producto.precio_sugerido;
-                let initial_limite = producto.precio_limite;
-                let initial_minimo = producto.precio_minimo;
-                
-                if (producto.variantes && producto.variantes.length > 0) {
-                    let defaultVar = producto.variantes[0];
-                    initial_variant_id = defaultVar.id;
-                    initial_precio = defaultVar.precio_sugerido;
-                    initial_limite = defaultVar.precio_limite;
-                    initial_minimo = defaultVar.precio_minimo;
+
+                if (defaultVar.stock <= 0) {
+                    alert(`¡Sin Stock Físico en la subcategoría "${defaultVar.nombre}"!`);
+                    return;
                 }
 
                 carrito.push({
@@ -631,17 +1099,50 @@
                     sku: producto.sku,
                     nombre: producto.nombre,
                     cantidad: 1,
-                    precio_final: initial_precio, 
+                    precio_final: initial_precio,
                     precio_limite: initial_limite,
                     precio_minimo: initial_minimo,
-                    precio_sugerido: initial_precio, // Se guarda el sugerido original para referencia
+                    precio_sugerido: initial_precio,
                     cantidad_stock: producto.cantidad_stock,
                     variantes: producto.variantes,
                     variant_id: initial_variant_id,
                     precio_unlocked: false,
                     autorizacion: null,
-                    es_sim: producto.es_sim || false
+                    es_sim: false
                 });
+
+            } else {
+                // Producto sin variantes
+                const existente = carrito.find(item => item.id === producto.id && (!item.variantes || item.variantes.length === 0) && !item.es_sim);
+                if (existente) {
+                    if (existente.cantidad + 1 > producto.cantidad_stock) {
+                        alert(`¡Stock insuficiente! Solo te quedan ${producto.cantidad_stock} unidades de ${producto.nombre}.`);
+                    } else {
+                        existente.cantidad++;
+                    }
+                } else {
+                    if (producto.cantidad_stock <= 0) {
+                        alert(`¡Sin Stock Físico! No puedes vender o agregar ${producto.nombre}.`);
+                        return;
+                    }
+
+                    carrito.push({
+                        id: producto.id,
+                        sku: producto.sku,
+                        nombre: producto.nombre,
+                        cantidad: 1,
+                        precio_final: producto.precio_sugerido, 
+                        precio_limite: producto.precio_limite,
+                        precio_minimo: producto.precio_minimo,
+                        precio_sugerido: producto.precio_sugerido,
+                        cantidad_stock: producto.cantidad_stock,
+                        variantes: [],
+                        variant_id: null,
+                        precio_unlocked: false,
+                        autorizacion: null,
+                        es_sim: producto.es_sim || false
+                    });
+                }
             }
 
             inputStr.value = ''; // Limpiar cajón para el próximo escaneo
@@ -751,12 +1252,7 @@
                     La venta está vacía actualmente.
                 </td>
             </tr>`;
-            totalAmountEl.innerText = '$0';
-            totalItemsEl.innerText = '0';
-            // Actualizar saldo restante si estamos en modo mixto
-            if (document.getElementById('toggle_pago_mixto').checked) {
-                actualizarSaldoRestante();
-            }
+            actualizarTotalesUI();
             return;
         }
 
@@ -846,14 +1342,8 @@
             tbody.appendChild(tr);
         });
 
-        // Actualizar el DOM maestro Total
-        totalAmountEl.innerText = formatoCOP(granTotal);
-        totalItemsEl.innerText = totalItems;
-
-        // Actualizar saldo restante si estamos en modo mixto
-        if (document.getElementById('toggle_pago_mixto').checked) {
-            actualizarSaldoRestante();
-        }
+        // Actualizar el DOM maestro Total y elementos de cobro
+        actualizarTotalesUI();
         
         // Refrescar tooltips de bootstrap
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -1046,7 +1536,7 @@
                 return alert(`⚠️ La suma de los pagos ($${formatoCOP(sumaPagos).replace('$','')}) no coincide con el total de la venta ($${formatoCOP(granTotal).replace('$','')}). Falta: $${formatoCOP(Math.abs(diff)).replace('$','')}`);
             }
         } else {
-            const metodoPago = document.getElementById('metodo-pago').value;
+            const metodoPago = metodoActual || document.getElementById('metodo-pago')?.value || 'efectivo';
             pagosPayload.push({
                 metodo_pago: metodoPago,
                 monto: Math.round(obtenerGranTotal())
@@ -1074,6 +1564,7 @@
                 return base;
             }),
             pagos: pagosPayload,
+            comision_tarjeta: obtenerComisionTarjeta(),
             fecha_venta: document.getElementById('fecha_venta_input') ? document.getElementById('fecha_venta_input').value : null
         };
 
@@ -1108,10 +1599,16 @@
                 // Purgar carrito para el próximo comprador
                 carrito = [];
                 pagosMixtos = [];
+                comisionTarjetaActiva = false;
+                const toggleCom = document.getElementById('btn_toggle_comision');
+                if (toggleCom) toggleCom.checked = false;
+                const inputMonto = document.getElementById('monto_recibido_input');
+                if (inputMonto) inputMonto.value = '';
                 
                 // Reinicia dinámicamente el CSS/Contador de caja visual a $0.00
                 renderizarCarrito(); 
                 resetPagosMixtos();
+                actualizarTotalesUI();
                 
             } else {
                 alert(`Error devuelto del sistema de validación Backend: ${data.error}`);
@@ -1185,6 +1682,46 @@
 <!-- ══════════════════════════════════════════════════════ -->
 
 <style>
+/* ═══ ELEVACIÓN Y VISIBILIDAD DE LA TABLA DE BÚSQUEDA ═══ */
+#panel_escaneo_card {
+    position: relative !important;
+    z-index: 20 !important;
+    overflow: visible !important;
+}
+
+#panel_carrito_card {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+#autocomplete-results {
+    position: absolute !important;
+    top: calc(100% + 4px) !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 100 !important;
+    background: #FFFFFF !important;
+    border: 2px solid var(--tekfix-primary) !important;
+    border-radius: 0 0 16px 16px !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28) !important;
+    max-height: 440px !important;
+    overflow-y: auto !important;
+}
+
+#autocomplete-results .table {
+    --bs-table-bg: #FFFFFF !important;
+    background-color: #FFFFFF !important;
+}
+
+#autocomplete-results .search-result-row {
+    background-color: #FFFFFF !important;
+}
+
+#autocomplete-results .search-result-row:hover,
+#autocomplete-results .search-result-row.row-highlighted {
+    background-color: rgba(221, 184, 86, 0.16) !important;
+}
+
 @keyframes pulseLock {
     0%   { box-shadow: 0 0 0 0 rgba(221,184,86,.6); }
     70%  { box-shadow: 0 0 0 10px rgba(221,184,86,0); }

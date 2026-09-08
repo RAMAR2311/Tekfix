@@ -2,789 +2,765 @@
 
 {% block content %}
 
+{# ── ESTILOS EXCLUSIVOS CON DETALLES DORADOS Y ACABADOS DE ALTO IMPACTO ── #}
+<style>
+.card-gold-custom {
+    background: #FFFFFF;
+    border: 1.5px solid rgba(221, 184, 86, 0.38) !important;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 0 14px rgba(221, 184, 86, 0.08);
+    transition: all 0.25s ease;
+}
+.card-gold-custom:hover {
+    border-color: rgba(221, 184, 86, 0.6) !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06), 0 0 18px rgba(221, 184, 86, 0.15);
+}
+.digital-wallet-card {
+    transition: all 0.2s ease;
+    border: 1px solid rgba(221, 184, 86, 0.25) !important;
+}
+.digital-wallet-card:hover {
+    border-color: var(--tekfix-primary) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(221, 184, 86, 0.2);
+    background: #FFFFFF !important;
+}
+.gold-shimmer-kpi {
+    position: relative;
+    overflow: hidden;
+}
+.gold-shimmer-kpi::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 35%;
+    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.15), transparent 70%);
+    pointer-events: none;
+}
+.table-header-dark th {
+    background: #0F172A !important;
+    color: #FFFFFF !important;
+    font-weight: 700;
+    font-size: 0.74rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: none !important;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.table-header-expenses th {
+    background: #F8FAFC !important;
+    color: #0F172A !important;
+    font-weight: 700;
+    font-size: 0.74rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 2px solid #E2E8F0 !important;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.btn-gold-action {
+    background: linear-gradient(135deg, #DDB856 0%, #C59B27 100%) !important;
+    color: #0F172A !important;
+    border: 1px solid rgba(221, 184, 86, 0.8) !important;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    box-shadow: 0 4px 15px rgba(221, 184, 86, 0.35);
+    transition: all 0.25s ease;
+}
+.btn-gold-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(221, 184, 86, 0.5);
+    color: #000000 !important;
+}
+</style>
+
 {# ── ENCABEZADO SUPERIOR ─────────────────────────────────────────── #}
-<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
-    <div>
-        <h2 class="fw-bold mb-0" style="color: #A3D8DE;">
-            <i class="fa-solid fa-cash-register me-2"></i> Arqueo de Caja
-        </h2>
-        <p class="text-tekfix-sec mb-0 mt-1" style="font-size:0.85rem;">
-            Cierre contable diario — todos los usuarios ven la misma caja consolidada
-        </p>
-    </div>
-
-    {# Selector de fecha inline #}
-    <form id="fechaForm" action="{{ url_for('arqueo_bp.nuevo') }}" method="GET"
-          class="d-flex align-items-center gap-2">
-        <label for="fecha" class="fw-semibold text-tekfix-main mb-0 me-1">
-            <i class="fa-regular fa-calendar me-1"></i>Fecha:
-        </label>
-        <input type="date" id="fecha" name="fecha" value="{{ fecha }}"
-               class="form-control form-control-sm rounded-pill px-3"
-               style="width:auto; border:1.5px solid rgba(163,216,222,0.5);"
-               onchange="this.form.submit()" required>
-    </form>
-</div>
-
-{# ── ALERTA: ya existe arqueo ─────────────────────────────────────── #}
-{% if arqueo_existente %}
-<div class="alert border-0 rounded-3 shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4"
-     style="background:linear-gradient(135deg,rgba(40,167,69,0.12),rgba(40,167,69,0.06)); border-left:4px solid #28a745 !important;">
-    <div>
-        <i class="fa-solid fa-lock text-success me-2"></i>
-        <strong>Arqueo cerrado para {{ fecha }}</strong>
-        <span class="text-tekfix-sec ms-1">— cerrado por
-            <strong>{{ arqueo_existente.cajero.nombre if arqueo_existente.cajero else 'Sistema' }}</strong>.
-            Este cierre aplica para todos los perfiles.
-        </span>
-    </div>
-    <a href="{{ url_for('arqueo_bp.reporte', fecha_inicio=fecha, fecha_fin=fecha) }}"
-       class="btn btn-sm rounded-pill fw-bold px-4"
-       style="background-color:#A3D8DE; color:#1a3a3c;">
-        <i class="fa-solid fa-file-invoice me-1"></i>Ver Reporte Completo
-    </a>
-</div>
-
-{# ── MISMA VISTA de dos columnas pero en MODO LECTURA ──────────── #}
-<div class="row g-4 align-items-start">
-
-    {# COLUMNA IZQUIERDA — Tabla de ventas del día (solo lectura) #}
-    <div class="col-12 col-lg-8">
-
-        {# Tarjetas resumen rápido #}
-        <div class="row g-3 mb-4">
-            <div class="col-4">
-                <div class="card border-0 shadow-sm rounded-3 p-3 text-center"
-                     style="background:linear-gradient(135deg,rgba(40,167,69,0.1),rgba(40,167,69,0.04)); border-left:3px solid #28a745 !important;">
-                    <small class="fw-bold text-uppercase d-block mb-1" style="font-size:0.68rem; color:#28a745; letter-spacing:.05em;">
-                        <i class="fa-solid fa-money-bill me-1"></i>Efectivo
-                    </small>
-                    <span class="fw-bold fs-5" style="color:#155724;">${{ total_efectivo|cop }}</span>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card border-0 shadow-sm rounded-3 p-3 text-center"
-                     style="background:linear-gradient(135deg,rgba(23,162,184,0.1),rgba(23,162,184,0.04)); border-left:3px solid #17a2b8 !important;">
-                    <small class="fw-bold text-uppercase d-block mb-1" style="font-size:0.68rem; color:#17a2b8; letter-spacing:.05em;">
-                        <i class="fa-solid fa-mobile-screen me-1"></i>Digital
-                    </small>
-                    <span class="fw-bold fs-5" style="color:#0c5460;">${{ total_transferencia|cop }}</span>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card border-0 shadow-sm rounded-3 p-3 text-center"
-                     style="background:linear-gradient(135deg,rgba(163,216,222,0.18),rgba(163,216,222,0.06)); border-left:3px solid #A3D8DE !important;">
-                    <small class="fw-bold text-uppercase d-block mb-1" style="font-size:0.68rem; color:#A3D8DE; letter-spacing:.05em;">
-                        <i class="fa-solid fa-chart-line me-1"></i>Venta Total
-                    </small>
-                    <span class="fw-bold fs-5" style="color:#A3D8DE;">${{ (total_efectivo + total_transferencia)|cop }}</span>
-                </div>
-            </div>
+<div class="card card-gold-custom p-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold mb-1 text-tekfix-main d-flex align-items-center gap-2" style="font-family: var(--font-heading);">
+                <i class="fa-solid fa-calculator" style="color: var(--tekfix-primary);"></i>
+                <span>Arqueo y Cierre de Caja Diario</span>
+            </h2>
+            <p class="text-secondary mb-0" style="font-size: 0.88rem;">
+                Conciliación financiera y auditoría del efectivo físico vs sistema
+            </p>
         </div>
 
-        {# Tabla de ventas del día (lectura) #}
-        <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
-            <div class="px-4 py-3 d-flex align-items-center justify-content-between"
-                 style="background:linear-gradient(90deg,rgba(163,216,222,0.1),rgba(249,200,211,0.07)); border-bottom:1px solid rgba(163,216,222,0.2);">
-                <h6 class="fw-bold mb-0" style="color:#A3D8DE;">
-                    <i class="fa-solid fa-list-check me-2"></i>Ventas del Día
-                    <span class="badge rounded-pill ms-2 fw-semibold"
-                          style="background:rgba(163,216,222,0.15); color:#A3D8DE; font-size:0.7rem; border:1px solid rgba(163,216,222,0.4);">
-                        {{ ventas_del_dia|length + sims_del_dia|length }} registros
-                    </span>
-                </h6>
-                <span class="text-tekfix-sec" style="font-size:0.78rem;">
-                    <i class="fa-regular fa-calendar-check me-1"></i>{{ fecha }}
-                </span>
-            </div>
-
-            <div class="table-responsive" style="max-height: 65vh; overflow-y:auto;">
-                <table class="table table-sm align-middle mb-0" style="font-size:0.85rem;">
-                    <thead class="sticky-top" style="top:0; z-index:2; background:var(--tekfix-card, #fff);">
-                        <tr class="text-uppercase fw-bold text-tekfix-sec border-bottom"
-                            style="font-size:0.7rem; letter-spacing:.05em;">
-                            <th class="ps-3 py-2" width="9%">Ticket</th>
-                            <th width="7%">Hora</th>
-                            <th width="15%">Pago</th>
-                            <th>Productos / SIMs</th>
-                            <th class="text-end pe-3" width="13%">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {# ── Ventas normales #}
-                        {% for v in ventas_del_dia %}
-                        <tr class="border-bottom border-opacity-25 align-middle">
-                            <td class="ps-3 text-secondary fw-bold">#{{ "%05d"|format(v.id) }}</td>
-                            <td class="text-tekfix-sec">{{ v.fecha_venta.strftime('%H:%M') }}</td>
-                            <td>
-                                {% if v.pagos|length > 1 %}
-                                    <span class="badge rounded-pill px-2 py-1"
-                                          style="background:rgba(253,126,20,0.12); color:#fd7e14; border:1px solid rgba(253,126,20,0.3); font-size:0.7rem;">
-                                        <i class="fa-solid fa-layer-group me-1"></i>Mixto
-                                    </span>
-                                    <div style="font-size:0.68rem; color:#999; margin-top:2px; line-height:1.3;">
-                                        {% for p in v.pagos %}{{ p.metodo_pago|capitalize }}: ${{ (p.monto)|cop }}{% if not loop.last %} · {% endif %}{% endfor %}
-                                    </div>
-                                {% elif v.pagos|length == 1 %}
-                                    {% set m = v.pagos[0].metodo_pago %}
-                                    {% if m == 'efectivo' %}
-                                        <span class="badge rounded-pill px-2 py-1"
-                                              style="background:rgba(40,167,69,0.12); color:#28a745; border:1px solid rgba(40,167,69,0.3); font-size:0.7rem;">
-                                            <i class="fa-solid fa-money-bill me-1"></i>Efectivo
-                                        </span>
-                                    {% else %}
-                                        <span class="badge rounded-pill px-2 py-1"
-                                              style="background:rgba(23,162,184,0.12); color:#17a2b8; border:1px solid rgba(23,162,184,0.3); font-size:0.7rem;">
-                                            <i class="fa-solid fa-mobile-screen me-1"></i>{{ m|capitalize }}
-                                        </span>
-                                    {% endif %}
-                                {% else %}
-                                    <span class="badge rounded-pill px-2 py-1 bg-secondary bg-opacity-10 text-secondary"
-                                          style="font-size:0.7rem;">{{ v.metodo_pago|capitalize }}</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <ul class="mb-0 ps-0 list-unstyled" style="line-height:1.6;">
-                                    {% for d in v.detalles %}
-                                    <li>
-                                        <span class="fw-bold text-tekfix-main me-1">{{ d.cantidad_vendida }}x</span>
-                                        {% if d.nombre_manual %}
-                                            {{ d.nombre_manual }}
-                                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-1" style="font-size:0.6rem;">Externo</span>
-                                        {% else %}
-                                            {{ d.producto.nombre }}
-                                            {% if d.variant_id %}
-                                                <span class="text-tekfix-sec">({{ d.variante.nombre_variante }})</span>
-                                            {% endif %}
-                                        {% endif %}
-                                    </li>
-                                    {% endfor %}
-                                    {% for sim in v.sims_vendidas %}
-                                    <li>
-                                        <span class="fw-bold text-tekfix-main me-1">1x</span>
-                                        [SIM {{ sim.operador|upper }}] {{ sim.numero_telefono }}
-                                        <span class="badge rounded-pill px-1 ms-1"
-                                              style="background:rgba(255,193,7,0.15); color:#b08000; border:1px solid rgba(255,193,7,0.4); font-size:0.6rem;">
-                                            SIM Card
-                                        </span>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                            </td>
-                            <td class="text-end pe-3 fw-bold text-tekfix-main">
-                                {% set ns = namespace(ts=0) %}
-                                {% for sim in v.sims_vendidas %}{% set ns.ts = ns.ts + sim.precio_venta_real %}{% endfor %}
-                                ${{ (v.monto_total + ns.ts)|cop }}
-                            </td>
-                        </tr>
-                        {% endfor %}
-
-                        {# ── SIMs independientes (sin sale_id) #}
-                        {% for sim in sims_del_dia %}
-                        {% if not sim.sale_id %}
-                        <tr class="border-bottom border-opacity-25"
-                            style="background:rgba(255,193,7,0.04);">
-                            <td class="ps-3 text-secondary">—</td>
-                            <td class="text-tekfix-sec">{{ sim.fecha_venta.strftime('%H:%M') if sim.fecha_venta else '—' }}</td>
-                            <td>
-                                {% if sim.metodo_pago == 'efectivo' %}
-                                    <span class="badge rounded-pill px-2 py-1"
-                                          style="background:rgba(40,167,69,0.12); color:#28a745; border:1px solid rgba(40,167,69,0.3); font-size:0.7rem;">
-                                        <i class="fa-solid fa-money-bill me-1"></i>Efectivo
-                                    </span>
-                                {% else %}
-                                    <span class="badge rounded-pill px-2 py-1"
-                                          style="background:rgba(23,162,184,0.12); color:#17a2b8; border:1px solid rgba(23,162,184,0.3); font-size:0.7rem;">
-                                        <i class="fa-solid fa-mobile-screen me-1"></i>{{ sim.metodo_pago|capitalize }}
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span class="fw-bold text-tekfix-main me-1">1x</span>
-                                [SIM {{ sim.operador|upper }}] {{ sim.numero_telefono }}
-                                <span class="badge rounded-pill px-1 ms-1"
-                                      style="background:rgba(255,193,7,0.15); color:#b08000; border:1px solid rgba(255,193,7,0.4); font-size:0.6rem;">
-                                    SIM Card
-                                </span>
-                            </td>
-                            <td class="text-end pe-3 fw-bold text-tekfix-main">${{ sim.precio_venta_real|cop }}</td>
-                        </tr>
-                        {% endif %}
-                        {% endfor %}
-
-                        {# Sin ventas #}
-                        {% if not ventas_del_dia and not sims_del_dia %}
-                        <tr>
-                            <td colspan="5" class="text-center text-tekfix-sec py-5">
-                                <i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-25"></i>
-                                No se registraron ventas para este día.
-                            </td>
-                        </tr>
-                        {% endif %}
-                    </tbody>
-                    {# Fila totales #}
-                    {% if ventas_del_dia or sims_del_dia %}
-                    <tfoot style="border-top:2px solid rgba(163,216,222,0.35); background:rgba(163,216,222,0.06);">
-                        <tr class="fw-bold">
-                            <td colspan="3" class="ps-3 text-tekfix-sec text-end text-uppercase py-2"
-                                style="font-size:0.72rem; letter-spacing:.04em;">Totales del día:</td>
-                            <td class="py-2">
-                                <span class="text-success me-3">
-                                    <i class="fa-solid fa-money-bill me-1"></i>Efectivo: ${{ total_efectivo|cop }}
-                                </span>
-                                <span class="text-info">
-                                    <i class="fa-solid fa-mobile-screen me-1"></i>Digital: ${{ total_transferencia|cop }}
-                                </span>
-                            </td>
-                            <td class="text-end pe-3 fw-bold fs-6 text-tekfix-main py-2">
-                                ${{ (total_efectivo + total_transferencia)|cop }}
-                            </td>
-                        </tr>
-                    </tfoot>
-                    {% endif %}
-                </table>
-            </div>
-        </div>
-    </div>
-
-    {# COLUMNA DERECHA — Panel con datos del arqueo guardado (SOLO LECTURA) #}
-    <div class="col-12 col-lg-4">
-        <div class="arqueo-sidebar" style="position:sticky; top:80px;">
-
-            {# ── BLOQUE 1: Datos del sistema (solo lectura) ── #}
-            <div class="card border-0 shadow-sm rounded-3 mb-3 overflow-hidden">
-                <div class="px-3 py-2"
-                     style="background:linear-gradient(90deg,rgba(163,216,222,0.15),transparent); border-bottom:1px solid rgba(163,216,222,0.2);">
-                    <span class="fw-bold text-tekfix-sec" style="font-size:0.8rem; letter-spacing:.04em; text-transform:uppercase;">
-                        <i class="fa-solid fa-calculator me-1"></i> Sistema (Automático)
-                    </span>
-                </div>
-                <div class="p-3">
-                    <div class="mb-2">
-                        <label class="form-label text-tekfix-sec mb-1" style="font-size:0.78rem;">Total Efectivo</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-tekfix-card border-end-0">$</span>
-                            <input type="text" class="form-control border-start-0 fw-bold text-success bg-tekfix-card"
-                                   value="{{ arqueo_existente.total_efectivo_sistema|cop }}" readonly disabled>
-                        </div>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label text-tekfix-sec mb-1" style="font-size:0.78rem;">Total Digital / Transferencias</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-tekfix-card border-end-0">$</span>
-                            <input type="text" class="form-control border-start-0 fw-bold text-info bg-tekfix-card"
-                                   value="{{ arqueo_existente.total_transferencia_sistema|cop }}" readonly disabled>
-                        </div>
-                    </div>
-                    <div class="rounded-3 p-2 text-center mt-3"
-                         style="background:rgba(163,216,222,0.1); border:1px solid rgba(163,216,222,0.3);">
-                        <small class="d-block text-tekfix-sec fw-semibold mb-1" style="font-size:0.72rem;">
-                            <i class="fa-solid fa-chart-line me-1"></i>VENTA TOTAL DEL DÍA
-                        </small>
-                        <span class="fw-bold fs-4" style="color:#A3D8DE;">
-                            ${{ (arqueo_existente.total_efectivo_sistema + arqueo_existente.total_transferencia_sistema)|cop }}
-                        </span>
-                    </div>
+        {# Selector o visor de fecha + Botón reporte #}
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            {% if current_user.rol == 'admin' %}
+            <form id="fechaForm" action="{{ url_for('arqueo_bp.nuevo') }}" method="GET" class="d-flex align-items-center gap-2">
+                <span class="fw-bold text-tekfix-main small text-uppercase" style="letter-spacing: 0.05em;">FECHA:</span>
+                <input type="date" id="fecha" name="fecha" value="{{ fecha }}"
+                       class="form-control form-control-sm rounded-3 px-2 py-1 fw-bold text-center"
+                       style="border: 1.5px solid rgba(221, 184, 86, 0.6); width: 140px;"
+                       onchange="this.form.submit()" required>
+            </form>
+            {% else %}
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-bold text-tekfix-main small text-uppercase" style="letter-spacing: 0.05em;">FECHA:</span>
+                <div class="badge rounded-3 px-3 py-2 fw-bold text-dark bg-light shadow-sm" style="border: 1.5px solid rgba(221, 184, 86, 0.6); font-size: 0.85rem;">
+                    <i class="fa-regular fa-calendar me-1 text-tekfix-primary"></i> Hoy: {{ fecha }}
                 </div>
             </div>
+            {% endif %}
 
-            {# ── BLOQUE 2: Datos del cierre guardado ── #}
-            <div class="card border-0 shadow-sm rounded-3 mb-3 overflow-hidden">
-                <div class="px-3 py-2"
-                     style="background:linear-gradient(90deg,rgba(40,167,69,0.15),transparent); border-bottom:1px solid rgba(40,167,69,0.2);">
-                    <span class="fw-bold" style="font-size:0.8rem; letter-spacing:.04em; text-transform:uppercase; color:#28a745;">
-                        <i class="fa-solid fa-lock me-1"></i> Cierre Registrado
-                    </span>
-                </div>
-                <div class="p-3">
-                    {# Base inicial #}
-                    <div class="mb-2">
-                        <label class="form-label fw-semibold mb-1" style="font-size:0.82rem;">Base Inicial</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-tekfix-card border-end-0"><i class="fa-solid fa-sack-dollar text-tekfix-sec"></i></span>
-                            <input type="text" class="form-control border-start-0 bg-tekfix-card fw-bold"
-                                   value="${{ arqueo_existente.base_inicial|cop }}" readonly disabled>
-                        </div>
-                    </div>
-
-                    {# Gastos #}
-                    <div class="mb-2">
-                        <label class="form-label fw-semibold mb-1" style="font-size:0.82rem;">
-                            Gastos del Día
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2 ms-1" style="font-size:0.65rem;">Registrado</span>
-                        </label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-tekfix-card border-end-0"><i class="fa-solid fa-money-bill-transfer text-danger"></i></span>
-                            <input type="text" class="form-control border-start-0 bg-tekfix-card fw-bold"
-                                   value="${{ arqueo_existente.gastos_del_dia|cop }}" readonly disabled>
-                        </div>
-                        {% if arqueo_existente.observaciones_gastos %}
-                        <div class="form-text" style="font-size:0.7rem;">{{ arqueo_existente.observaciones_gastos }}</div>
-                        {% endif %}
-                    </div>
-
-                    {# Efectivo esperado #}
-                    {% set esperado_guardado = (arqueo_existente.base_inicial + arqueo_existente.total_efectivo_sistema) - arqueo_existente.gastos_del_dia %}
-                    <div class="rounded-3 p-2 text-center mb-3"
-                         style="background:rgba(249,200,211,0.15); border:1px solid rgba(249,200,211,0.5);">
-                        <small class="d-block text-tekfix-sec fw-semibold mb-1" style="font-size:0.72rem;">
-                            EFECTIVO ESPERADO EN CAJA
-                        </small>
-                        <span class="fw-bold fs-5" style="color:#c0556e;">
-                            ${{ esperado_guardado|cop }}
-                        </span>
-                        <small class="d-block text-tekfix-sec mt-1" style="font-size:0.65rem;">(Base + Efectivo) − Gastos</small>
-                    </div>
-
-                    <hr class="my-2 opacity-15">
-
-                    {# Efectivo físico #}
-                    <div class="mb-2">
-                        <label class="form-label fw-bold mb-1" style="font-size:0.85rem; color:#A3D8DE;">
-                            <i class="fa-solid fa-hand-holding-dollar me-1"></i>
-                            Efectivo Físico Contado
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text border-end-0 fw-bold" style="color:#A3D8DE;">$</span>
-                            <input type="text" class="form-control border-start-0 fw-bold fs-5 bg-tekfix-card"
-                                   value="{{ arqueo_existente.efectivo_fisico|cop }}" readonly disabled
-                                   style="border:1.5px solid rgba(163,216,222,0.4);">
-                        </div>
-                    </div>
-
-                    {# Diferencia #}
-                    {% if arqueo_existente.diferencia != 0 %}
-                    <div class="mt-2">
-                        <div class="rounded-3 p-2 d-flex justify-content-between align-items-center"
-                             style="{% if arqueo_existente.diferencia > 0 %}background:rgba(221,184,86,0.12); border:1px solid #d4a017;{% else %}background:rgba(231,76,60,0.08); border:1px solid #e74c3c;{% endif %} border-radius:.4rem;">
-                            <span class="fw-bold" style="font-size:0.82rem; color:{% if arqueo_existente.diferencia > 0 %}#b08000{% else %}#e74c3c{% endif %};">
-                                {% if arqueo_existente.diferencia > 0 %}SOBRANTE:{% else %}FALTANTE:{% endif %}
-                            </span>
-                            <span class="fw-bolder fs-5" style="color:{% if arqueo_existente.diferencia > 0 %}#b08000{% else %}#e74c3c{% endif %};">
-                                {{ "+" if arqueo_existente.diferencia > 0 else "" }}${{ arqueo_existente.diferencia|cop }}
-                            </span>
-                        </div>
-                        {% if arqueo_existente.observacion_diferencia %}
-                        <div class="mt-2 p-2 rounded-3" style="background:rgba(0,0,0,0.05); font-size:0.8rem;">
-                            <strong>Observación:</strong> {{ arqueo_existente.observacion_diferencia }}
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% else %}
-                    <div class="mt-2 rounded-3 p-2 text-center" style="background:rgba(40,167,69,0.08); border:1px solid rgba(40,167,69,0.3);">
-                        <span class="fw-bold text-success" style="font-size:0.85rem;">
-                            <i class="fa-solid fa-check-circle me-1"></i>Caja cuadrada — sin diferencias
-                        </span>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            {# ── BLOQUE 3: Info de cierre ── #}
-            <div class="rounded-3 p-3 text-center shadow-sm"
-                 style="background:linear-gradient(135deg,rgba(40,167,69,0.1),rgba(40,167,69,0.05)); border:1px solid rgba(40,167,69,0.3);">
-                <i class="fa-solid fa-circle-check text-success fs-3 d-block mb-2"></i>
-                <span class="fw-bold text-success d-block" style="font-size:0.9rem;">Arqueo Cerrado</span>
-                <small class="text-tekfix-sec d-block mt-1">
-                    Cerrado por <strong>{{ arqueo_existente.cajero.nombre if arqueo_existente.cajero else 'Sistema' }}</strong>
-                </small>
-            </div>
-
+            {% if current_user.rol == 'admin' %}
             <a href="{{ url_for('arqueo_bp.reporte', fecha_inicio=fecha, fecha_fin=fecha) }}"
-               class="btn btn-sm w-100 mt-3 rounded-3 fw-bold text-tekfix-main border shadow-sm"
-               style="background:transparent; border-color:rgba(163,216,222,0.4) !important;">
-                <i class="fa-solid fa-file-invoice me-1"></i>Ver Reporte Imprimible
+               class="btn btn-sm btn-outline-secondary rounded-3 px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2"
+               style="border-color: rgba(221, 184, 86, 0.6);">
+                <i class="fa-solid fa-print text-tekfix-primary"></i> Reporte Imprimible
             </a>
-
-        </div>{# /sidebar sticky #}
+            {% else %}
+            <button type="button" onclick="window.print()"
+                    class="btn btn-sm btn-outline-secondary rounded-3 px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2"
+                    style="border-color: rgba(221, 184, 86, 0.6);">
+                <i class="fa-solid fa-print text-tekfix-primary"></i> Reporte Imprimible
+            </button>
+            {% endif %}
+        </div>
     </div>
+</div>
 
-</div>{# /row #}
+{# ── CASO: ARQUEO YA CERRADO ────────────────────────────────────── #}
+{% if arqueo_existente %}
+    {% if current_user.rol != 'admin' %}
+    {# VISTA BLOQUEADA PARA VENDEDOR: Los vendedores no pueden consultar arqueos cerrados #}
+    <div class="card card-gold-custom p-5 text-center my-4">
+        <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; background: rgba(221, 184, 86, 0.14); color: var(--tekfix-primary); border: 2px solid rgba(221, 184, 86, 0.4);">
+            <i class="fa-solid fa-lock fs-1"></i>
+        </div>
+        <h3 class="fw-bold text-tekfix-main mb-2" style="font-family: var(--font-heading);">Arqueo del Día Cerrado</h3>
+        <p class="text-secondary mx-auto mb-4" style="max-width: 520px; font-size: 0.95rem; line-height: 1.5;">
+            El arqueo de caja correspondiente a hoy (<strong>{{ fecha }}</strong>) ya ha sido completado y cerrado.
+            <br>
+            Por políticas de control y seguridad, la información detallada de arqueos cerrados está reservada exclusivamente para el <strong>Administrador</strong>.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="/sales/nueva" class="btn btn-gold-action px-4 py-2 rounded-pill shadow-sm">
+                <i class="fa-solid fa-cash-register me-2"></i>Ir a Caja Central
+            </a>
+            <a href="/sales/catalogo" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-bold shadow-sm">
+                <i class="fa-solid fa-book-open me-2"></i>Ver Catálogo
+            </a>
+        </div>
+    </div>
+    {% else %}
+    {# VISTA COMPLETA DE REVISIÓN PARA ADMINISTRADOR (MODO LECTURA) #}
+    <div class="alert border-0 rounded-4 shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4"
+         style="background: linear-gradient(135deg, rgba(40,167,69,0.12), rgba(40,167,69,0.06)); border-left: 4px solid #28a745 !important; border: 1px solid rgba(40,167,69,0.3);">
+        <div>
+            <i class="fa-solid fa-lock text-success me-2 fs-5"></i>
+            <strong>Arqueo cerrado para {{ fecha }}</strong>
+            <span class="text-secondary ms-1">— registrado por
+                <strong>{{ arqueo_existente.cajero.nombre if arqueo_existente.cajero else 'Sistema' }}</strong>.
+                Este cierre aplica para todos los perfiles.
+            </span>
+        </div>
+        <a href="{{ url_for('arqueo_bp.reporte', fecha_inicio=fecha, fecha_fin=fecha) }}"
+           class="btn btn-sm btn-gold-action rounded-pill px-4">
+            <i class="fa-solid fa-file-invoice me-1"></i>Ver Reporte Completo
+        </a>
+    </div>
+    {% endif %}
+{% endif %}
 
-{% else %}
+{# ── CUERPO PRINCIPAL DEL ARQUEO (Visible cuando está abierto o para el Admin en revisión) ── #}
+{% if not arqueo_existente or current_user.rol == 'admin' %}
 
-{# ── LAYOUT PRINCIPAL: dos columnas ──────────────────────────────── #}
-<form action="{{ url_for('arqueo_bp.nuevo') }}?fecha={{ fecha }}" method="POST" id="formArqueo">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-    <div class="row g-4 align-items-start">
-
-        {# ════════════════════════════════════════════════════════════
-           COLUMNA IZQUIERDA — Tabla de ventas del día (col-8)
-        ════════════════════════════════════════════════════════════ #}
-        <div class="col-12 col-lg-8">
-
-            {# Tarjetas resumen rápido #}
-            <div class="row g-3 mb-4">
-                <div class="col-4">
-                    <div class="card border-0 shadow-sm rounded-3 p-3 text-center"
-                         style="background:linear-gradient(135deg,rgba(40,167,69,0.1),rgba(40,167,69,0.04)); border-left:3px solid #28a745 !important;">
-                        <small class="fw-bold text-uppercase d-block mb-1" style="font-size:0.68rem; color:#28a745; letter-spacing:.05em;">
-                            <i class="fa-solid fa-money-bill me-1"></i>Efectivo
-                        </small>
-                        <span class="fw-bold fs-5" style="color:#155724;">${{ total_efectivo|cop }}</span>
+    {# ── FILA 1: TRES TARJETAS KPI SUPERIORES CON DETALLES DORADOS ── #}
+    <div class="row g-3 mb-4">
+        <!-- 1. Efectivo en Sistema -->
+        <div class="col-12 col-md-4">
+            <div class="card p-3 shadow-sm border-0 rounded-4 text-white gold-shimmer-kpi" 
+                 style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: 1.5px solid rgba(221, 184, 86, 0.5) !important; box-shadow: 0 4px 18px rgba(16, 185, 129, 0.25), 0 0 12px rgba(221, 184, 86, 0.2) !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-uppercase fw-bold text-white-50 d-block mb-1" style="font-size: 0.76rem; letter-spacing: 0.05em;">EFECTIVO EN SISTEMA</span>
+                        <h2 class="fw-bolder mb-0 text-white" style="font-family: var(--font-heading); font-size: 2.1rem;">
+                            ${{ (arqueo_existente.total_efectivo_sistema if arqueo_existente else total_efectivo)|cop }}
+                        </h2>
                     </div>
-                </div>
-                <div class="col-4">
-                    <div class="card border-0 shadow-sm rounded-3 p-3 text-center"
-                         style="background:linear-gradient(135deg,rgba(23,162,184,0.1),rgba(23,162,184,0.04)); border-left:3px solid #17a2b8 !important;">
-                        <small class="fw-bold text-uppercase d-block mb-1" style="font-size:0.68rem; color:#17a2b8; letter-spacing:.05em;">
-                            <i class="fa-solid fa-mobile-screen me-1"></i>Digital
-                        </small>
-                        <span class="fw-bold fs-5" style="color:#0c5460;">${{ total_transferencia|cop }}</span>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="card border-0 shadow-sm rounded-3 p-3 text-center"
-                         style="background:linear-gradient(135deg,rgba(163,216,222,0.18),rgba(163,216,222,0.06)); border-left:3px solid #A3D8DE !important;">
-                        <small class="fw-bold text-uppercase d-block mb-1" style="font-size:0.68rem; color:#A3D8DE; letter-spacing:.05em;">
-                            <i class="fa-solid fa-chart-line me-1"></i>Venta Total
-                        </small>
-                        <span class="fw-bold fs-5" style="color:#A3D8DE;">${{ (total_efectivo + total_transferencia)|cop }}</span>
+                    <div class="rounded-pill p-3 d-flex align-items-center justify-content-center" style="background: rgba(255, 255, 255, 0.2); width: 56px; height: 56px;">
+                        <i class="fa-solid fa-money-bill-wave text-white fs-3"></i>
                     </div>
                 </div>
             </div>
+        </div>
 
-            {# Tabla de ventas del día #}
-            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
-                <div class="px-4 py-3 d-flex align-items-center justify-content-between"
-                     style="background:linear-gradient(90deg,rgba(163,216,222,0.1),rgba(249,200,211,0.07)); border-bottom:1px solid rgba(163,216,222,0.2);">
-                    <h6 class="fw-bold mb-0" style="color:#A3D8DE;">
-                        <i class="fa-solid fa-list-check me-2"></i>Ventas del Día
-                        <span class="badge rounded-pill ms-2 fw-semibold"
-                              style="background:rgba(163,216,222,0.15); color:#A3D8DE; font-size:0.7rem; border:1px solid rgba(163,216,222,0.4);">
-                            {{ ventas_del_dia|length + sims_del_dia|length }} registros
-                        </span>
-                    </h6>
-                    <span class="text-tekfix-sec" style="font-size:0.78rem;">
-                        <i class="fa-regular fa-calendar-check me-1"></i>{{ fecha }}
-                    </span>
+        <!-- 2. Dinero Digital / Bancos -->
+        <div class="col-12 col-md-4">
+            <div class="card p-3 shadow-sm border-0 rounded-4 text-white gold-shimmer-kpi" 
+                 style="background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%); border: 1.5px solid rgba(221, 184, 86, 0.5) !important; box-shadow: 0 4px 18px rgba(2, 132, 199, 0.25), 0 0 12px rgba(221, 184, 86, 0.2) !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-uppercase fw-bold text-white-50 d-block mb-1" style="font-size: 0.76rem; letter-spacing: 0.05em;">DINERO DIGITAL / BANCOS</span>
+                        <h2 class="fw-bolder mb-0 text-white" style="font-family: var(--font-heading); font-size: 2.1rem;">
+                            ${{ (arqueo_existente.total_transferencia_sistema if arqueo_existente else total_transferencia)|cop }}
+                        </h2>
+                    </div>
+                    <div class="rounded-pill p-3 d-flex align-items-center justify-content-center" style="background: rgba(255, 255, 255, 0.2); width: 56px; height: 56px;">
+                        <i class="fa-solid fa-mobile-screen-button text-white fs-3"></i>
+                    </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="table-responsive" style="max-height: 65vh; overflow-y:auto;">
-                    <table class="table table-sm align-middle mb-0" style="font-size:0.85rem;">
-                        <thead class="sticky-top" style="top:0; z-index:2; background:var(--tekfix-card, #fff);">
-                            <tr class="text-uppercase fw-bold text-tekfix-sec border-bottom"
-                                style="font-size:0.7rem; letter-spacing:.05em;">
-                                <th class="ps-3 py-2" width="9%">Ticket</th>
-                                <th width="7%">Hora</th>
-                                <th width="15%">Pago</th>
-                                <th>Productos / SIMs</th>
-                                <th class="text-end pe-3" width="13%">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {# ── Ventas normales #}
-                            {% for v in ventas_del_dia %}
-                            <tr class="border-bottom border-opacity-25 align-middle"
-                                style="transition: background .15s;">
-                                <td class="ps-3 text-secondary fw-bold">#{{ "%05d"|format(v.id) }}</td>
-                                <td class="text-tekfix-sec">{{ v.fecha_venta.strftime('%H:%M') }}</td>
-                                <td>
-                                    {% if v.pagos|length > 1 %}
-                                        <span class="badge rounded-pill px-2 py-1"
-                                              style="background:rgba(253,126,20,0.12); color:#fd7e14; border:1px solid rgba(253,126,20,0.3); font-size:0.7rem;">
-                                            <i class="fa-solid fa-layer-group me-1"></i>Mixto
-                                        </span>
-                                        <div style="font-size:0.68rem; color:#999; margin-top:2px; line-height:1.3;">
-                                            {% for p in v.pagos %}{{ p.metodo_pago|capitalize }}: ${{ (p.monto)|cop }}{% if not loop.last %} · {% endif %}{% endfor %}
-                                        </div>
-                                    {% elif v.pagos|length == 1 %}
-                                        {% set m = v.pagos[0].metodo_pago %}
-                                        {% if m == 'efectivo' %}
+        <!-- 3. Venta Total Bruta -->
+        <div class="col-12 col-md-4">
+            <div class="card p-3 shadow-sm border-0 rounded-4 text-white gold-shimmer-kpi" 
+                 style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1.5px solid rgba(221, 184, 86, 0.6) !important; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.3), 0 0 14px rgba(221, 184, 86, 0.25) !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-uppercase fw-bold text-white-50 d-block mb-1" style="font-size: 0.76rem; letter-spacing: 0.05em;">VENTA TOTAL BRUTA</span>
+                        <h2 class="fw-bolder mb-0 text-white" style="font-family: var(--font-heading); font-size: 2.1rem;">
+                            {% if arqueo_existente %}
+                                ${{ (arqueo_existente.total_efectivo_sistema + arqueo_existente.total_transferencia_sistema)|cop }}
+                            {% else %}
+                                ${{ (total_efectivo + total_transferencia)|cop }}
+                            {% endif %}
+                        </h2>
+                    </div>
+                    <div class="rounded-pill p-3 d-flex align-items-center justify-content-center" style="background: rgba(221, 184, 86, 0.2); border: 1px solid rgba(221, 184, 86, 0.5); width: 56px; height: 56px;">
+                        <i class="fa-solid fa-sack-dollar fs-3" style="color: #F3E5AB;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── FILA 2: DESGLOSE DE BILLETERAS DIGITALES & BANCOS ── #}
+    <div class="card card-gold-custom p-3 mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+            <span class="fw-bold text-uppercase d-flex align-items-center gap-2" style="font-size: 0.85rem; letter-spacing: 0.04em; color: #0F172A;">
+                <i class="fa-solid fa-wallet" style="color: var(--tekfix-primary);"></i> DESGLOSE DE BILLETERAS DIGITALES &amp; BANCOS
+            </span>
+            <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(221, 184, 86, 0.15); color: var(--tekfix-primary); border: 1px solid rgba(221, 184, 86, 0.35); font-size: 0.8rem;">
+                Total Digital: ${{ (arqueo_existente.total_transferencia_sistema if arqueo_existente else total_transferencia)|cop }}
+            </span>
+        </div>
+        <div class="row g-2 text-center">
+            <!-- Nequi -->
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
+                    <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #7828C8; font-size: 0.8rem; font-weight: 700;">
+                        <i class="fa-solid fa-mobile-screen"></i> Nequi
+                    </div>
+                    <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.nequi|cop }}</div>
+                </div>
+            </div>
+            <!-- Bancolombia -->
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
+                    <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #D97706; font-size: 0.8rem; font-weight: 700;">
+                        <i class="fa-solid fa-building-columns"></i> Bancolombia
+                    </div>
+                    <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.bancolombia|cop }}</div>
+                </div>
+            </div>
+            <!-- Daviplata -->
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
+                    <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #DC2626; font-size: 0.8rem; font-weight: 700;">
+                        <i class="fa-solid fa-wallet"></i> Daviplata
+                    </div>
+                    <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.daviplata|cop }}</div>
+                </div>
+            </div>
+            <!-- Datáfono -->
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
+                    <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #0284C7; font-size: 0.8rem; font-weight: 700;">
+                        <i class="fa-solid fa-credit-card"></i> Datáfono
+                    </div>
+                    <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.tarjeta|cop }}</div>
+                </div>
+            </div>
+            <!-- Crédito -->
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
+                    <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #CA8A04; font-size: 0.8rem; font-weight: 700;">
+                        <i class="fa-solid fa-hourglass-half"></i> Crédito
+                    </div>
+                    <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.credito|cop }}</div>
+                </div>
+            </div>
+            <!-- Otros -->
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
+                    <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #64748B; font-size: 0.8rem; font-weight: 700;">
+                        <i class="fa-solid fa-globe"></i> Otros
+                    </div>
+                    <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.otros|cop }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── FORMULARIO PRINCIPAL: DOS COLUMNAS (TABLAS Y PANELES) ── #}
+    <form action="{{ url_for('arqueo_bp.nuevo') }}?fecha={{ fecha }}" method="POST" id="formArqueo">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="row g-4 align-items-start">
+
+            {# ════════════════════════════════════════════════════════════
+               COLUMNA IZQUIERDA — Tablas de Ventas y Gastos (col-8)
+            ════════════════════════════════════════════════════════════ #}
+            <div class="col-12 col-lg-8">
+
+                {# 1. TABLA: Tirilla Digital de Ventas del Día #}
+                <div class="card card-gold-custom overflow-hidden mb-4">
+                    <div class="px-4 py-3 d-flex align-items-center justify-content-between flex-wrap gap-2"
+                         style="background: #FFFFFF; border-bottom: 2px solid rgba(221, 184, 86, 0.4);">
+                        <div>
+                            <h6 class="fw-bold mb-0 text-tekfix-main d-flex align-items-center gap-2" style="font-family: var(--font-heading); font-size: 1.05rem;">
+                                <i class="fa-solid fa-receipt" style="color: var(--tekfix-primary);"></i>
+                                <span>Tirilla Digital de Ventas del Día</span>
+                            </h6>
+                            <span class="text-secondary" style="font-size: 0.78rem;">
+                                {{ ventas_del_dia|length + sims_del_dia|length }} tickets facturados
+                            </span>
+                        </div>
+                        <span class="badge rounded-pill px-3 py-1 fw-bold text-white shadow-sm"
+                              style="background: #0F172A; border: 1px solid rgba(221, 184, 86, 0.5); font-size: 0.82rem;">
+                            Total: ${{ (arqueo_existente.total_efectivo_sistema + arqueo_existente.total_transferencia_sistema if arqueo_existente else total_efectivo + total_transferencia)|cop }}
+                        </span>
+                    </div>
+
+                    <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+                        <table class="table table-sm align-middle mb-0" style="font-size: 0.85rem;">
+                            <thead class="table-header-dark sticky-top" style="top: 0; z-index: 2;">
+                                <tr>
+                                    <th class="ps-3" width="12%">TICKET</th>
+                                    <th width="10%">HORA</th>
+                                    <th width="18%">MEDIO DE PAGO</th>
+                                    <th>PRODUCTOS VENDIDOS</th>
+                                    <th class="text-end pe-3" width="16%">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {# Ventas regulares #}
+                                {% for v in ventas_del_dia %}
+                                <tr class="border-bottom border-opacity-25 align-middle" style="transition: background 0.15s;">
+                                    <td class="ps-3 fw-bold" style="font-family: var(--font-mono); color: #0F172A;">
+                                        #{{ "%05d"|format(v.id) }}
+                                    </td>
+                                    <td class="text-secondary fw-semibold">
+                                        {{ v.fecha_venta.strftime('%H:%M') }}
+                                    </td>
+                                    <td>
+                                        {% if v.pagos|length > 1 %}
                                             <span class="badge rounded-pill px-2 py-1"
-                                                  style="background:rgba(40,167,69,0.12); color:#28a745; border:1px solid rgba(40,167,69,0.3); font-size:0.7rem;">
+                                                  style="background: rgba(253,126,20,0.12); color: #fd7e14; border: 1px solid rgba(253,126,20,0.3); font-size: 0.7rem;">
+                                                <i class="fa-solid fa-layer-group me-1"></i>Mixto
+                                            </span>
+                                            <div style="font-size: 0.68rem; color: #64748B; margin-top: 2px;">
+                                                {% for p in v.pagos %}{{ p.metodo_pago|capitalize }}: ${{ p.monto|cop }}{% if not loop.last %} · {% endif %}{% endfor %}
+                                            </div>
+                                        {% elif v.pagos|length == 1 %}
+                                            {% set m = v.pagos[0].metodo_pago %}
+                                            {% if m == 'efectivo' %}
+                                                <span class="badge rounded-pill px-2 py-1"
+                                                      style="background: rgba(16,185,129,0.12); color: #059669; border: 1px solid rgba(16,185,129,0.3); font-size: 0.72rem;">
+                                                    <i class="fa-solid fa-money-bill me-1"></i>Efectivo
+                                                </span>
+                                            {% else %}
+                                                <span class="badge rounded-pill px-2 py-1"
+                                                      style="background: rgba(2,132,199,0.12); color: #0284c7; border: 1px solid rgba(2,132,199,0.3); font-size: 0.72rem;">
+                                                    <i class="fa-solid fa-mobile-screen me-1"></i>{{ m|capitalize }}
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge rounded-pill px-2 py-1 bg-light text-secondary border" style="font-size: 0.72rem;">
+                                                {{ v.metodo_pago|capitalize }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <ul class="mb-0 ps-0 list-unstyled" style="line-height: 1.5;">
+                                            {% for d in v.detalles %}
+                                            <li>
+                                                <span class="fw-bold text-dark me-1">{{ d.cantidad_vendida }}x</span>
+                                                {% if d.nombre_manual %}
+                                                    {{ d.nombre_manual }}
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-1" style="font-size: 0.6rem;">Externo</span>
+                                                {% else %}
+                                                    {{ d.producto.nombre }}
+                                                    {% if d.variant_id %}
+                                                        <span class="text-muted">({{ d.variante.nombre_variante }})</span>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </li>
+                                            {% endfor %}
+                                            {% for sim in v.sims_vendidas %}
+                                            <li>
+                                                <span class="fw-bold text-dark me-1">1x</span>
+                                                [SIM {{ sim.operador|upper }}] {{ sim.numero_telefono }}
+                                                <span class="badge rounded-pill px-1 ms-1" style="background: rgba(221, 184, 86, 0.2); color: #b08000; border: 1px solid rgba(221, 184, 86, 0.4); font-size: 0.6rem;">
+                                                    SIM Card
+                                                </span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </td>
+                                    <td class="text-end pe-3 fw-bolder text-dark" style="font-size: 0.95rem;">
+                                        {% set ns = namespace(ts=0) %}
+                                        {% for sim in v.sims_vendidas %}{% set ns.ts = ns.ts + sim.precio_venta_real %}{% endfor %}
+                                        ${{ (v.monto_total + ns.ts)|cop }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+
+                                {# SIMs independientes #}
+                                {% for sim in sims_del_dia %}
+                                {% if not sim.sale_id %}
+                                <tr class="border-bottom border-opacity-25" style="background: rgba(221, 184, 86, 0.03);">
+                                    <td class="ps-3 text-secondary">—</td>
+                                    <td class="text-secondary fw-semibold">{{ sim.fecha_venta.strftime('%H:%M') if sim.fecha_venta else '—' }}</td>
+                                    <td>
+                                        {% if sim.metodo_pago == 'efectivo' %}
+                                            <span class="badge rounded-pill px-2 py-1" style="background: rgba(16,185,129,0.12); color: #059669; border: 1px solid rgba(16,185,129,0.3); font-size: 0.72rem;">
                                                 <i class="fa-solid fa-money-bill me-1"></i>Efectivo
                                             </span>
                                         {% else %}
-                                            <span class="badge rounded-pill px-2 py-1"
-                                                  style="background:rgba(23,162,184,0.12); color:#17a2b8; border:1px solid rgba(23,162,184,0.3); font-size:0.7rem;">
-                                                <i class="fa-solid fa-mobile-screen me-1"></i>{{ m|capitalize }}
+                                            <span class="badge rounded-pill px-2 py-1" style="background: rgba(2,132,199,0.12); color: #0284c7; border: 1px solid rgba(2,132,199,0.3); font-size: 0.72rem;">
+                                                <i class="fa-solid fa-mobile-screen me-1"></i>{{ sim.metodo_pago|capitalize }}
                                             </span>
                                         {% endif %}
-                                    {% else %}
-                                        <span class="badge rounded-pill px-2 py-1 bg-secondary bg-opacity-10 text-secondary"
-                                              style="font-size:0.7rem;">{{ v.metodo_pago|capitalize }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <ul class="mb-0 ps-0 list-unstyled" style="line-height:1.6;">
-                                        {% for d in v.detalles %}
-                                        <li>
-                                            <span class="fw-bold text-tekfix-main me-1">{{ d.cantidad_vendida }}x</span>
-                                            {% if d.nombre_manual %}
-                                                {{ d.nombre_manual }}
-                                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-1" style="font-size:0.6rem;">Externo</span>
-                                            {% else %}
-                                                {{ d.producto.nombre }}
-                                                {% if d.variant_id %}
-                                                    <span class="text-tekfix-sec">({{ d.variante.nombre_variante }})</span>
-                                                {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-dark me-1">1x</span>
+                                        [SIM {{ sim.operador|upper }}] {{ sim.numero_telefono }}
+                                        <span class="badge rounded-pill px-1 ms-1" style="background: rgba(221, 184, 86, 0.2); color: #b08000; border: 1px solid rgba(221, 184, 86, 0.4); font-size: 0.6rem;">
+                                            SIM Card
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-3 fw-bolder text-dark" style="font-size: 0.95rem;">
+                                        ${{ sim.precio_venta_real|cop }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+
+                                {# Estado vacío de ventas #}
+                                {% if not ventas_del_dia and not sims_del_dia %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5">
+                                        <i class="fa-solid fa-basket-shopping fa-3x mb-3 text-secondary opacity-50"></i>
+                                        <div class="text-secondary fw-semibold">No se registraron ventas para la fecha seleccionada.</div>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {# 2. TABLA: Gastos Diarios del Turno (Salidas de Caja) — NUEVA Y SOLICITADA #}
+                <div class="card card-gold-custom overflow-hidden mb-4">
+                    <div class="px-4 py-3 d-flex align-items-center justify-content-between flex-wrap gap-2"
+                         style="background: #FFFFFF; border-bottom: 2px solid rgba(225, 29, 72, 0.3);">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge rounded-pill p-2" style="background: rgba(225, 29, 72, 0.12); color: #E11D48;">
+                                <i class="fa-solid fa-money-bill-transfer fs-6"></i>
+                            </span>
+                            <div>
+                                <h6 class="fw-bold mb-0" style="color: #E11D48; font-family: var(--font-heading); font-size: 1.05rem;">
+                                    Gastos Diarios del Turno (Salidas de Caja)
+                                </h6>
+                                <span class="text-secondary" style="font-size: 0.78rem;">
+                                    Gastos en efectivo pagados con dinero de caja
+                                </span>
+                            </div>
+                        </div>
+                        <span class="badge rounded-pill px-3 py-1 fw-bold shadow-sm"
+                              style="background: rgba(225, 29, 72, 0.1); color: #E11D48; border: 1px solid rgba(225, 29, 72, 0.3); font-size: 0.82rem;">
+                            Total Gastos: -${{ (arqueo_existente.gastos_del_dia if arqueo_existente else gastos_automaticos)|cop }}
+                        </span>
+                    </div>
+
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm align-middle mb-0" style="font-size: 0.85rem;">
+                            <thead class="table-header-expenses sticky-top" style="top: 0; z-index: 2;">
+                                <tr>
+                                    <th class="ps-3" width="12%">HORA</th>
+                                    <th>CATEGORÍA / CONCEPTO</th>
+                                    <th width="24%">MÉTODO DE PAGO</th>
+                                    <th class="text-end pe-3" width="18%">VALOR</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if gastos_diarios_registros %}
+                                    {% for g in gastos_diarios_registros %}
+                                    <tr class="border-bottom border-opacity-25" style="transition: background 0.15s;">
+                                        <td class="ps-3 fw-semibold text-secondary">
+                                            {{ g.fecha_gasto.strftime('%H:%M') }}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center flex-wrap gap-1">
+                                                <span class="badge rounded-pill px-2 py-1 fw-bold"
+                                                      style="background: rgba(221, 184, 86, 0.15); color: #9A7B1C; border: 1px solid rgba(221, 184, 86, 0.4); font-size: 0.72rem;">
+                                                    {{ g.categoria }}
+                                                </span>
+                                                <span class="fw-medium text-dark ms-1">
+                                                    {{ g.descripcion or 'Gasto diario registrado en el turno' }}
+                                                </span>
+                                            </div>
+                                            {% if g.usuario %}
+                                            <small class="text-muted d-block" style="font-size: 0.7rem;">
+                                                <i class="fa-regular fa-user me-1"></i>Registrado por: {{ g.usuario.nombre }}
+                                            </small>
                                             {% endif %}
-                                        </li>
-                                        {% endfor %}
-                                        {% for sim in v.sims_vendidas %}
-                                        <li>
-                                            <span class="fw-bold text-tekfix-main me-1">1x</span>
-                                            [SIM {{ sim.operador|upper }}] {{ sim.numero_telefono }}
-                                            <span class="badge rounded-pill px-1 ms-1"
-                                                  style="background:rgba(255,193,7,0.15); color:#b08000; border:1px solid rgba(255,193,7,0.4); font-size:0.6rem;">
-                                                SIM Card
+                                        </td>
+                                        <td>
+                                            <span class="badge rounded-pill px-2 py-1"
+                                                  style="background: rgba(225, 29, 72, 0.08); color: #E11D48; border: 1px solid rgba(225, 29, 72, 0.25); font-size: 0.72rem;">
+                                                <i class="fa-solid fa-money-bill me-1"></i>Efectivo de Caja
                                             </span>
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                </td>
-                                <td class="text-end pe-3 fw-bold text-tekfix-main">
-                                    {% set ns = namespace(ts=0) %}
-                                    {% for sim in v.sims_vendidas %}{% set ns.ts = ns.ts + sim.precio_venta_real %}{% endfor %}
-                                    ${{ (v.monto_total + ns.ts)|cop }}
-                                </td>
-                            </tr>
-                            {% endfor %}
-
-                            {# ── SIMs independientes (sin sale_id) #}
-                            {% for sim in sims_del_dia %}
-                            {% if not sim.sale_id %}
-                            <tr class="border-bottom border-opacity-25"
-                                style="background:rgba(255,193,7,0.04);">
-                                <td class="ps-3 text-secondary">—</td>
-                                <td class="text-tekfix-sec">{{ sim.fecha_venta.strftime('%H:%M') if sim.fecha_venta else '—' }}</td>
-                                <td>
-                                    {% if sim.metodo_pago == 'efectivo' %}
-                                        <span class="badge rounded-pill px-2 py-1"
-                                              style="background:rgba(40,167,69,0.12); color:#28a745; border:1px solid rgba(40,167,69,0.3); font-size:0.7rem;">
-                                            <i class="fa-solid fa-money-bill me-1"></i>Efectivo
-                                        </span>
-                                    {% else %}
-                                        <span class="badge rounded-pill px-2 py-1"
-                                              style="background:rgba(23,162,184,0.12); color:#17a2b8; border:1px solid rgba(23,162,184,0.3); font-size:0.7rem;">
-                                            <i class="fa-solid fa-mobile-screen me-1"></i>{{ sim.metodo_pago|capitalize }}
-                                        </span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <span class="fw-bold text-tekfix-main me-1">1x</span>
-                                    [SIM {{ sim.operador|upper }}] {{ sim.numero_telefono }}
-                                    <span class="badge rounded-pill px-1 ms-1"
-                                          style="background:rgba(255,193,7,0.15); color:#b08000; border:1px solid rgba(255,193,7,0.4); font-size:0.6rem;">
-                                        SIM Card
-                                    </span>
-                                </td>
-                                <td class="text-end pe-3 fw-bold text-tekfix-main">${{ sim.precio_venta_real|cop }}</td>
-                            </tr>
-                            {% endif %}
-                            {% endfor %}
-
-                            {# Sin ventas #}
-                            {% if not ventas_del_dia and not sims_del_dia %}
-                            <tr>
-                                <td colspan="5" class="text-center text-tekfix-sec py-5">
-                                    <i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-25"></i>
-                                    No se registraron ventas para este día.
-                                </td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                        {# Fila totales #}
-                        {% if ventas_del_dia or sims_del_dia %}
-                        <tfoot style="border-top:2px solid rgba(163,216,222,0.35); background:rgba(163,216,222,0.06);">
-                            <tr class="fw-bold">
-                                <td colspan="3" class="ps-3 text-tekfix-sec text-end text-uppercase py-2"
-                                    style="font-size:0.72rem; letter-spacing:.04em;">Totales del día:</td>
-                                <td class="py-2">
-                                    <span class="text-success me-3">
-                                        <i class="fa-solid fa-money-bill me-1"></i>Efectivo: ${{ total_efectivo|cop }}
-                                    </span>
-                                    <span class="text-info">
-                                        <i class="fa-solid fa-mobile-screen me-1"></i>Digital: ${{ total_transferencia|cop }}
-                                    </span>
-                                </td>
-                                <td class="text-end pe-3 fw-bold fs-6 text-tekfix-main py-2">
-                                    ${{ (total_efectivo + total_transferencia)|cop }}
-                                </td>
-                            </tr>
-                        </tfoot>
-                        {% endif %}
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        {# ════════════════════════════════════════════════════════════
-           COLUMNA DERECHA — Panel inputs STICKY (col-4)
-        ════════════════════════════════════════════════════════════ #}
-        <div class="col-12 col-lg-4">
-            <div class="arqueo-sidebar" style="position:sticky; top:80px;">
-
-                {# ── BLOQUE 1: Datos del sistema (solo lectura) ── #}
-                <div class="card border-0 shadow-sm rounded-3 mb-3 overflow-hidden">
-                    <div class="px-3 py-2"
-                         style="background:linear-gradient(90deg,rgba(163,216,222,0.15),transparent); border-bottom:1px solid rgba(163,216,222,0.2);">
-                        <span class="fw-bold text-tekfix-sec" style="font-size:0.8rem; letter-spacing:.04em; text-transform:uppercase;">
-                            <i class="fa-solid fa-calculator me-1"></i> Sistema (Automático)
-                        </span>
-                    </div>
-                    <div class="p-3">
-                        <div class="mb-2">
-                            <label class="form-label text-tekfix-sec mb-1" style="font-size:0.78rem;">Total Efectivo</label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-tekfix-card border-end-0">$</span>
-                                <input type="text" class="form-control border-start-0 fw-bold text-success bg-tekfix-card"
-                                       value="{{ total_efectivo|cop }}" readonly disabled>
-                            </div>
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label text-tekfix-sec mb-1" style="font-size:0.78rem;">Total Digital / Transferencias</label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-tekfix-card border-end-0">$</span>
-                                <input type="text" class="form-control border-start-0 fw-bold text-info bg-tekfix-card"
-                                       value="{{ total_transferencia|cop }}" readonly disabled>
-                            </div>
-                        </div>
-                        <div class="rounded-3 p-2 text-center mt-3"
-                             style="background:rgba(163,216,222,0.1); border:1px solid rgba(163,216,222,0.3);">
-                            <small class="d-block text-tekfix-sec fw-semibold mb-1" style="font-size:0.72rem;">
-                                <i class="fa-solid fa-chart-line me-1"></i>VENTA TOTAL DEL DÍA
-                            </small>
-                            <span class="fw-bold fs-4" style="color:#A3D8DE;">
-                                ${{ (total_efectivo + total_transferencia)|cop }}
-                            </span>
-                        </div>
+                                        </td>
+                                        <td class="text-end pe-3 fw-bold text-danger fs-6">
+                                            -${{ g.monto|cop }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% elif arqueo_existente and arqueo_existente.gastos_del_dia > 0 %}
+                                    <tr class="border-bottom border-opacity-25" style="transition: background 0.15s;">
+                                        <td class="ps-3 fw-semibold text-secondary">—</td>
+                                        <td>
+                                            <div class="d-flex align-items-center flex-wrap gap-1">
+                                                <span class="badge rounded-pill px-2 py-1 fw-bold"
+                                                      style="background: rgba(221, 184, 86, 0.15); color: #9A7B1C; border: 1px solid rgba(221, 184, 86, 0.4); font-size: 0.72rem;">
+                                                    Salida de Caja
+                                                </span>
+                                                <span class="fw-medium text-dark ms-1">
+                                                    {{ arqueo_existente.observaciones_gastos or 'Gasto registrado en el cierre de caja' }}
+                                                </span>
+                                            </div>
+                                            {% if arqueo_existente.cajero %}
+                                            <small class="text-muted d-block" style="font-size: 0.7rem;">
+                                                <i class="fa-regular fa-user me-1"></i>Registrado en cierre por: {{ arqueo_existente.cajero.nombre }}
+                                            </small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge rounded-pill px-2 py-1"
+                                                  style="background: rgba(225, 29, 72, 0.08); color: #E11D48; border: 1px solid rgba(225, 29, 72, 0.25); font-size: 0.72rem;">
+                                                <i class="fa-solid fa-money-bill me-1"></i>Efectivo de Caja
+                                            </span>
+                                        </td>
+                                        <td class="text-end pe-3 fw-bold text-danger fs-6">
+                                            -${{ arqueo_existente.gastos_del_dia|cop }}
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-secondary">
+                                            <i class="fa-regular fa-circle-check text-success me-2 fs-5"></i>
+                                            <span>No se registraron salidas de dinero en efectivo hoy.</span>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                {# ── BLOQUE 2: Ingreso manual del cajero ── #}
-                <div class="card border-0 shadow-sm rounded-3 mb-3 overflow-hidden">
-                    <div class="px-3 py-2"
-                         style="background:linear-gradient(90deg,rgba(249,200,211,0.2),transparent); border-bottom:1px solid rgba(249,200,211,0.3);">
-                        <span class="fw-bold text-tekfix-main" style="font-size:0.8rem; letter-spacing:.04em; text-transform:uppercase;">
-                            <i class="fa-solid fa-user-pen me-1"></i> Ingreso del Cajero
-                        </span>
-                    </div>
-                    <div class="p-3">
-                        {# Base inicial #}
-                        <div class="mb-3">
-                            <label for="base_inicial" class="form-label fw-semibold mb-1" style="font-size:0.82rem;">
-                                Base Inicial <span class="text-danger">*</span>
-                                <small class="fw-normal text-tekfix-sec ms-1">(efectivo de apertura)</small>
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-tekfix-card border-end-0">
-                                    <i class="fa-solid fa-sack-dollar text-tekfix-sec"></i>
-                                </span>
-                                <input type="number" step="1" min="0"
-                                       id="base_inicial" name="base_inicial"
-                                       class="form-control border-start-0"
-                                       value="0" required
-                                       placeholder="0">
-                            </div>
-                        </div>
+            </div>{# /col-lg-8 #}
 
-                        {# Gastos del día (readonly) #}
-                        <div class="mb-3">
-                            <label for="gastos_del_dia" class="form-label fw-semibold mb-1" style="font-size:0.82rem;">
-                                Gastos del Día
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2 ms-1" style="font-size:0.65rem;">Auto</span>
-                            </label>
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-tekfix-card border-end-0">
-                                    <i class="fa-solid fa-money-bill-transfer text-danger"></i>
-                                </span>
-                                <input type="number" step="1" min="0"
-                                       id="gastos_del_dia" name="gastos_del_dia"
-                                       class="form-control border-start-0 bg-tekfix-card"
-                                       value="{{ gastos_automaticos|int if gastos_automaticos else 0 }}"
-                                       readonly>
-                            </div>
-                            <div class="form-text" style="font-size:0.7rem;">Calculado desde el módulo de Gastos Diarios.</div>
-                        </div>
+            {# ════════════════════════════════════════════════════════════
+               COLUMNA DERECHA — Reporte del Sistema y Conteo Físico (col-4)
+            ════════════════════════════════════════════════════════════ #}
+            <div class="col-12 col-lg-4">
+                <div class="arqueo-sidebar" style="position: sticky; top: 85px;">
 
-                        {# Observación gastos #}
-                        <div class="mb-3">
-                            <label for="observaciones_gastos" class="form-label fw-semibold mb-1" style="font-size:0.82rem;">
-                                Detalle / Observación de Gastos
-                            </label>
-                            <textarea id="observaciones_gastos" name="observaciones_gastos"
-                                      rows="2" class="form-control form-control-sm"
-                                      placeholder="Ej: Pago almuerzos, flete..."></textarea>
-                        </div>
-
-                        {# Efectivo esperado (calculado) #}
-                        <div class="rounded-3 p-2 text-center mb-3"
-                             style="background:rgba(249,200,211,0.15); border:1px solid rgba(249,200,211,0.5);">
-                            <small class="d-block text-tekfix-sec fw-semibold mb-1" style="font-size:0.72rem;">
-                                EFECTIVO ESPERADO EN CAJA
-                            </small>
-                            <span class="fw-bold fs-5" style="color:#c0556e;">
-                                $<span id="efectivo_esperado">0</span>
+                    {# ── TARJETA 1: REPORTE DEL SISTEMA ── #}
+                    <div class="card card-gold-custom p-3 mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                            <i class="fa-solid fa-chart-pie" style="color: var(--tekfix-primary);"></i>
+                            <span class="fw-bold text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.05em; color: #0F172A;">
+                                REPORTE DEL SISTEMA
                             </span>
-                            <small class="d-block text-tekfix-sec mt-1" style="font-size:0.65rem;">(Base + Efectivo) − Gastos</small>
                         </div>
 
-                        <hr class="my-2 opacity-15">
+                        {% set ef_sys = arqueo_existente.total_efectivo_sistema if arqueo_existente else total_efectivo %}
+                        {% set dig_sys = arqueo_existente.total_transferencia_sistema if arqueo_existente else total_transferencia %}
+                        {% set gas_sys = arqueo_existente.gastos_del_dia if arqueo_existente else gastos_automaticos %}
+                        {% set neto_sys = (ef_sys + dig_sys) - gas_sys %}
 
-                        {# Efectivo físico contado #}
-                        <div class="mb-2">
-                            <label for="efectivo_fisico" class="form-label fw-bold mb-1" style="font-size:0.85rem; color:#A3D8DE;">
-                                <i class="fa-solid fa-hand-holding-dollar me-1"></i>
-                                Efectivo Físico Contado <span class="text-danger">*</span>
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text border-end-0 fw-bold" style="color:#A3D8DE;">$</span>
-                                <input type="number" step="1" min="0"
-                                       id="efectivo_fisico" name="efectivo_fisico"
-                                       class="form-control border-start-0 fw-bold fs-5"
-                                       value="0" required
-                                       placeholder="0"
-                                       style="border:1.5px solid rgba(163,216,222,0.4);">
-                            </div>
-                            <div class="form-text" style="font-size:0.7rem;">Ingresa el total físico contado.</div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-secondary" style="font-size: 0.85rem;">Efectivo Sistema:</span>
+                            <span class="fw-bold text-success" style="font-size: 0.95rem;">${{ ef_sys|cop }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-secondary" style="font-size: 0.85rem;">Dinero Digital:</span>
+                            <span class="fw-bold text-info" style="font-size: 0.95rem;">${{ dig_sys|cop }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-secondary" style="font-size: 0.85rem;">Gastos en Efectivo:</span>
+                            <span class="fw-bold text-danger" style="font-size: 0.95rem;">-${{ gas_sys|cop }}</span>
                         </div>
 
-                        {# Diferencia dinámica #}
-                        <div id="seccion_diferencia" class="d-none mt-2">
-                            <div class="rounded-3 p-2 d-flex justify-content-between align-items-center" id="alert_diferencia">
-                                <span class="fw-bold" id="label_diferencia" style="font-size:0.82rem;">Diferencia:</span>
-                                <span class="fw-bolder fs-5" id="val_diferencia">$0</span>
-                            </div>
-                            <div class="mt-2">
-                                <label for="observacion_diferencia" class="form-label fw-bold mb-1" id="label_obs_dif"
-                                       style="font-size:0.8rem;">
-                                    Observación de la Diferencia <span class="text-danger">*</span>
+                        <hr class="my-2 opacity-25">
+
+                        <div class="d-flex justify-content-between align-items-center pt-1">
+                            <span class="fw-bold text-dark text-uppercase" style="font-size: 0.82rem; letter-spacing: 0.04em;">
+                                TOTAL RECAUDADO NETO:
+                            </span>
+                            <span class="fw-bolder fs-5" style="color: var(--tekfix-primary);">
+                                ${{ neto_sys|cop }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {# ── TARJETA 2: CONTEO FÍSICO Y CUADRE ── #}
+                    <div class="card card-gold-custom p-3 mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                            <i class="fa-solid fa-scale-balanced" style="color: var(--tekfix-primary);"></i>
+                            <span class="fw-bold text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.05em; color: #0F172A;">
+                                CONTEO FÍSICO Y CUADRE
+                            </span>
+                        </div>
+
+                        {% if not arqueo_existente %}
+                            {# MODO FORMULARIO INTERACTIVO (Caja abierta) #}
+
+                            <!-- 1. Base Inicial -->
+                            <div class="mb-3">
+                                <label for="base_inicial" class="form-label fw-bold mb-1" style="font-size: 0.82rem; color: #0F172A;">
+                                    1. Base Inicial (Apertura de Caja) <span class="text-danger">*</span>
                                 </label>
-                                <textarea id="observacion_diferencia" name="observacion_diferencia"
-                                          rows="2" class="form-control form-control-sm border-danger"
-                                          placeholder="Explica el sobrante o faltante..."></textarea>
-                                <small class="text-danger fw-bold" id="msg_obs_dif" style="font-size:0.7rem;">
-                                    Obligatorio cuando hay diferencias.
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 fw-bold text-secondary" style="border-color: rgba(221, 184, 86, 0.4);">$</span>
+                                    <input type="number" step="1" min="0" id="base_inicial" name="base_inicial"
+                                           class="form-control border-start-0 fw-bold" value="0" required placeholder="0"
+                                           style="border-color: rgba(221, 184, 86, 0.4);">
+                                </div>
+                                <div class="form-text text-secondary" style="font-size: 0.72rem;">Efectivo con el que abrió caja en la mañana.</div>
+                            </div>
+
+                            <!-- 2. Gastos del Día (Salidas en Efectivo) -->
+                            <div class="mb-3">
+                                <label for="gastos_del_dia" class="form-label fw-bold mb-1" style="font-size: 0.82rem; color: #0F172A;">
+                                    2. Gastos del Día (Salidas en Efectivo)
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 fw-bold text-danger" style="border-color: rgba(221, 184, 86, 0.4);">-$</span>
+                                    <input type="number" step="1" min="0" id="gastos_del_dia" name="gastos_del_dia"
+                                           class="form-control border-start-0 bg-light text-danger fw-bold"
+                                           value="{{ gastos_automaticos|int if gastos_automaticos else 0 }}" readonly
+                                           style="border-color: rgba(221, 184, 86, 0.4);">
+                                </div>
+                                <div class="form-text text-secondary" style="font-size: 0.72rem;">Precargado automáticamente desde los gastos diarios.</div>
+                            </div>
+
+                            <!-- 3. Efectivo Físico Contado -->
+                            <div class="mb-3">
+                                <label for="efectivo_fisico" class="form-label fw-bold mb-1" style="font-size: 0.85rem; color: var(--tekfix-primary);">
+                                    3. Efectivo Físico Contado (En Cajón) <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text border-end-0 fw-bold text-dark" style="border-color: var(--tekfix-primary); background: rgba(221, 184, 86, 0.15); font-size: 1.1rem;">$</span>
+                                    <input type="number" step="1" min="0" id="efectivo_fisico" name="efectivo_fisico"
+                                           class="form-control border-start-0 fw-bolder fs-5" value="0" required placeholder="0"
+                                           style="border-color: var(--tekfix-primary);">
+                                </div>
+                                <div class="form-text text-secondary" style="font-size: 0.72rem;">Suma total de billetes y monedas contados en el cajón.</div>
+                            </div>
+
+                            <!-- Caja Dinámica de Cuadre en Vivo -->
+                            <div class="p-3 rounded-3 text-center my-3" id="box_estado_cuadre"
+                                 style="background: rgba(221, 184, 86, 0.05); border: 1.5px solid rgba(221, 184, 86, 0.45);">
+                                <span class="fw-bold text-uppercase d-block" id="label_estado_cuadre" style="font-size: 0.78rem; letter-spacing: 0.06em; color: #64748B;">
+                                    INGRESE EFECTIVO FÍSICO
+                                </span>
+                                <div class="fw-bolder fs-3 my-1" id="val_estado_cuadre" style="color: #0F172A; font-family: var(--font-heading);">$0</div>
+                                <small class="d-block text-secondary" style="font-size: 0.75rem;">
+                                    Esperado en caja: $<span id="efectivo_esperado">0</span>
                                 </small>
                             </div>
-                        </div>
+
+                            <!-- Observaciones -->
+                            <div class="mb-3">
+                                <label for="observacion_diferencia" class="form-label fw-bold mb-1" style="font-size: 0.8rem; color: #0F172A;">
+                                    Observaciones o Justificación
+                                </label>
+                                <textarea id="observacion_diferencia" name="observacion_diferencia" rows="2" class="form-control form-control-sm"
+                                          placeholder="Explique novedades, diferencias o motivos del descuadre..."
+                                          style="border-color: rgba(221, 184, 86, 0.4);"></textarea>
+                            </div>
+
+                            <!-- Botón Cierre de Caja -->
+                            <button type="submit" form="formArqueo"
+                                    class="btn btn-gold-action btn-lg w-100 py-3 rounded-3 shadow">
+                                <i class="fa-solid fa-lock me-2"></i>Cerrar Caja y Guardar Arqueo
+                            </button>
+
+                        {% else %}
+                            {# MODO LECTURA PARA ADMINISTRADOR (Cierre ya realizado) #}
+
+                            <div class="mb-2">
+                                <span class="text-secondary small d-block">1. Base Inicial:</span>
+                                <span class="fw-bold fs-6 text-dark">${{ arqueo_existente.base_inicial|cop }}</span>
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="text-secondary small d-block">2. Gastos del Día:</span>
+                                <span class="fw-bold fs-6 text-danger">-${{ arqueo_existente.gastos_del_dia|cop }}</span>
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="text-secondary small d-block">3. Efectivo Físico Contado:</span>
+                                <span class="fw-bold fs-5" style="color: var(--tekfix-primary);">${{ arqueo_existente.efectivo_fisico|cop }}</span>
+                            </div>
+
+                            {% set esp_cerrado = (arqueo_existente.base_inicial + arqueo_existente.total_efectivo_sistema) - arqueo_existente.gastos_del_dia %}
+                            <div class="p-3 rounded-3 text-center my-3"
+                                 style="background: {% if arqueo_existente.diferencia == 0 %}rgba(16, 185, 129, 0.08){% elif arqueo_existente.diferencia > 0 %}rgba(221, 184, 86, 0.12){% else %}rgba(239, 68, 68, 0.08){% endif %}; border: 1.5px solid {% if arqueo_existente.diferencia == 0 %}#10B981{% elif arqueo_existente.diferencia > 0 %}#DDB856{% else %}#EF4444{% endif %};">
+                                <span class="fw-bold text-uppercase d-block" style="font-size: 0.78rem; letter-spacing: 0.06em; color: {% if arqueo_existente.diferencia == 0 %}#059669{% elif arqueo_existente.diferencia > 0 %}#9A7B1C{% else %}#DC2626{% endif %};">
+                                    {% if arqueo_existente.diferencia == 0 %}CAJA CUADRADA{% elif arqueo_existente.diferencia > 0 %}SOBRANTE DE CAJA{% else %}FALTANTE DE CAJA{% endif %}
+                                </span>
+                                <div class="fw-bolder fs-3 my-1" style="color: {% if arqueo_existente.diferencia == 0 %}#059669{% elif arqueo_existente.diferencia > 0 %}#9A7B1C{% else %}#DC2626{% endif %}; font-family: var(--font-heading);">
+                                    {{ "+" if arqueo_existente.diferencia > 0 else "" }}${{ arqueo_existente.diferencia|cop }}
+                                </div>
+                                <small class="d-block text-secondary" style="font-size: 0.75rem;">
+                                    Esperado en caja: ${{ esp_cerrado|cop }}
+                                </small>
+                            </div>
+
+                            {% if arqueo_existente.observacion_diferencia %}
+                            <div class="p-2 rounded-3 bg-light text-secondary mb-3 small border">
+                                <strong>Justificación:</strong> {{ arqueo_existente.observacion_diferencia }}
+                            </div>
+                            {% endif %}
+
+                            <div class="text-center text-success fw-bold small p-2 rounded-3" style="background: rgba(16, 185, 129, 0.1);">
+                                <i class="fa-solid fa-circle-check me-1"></i>Arqueo cerrado por {{ arqueo_existente.cajero.nombre if arqueo_existente.cajero else 'Sistema' }}
+                            </div>
+                        {% endif %}
+
+                        {% if current_user.rol == 'admin' %}
+                        <a href="{{ url_for('arqueo_bp.reporte') }}"
+                           class="btn btn-sm w-100 mt-2 rounded-3 text-secondary fw-semibold border"
+                           style="border-color: rgba(221, 184, 86, 0.35) !important;">
+                            <i class="fa-solid fa-file-invoice me-1"></i>Ver Reportes Anteriores
+                        </a>
+                        {% endif %}
+
                     </div>
-                </div>
 
-                {# ── BLOQUE 3: Botón de cierre ── #}
-                <button type="submit" form="formArqueo"
-                        class="btn btn-lg w-100 fw-bold rounded-3 shadow"
-                        style="background:linear-gradient(135deg,#A3D8DE,#7ec8cf); color:#1a3a3c; border:none; letter-spacing:.03em; padding: 14px;">
-                    <i class="fa-solid fa-lock me-2"></i>Cerrar Caja y Guardar Arqueo
-                </button>
+                </div>{# /sidebar #}
+            </div>{# /col-lg-4 #}
 
-                <a href="{{ url_for('arqueo_bp.reporte') }}"
-                   class="btn btn-sm w-100 mt-2 rounded-3 text-tekfix-sec fw-semibold"
-                   style="background:transparent; border:1px solid rgba(163,216,222,0.25);">
-                    <i class="fa-solid fa-file-invoice me-1"></i>Ver Reportes anteriores
-                </a>
+        </div>{# /row #}
+    </form>
 
-            </div>{# /sidebar sticky #}
-        </div>
-
-    </div>{# /row #}
-</form>
 {% endif %}
 
-{# ── JAVASCRIPT ──────────────────────────────────────────────────── #}
+{# ── SCRIPT DE CUADRE EN VIVO Y CÁLCULOS ── #}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const totalEfectivo = parseInt("{{ total_efectivo|int if total_efectivo else 0 }}", 10) || 0;
@@ -793,10 +769,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const inputGastos = document.getElementById("gastos_del_dia");
     const spanEsp     = document.getElementById("efectivo_esperado");
     const inputFisico = document.getElementById("efectivo_fisico");
-    const secDif      = document.getElementById("seccion_diferencia");
-    const alertDif    = document.getElementById("alert_diferencia");
-    const labelDif    = document.getElementById("label_diferencia");
-    const valDif      = document.getElementById("val_diferencia");
+    const boxCuadre   = document.getElementById("box_estado_cuadre");
+    const labelCuadre = document.getElementById("label_estado_cuadre");
+    const valCuadre   = document.getElementById("val_estado_cuadre");
     const obsDif      = document.getElementById("observacion_diferencia");
 
     const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -811,44 +786,54 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function validarDif() {
-        const esp     = calcEsperado();
-        const fisico  = parseFloat(inputFisico.value) || 0;
-        const dif     = fisico - esp;
+        if (!inputFisico || !boxCuadre) return;
+        const esp    = calcEsperado();
+        const fisico = parseFloat(inputFisico.value) || 0;
+        const dif    = fisico - esp;
 
-        if (Math.abs(dif) > 1) {
-            secDif.classList.remove("d-none");
-            valDif.textContent = (dif > 0 ? "+" : "") + fmt(dif);
-            obsDif.required = true;
+        if (fisico === 0 && esp !== 0) {
+            boxCuadre.style.background = "rgba(221, 184, 86, 0.05)";
+            boxCuadre.style.borderColor = "rgba(221, 184, 86, 0.45)";
+            labelCuadre.textContent = "INGRESE EFECTIVO FÍSICO";
+            labelCuadre.style.color = "#64748B";
+            valCuadre.textContent = "$0";
+            valCuadre.style.color = "#0F172A";
+            if (obsDif) obsDif.required = false;
+            return;
+        }
 
-            if (dif > 0) {
-                alertDif.style.cssText = "background:rgba(221,184,86,0.12); border:1px solid #d4a017; border-radius:.4rem;";
-                labelDif.textContent = "SOBRANTE DE CAJA:";
-                labelDif.style.color = "#b08000";
-                valDif.style.color   = "#b08000";
-            } else {
-                alertDif.style.cssText = "background:rgba(231,76,60,0.08); border:1px solid #e74c3c; border-radius:.4rem;";
-                labelDif.textContent = "FALTANTE DE CAJA:";
-                labelDif.style.color = "#e74c3c";
-                valDif.style.color   = "#e74c3c";
-            }
+        if (Math.abs(dif) < 1) {
+            boxCuadre.style.background = "rgba(16, 185, 129, 0.08)";
+            boxCuadre.style.borderColor = "#10B981";
+            labelCuadre.textContent = "CAJA CUADRADA";
+            labelCuadre.style.color = "#059669";
+            valCuadre.textContent = "$0";
+            valCuadre.style.color = "#059669";
+            if (obsDif) obsDif.required = false;
+        } else if (dif > 0) {
+            boxCuadre.style.background = "rgba(221, 184, 86, 0.14)";
+            boxCuadre.style.borderColor = "#DDB856";
+            labelCuadre.textContent = "SOBRANTE DE CAJA";
+            labelCuadre.style.color = "#9A7B1C";
+            valCuadre.textContent = "+" + fmt(dif);
+            valCuadre.style.color = "#9A7B1C";
+            if (obsDif) obsDif.required = true;
         } else {
-            secDif.classList.add("d-none");
-            obsDif.required = false;
+            boxCuadre.style.background = "rgba(239, 68, 68, 0.08)";
+            boxCuadre.style.borderColor = "#EF4444";
+            labelCuadre.textContent = "FALTANTE DE CAJA";
+            labelCuadre.style.color = "#DC2626";
+            valCuadre.textContent = fmt(dif);
+            valCuadre.style.color = "#DC2626";
+            if (obsDif) obsDif.required = true;
         }
     }
 
-    if (inputBase) {
-        inputBase.addEventListener("input",   validarDif);
-        inputGastos.addEventListener("input", validarDif);
+    if (inputBase && inputFisico) {
+        inputBase.addEventListener("input", validarDif);
         inputFisico.addEventListener("input", validarDif);
-        validarDif(); // init
+        validarDif();
     }
-
-    // Hover sutil en filas de la tabla
-    document.querySelectorAll("tbody tr").forEach(tr => {
-        tr.addEventListener("mouseenter", () => tr.style.background = "rgba(163,216,222,0.05)");
-        tr.addEventListener("mouseleave", () => tr.style.background = "");
-    });
 });
 </script>
 

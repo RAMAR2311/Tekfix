@@ -7,7 +7,6 @@ from decimal import Decimal
 
 def seed_sobrantes():
     app = create_app()
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin123@127.0.0.1:5432/Tekfix'
     with app.app_context():
         print("Generando ejemplos de sobrantes...")
         

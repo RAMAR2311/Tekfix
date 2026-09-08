@@ -1,68 +1,88 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold text-tekfix-main m-0">Inventario Central</h2>
-    <div class="d-flex gap-2">
-        <button type="button" class="btn btn-outline-success rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#importarModal">
-            <i class="fa-solid fa-file-excel me-1"></i> Importar Masivo
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <h2 class="fw-bolder text-tekfix-main m-0" style="font-family: var(--font-heading); font-size: 2.1rem; letter-spacing: -0.02em;">
+        Inventario Central
+    </h2>
+    <div class="d-flex gap-2 align-items-center">
+        <button type="button" class="btn btn-outline-success rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#importarModal" style="border-color: #10B981; color: #059669; font-size: 0.85rem;">
+            <i class="fa-solid fa-file-excel fs-6"></i> Importar Masivo
         </button>
-        <a href="/inventory/nuevo" class="btn btn-tekfix-secondary rounded-pill px-4 fw-bold shadow-sm">
-            <i class="fa-solid fa-plus me-1"></i> Nuevo Producto
+        <a href="/inventory/nuevo" class="btn rounded-pill px-4 py-2 fw-bold shadow-sm text-white d-flex align-items-center gap-2" style="background-color: #1A1A1A; border: 1px solid #1A1A1A; font-size: 0.85rem; letter-spacing: 0.04em;">
+            <i class="fa-solid fa-plus fs-6"></i> NUEVO PRODUCTO
         </a>
     </div>
 </div>
 
-<!-- ========== KPI CARDS ========== -->
+<!-- ========== KPI CARDS MODERNAS CON IDENTIDAD DORADA TEKFIX ========== -->
 <div class="row g-3 mb-4">
 
-    <!-- Valor Total a Costo -->
+    <!-- 1. Cantidad de Productos -->
     <div class="col-12 col-md-4">
-        <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative">
-            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(var(--tekfix-primary-rgb,221,184,86),.08) 0%, transparent 70%); pointer-events:none;"></div>
-            <div class="card-body p-4 d-flex align-items-center gap-3">
-                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:52px;height:52px;background:linear-gradient(135deg,#c0a050,#ddb856);">
-                    <i class="fa-solid fa-coins text-white fs-5"></i>
-                </div>
+        <div class="card bg-white rounded-4 border p-4 shadow-sm h-100 d-flex flex-column justify-content-between" style="border-color: var(--tekfix-border) !important; border-top: 3px solid var(--tekfix-hover) !important;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
-                    <p class="text-tekfix-sec fw-semibold mb-1" style="font-size:.75rem;letter-spacing:.6px;text-transform:uppercase;">Valor a Costo</p>
-                    <h4 class="fw-bold mb-0 text-tekfix-main" style="font-size:1.4rem;">${{ valor_costo|cop }}</h4>
-                    <small class="text-tekfix-sec" style="font-size:.7rem;">Inversión total en inventario</small>
+                    <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.08em;">CANTIDAD DE PRODUCTOS</span>
+                    <h2 class="fw-bold mb-0 text-tekfix-main" style="font-family: var(--font-heading); font-size: 2.1rem; line-height: 1.1;">
+                        {{ total_stock_unidades }} <span class="fs-6 fw-semibold text-secondary" translate="no">unidades</span>
+                    </h2>
                 </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(223, 186, 115, 0.16); color: #B89243;">
+                    <i class="fa-solid fa-boxes-stacked fs-5"></i>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color: #F1F1F1 !important;">
+                <small class="text-secondary fw-semibold" style="font-size: 0.75rem;">
+                    <i class="fa-solid fa-tag me-1" style="color: var(--tekfix-primary);"></i> {{ total_productos }} referencias activas
+                </small>
+                <span class="badge border rounded-pill px-3 py-1 text-secondary" style="background: #FAFAFA; font-size: 0.68rem; font-weight: 600;">Stock Físico</span>
             </div>
         </div>
     </div>
 
-    <!-- Valor a Precio Sugerido -->
+    <!-- 2. Valor Productos a Costo -->
     <div class="col-12 col-md-4">
-        <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative">
-            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(99,179,130,.08) 0%, transparent 70%); pointer-events:none;"></div>
-            <div class="card-body p-4 d-flex align-items-center gap-3">
-                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:52px;height:52px;background:linear-gradient(135deg,#3a9e6a,#63b382);">
-                    <i class="fa-solid fa-chart-line text-white fs-5"></i>
-                </div>
+        <div class="card bg-white rounded-4 border p-4 shadow-sm h-100 d-flex flex-column justify-content-between" style="border-color: var(--tekfix-border) !important; border-top: 3px solid #1A1A1A !important;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
-                    <p class="text-tekfix-sec fw-semibold mb-1" style="font-size:.75rem;letter-spacing:.6px;text-transform:uppercase;">Valor Sugerido</p>
-                    <h4 class="fw-bold mb-0" style="font-size:1.4rem;color:#3a9e6a;">${{ valor_sugerido|cop }}</h4>
-                    <small class="text-tekfix-sec" style="font-size:.7rem;">Valor potencial de ventas</small>
+                    <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.08em;">VALOR PRODUCTOS A COSTO</span>
+                    <h2 class="fw-bold mb-0 text-tekfix-main" style="font-family: var(--font-heading); font-size: 2.1rem; line-height: 1.1;">
+                        ${{ valor_costo|cop }}
+                    </h2>
                 </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(26, 26, 26, 0.08); color: #1A1A1A;">
+                    <i class="fa-solid fa-calculator fs-5"></i>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color: #F1F1F1 !important;">
+                <small class="text-secondary fw-semibold" style="font-size: 0.75rem;">
+                    <i class="fa-solid fa-receipt me-1" style="color: var(--tekfix-primary);"></i> Inversión en inventario
+                </small>
+                <span class="badge border rounded-pill px-3 py-1 text-secondary" style="background: #FAFAFA; font-size: 0.68rem; font-weight: 600;">Costo Adquisición</span>
             </div>
         </div>
     </div>
 
-    <!-- Total de Productos -->
+    <!-- 3. Valor Productos a Venta (Dorado Premium) -->
     <div class="col-12 col-md-4">
-        <div class="card card-custom border-0 shadow-sm h-100 overflow-hidden position-relative">
-            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(100,130,220,.08) 0%, transparent 70%); pointer-events:none;"></div>
-            <div class="card-body p-4 d-flex align-items-center gap-3">
-                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:52px;height:52px;background:linear-gradient(135deg,#4a6ad8,#6482dc);">
-                    <i class="fa-solid fa-boxes-stacked text-white fs-5"></i>
-                </div>
+        <div class="card bg-white rounded-4 border p-4 shadow-sm h-100 d-flex flex-column justify-content-between" style="border-color: var(--tekfix-border) !important; border-top: 3px solid var(--tekfix-primary) !important; box-shadow: 0 4px 20px rgba(197, 160, 89, 0.08) !important;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
-                    <p class="text-tekfix-sec fw-semibold mb-1" style="font-size:.75rem;letter-spacing:.6px;text-transform:uppercase;">Total Productos</p>
-                    <h4 class="fw-bold mb-0" style="font-size:1.4rem;color:#4a6ad8;">{{ total_productos }}</h4>
-                    <small class="text-tekfix-sec" style="font-size:.7rem;">Ítems registrados en inventario</small>
+                    <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.08em;">VALOR PRODUCTOS A VENTA</span>
+                    <h2 class="fw-bold mb-0 text-tekfix-main" style="font-family: var(--font-heading); font-size: 2.1rem; line-height: 1.1;">
+                        ${{ valor_sugerido|cop }}
+                    </h2>
                 </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197, 160, 89, 0.16); color: var(--tekfix-primary);">
+                    <i class="fa-solid fa-sack-dollar fs-5"></i>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color: #F1F1F1 !important;">
+                <small class="fw-bold" style="font-size: 0.75rem; color: #16A34A;">
+                    <i class="fa-solid fa-arrow-trend-up me-1"></i> Margen: +${{ (valor_sugerido - valor_costo)|cop }}
+                </small>
+                <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(197, 160, 89, 0.12); color: var(--tekfix-primary); font-size: 0.68rem; border: 1px solid rgba(197, 160, 89, 0.3);">PVP Sugerido</span>
             </div>
         </div>
     </div>
@@ -70,143 +90,123 @@
 </div>
 <!-- ================================ -->
 
-<!-- Buscador Rápido de Inventario -->
-<div class="card card-custom p-3 mb-4 border-0 shadow-sm bg-tekfix-card">
-    <div class="row align-items-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden border">
-                <span class="input-group-text bg-tekfix-card border-0 ps-4"><i class="fa-solid fa-magnifying-glass text-tekfix-sec"></i></span>
-                <input type="text" id="inventarioSearch" class="form-control border-0 bg-tekfix-card shadow-none ps-2" placeholder="Busca por SKU o Nombre del producto..." autocomplete="off">
-                <button class="btn btn-light border-0 px-3 text-tekfix-sec" type="button" id="clearSearch" title="Limpiar búsqueda">
+<!-- Buscador Rápido de Inventario Moderno -->
+<div class="card bg-white rounded-4 p-3 mb-4 border shadow-sm" style="border-color: var(--tekfix-border) !important;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 680px;">
+            <div class="input-group rounded-pill border bg-white px-3 py-1 align-items-center flex-grow-1" style="border-color: var(--tekfix-border) !important;">
+                <i class="fa-solid fa-magnifying-glass me-2 fs-6" style="color: var(--tekfix-primary);"></i>
+                <input type="text" id="inventarioSearch" class="form-control border-0 bg-transparent shadow-none p-0 ps-1" placeholder="Buscar por SKU, Nombre o Subcategoría (ej: S20FE, Silicon...)" style="font-size: 0.92rem;" autocomplete="off">
+                <button class="btn btn-link text-secondary p-0 border-0 shadow-none" type="button" id="clearSearch" title="Limpiar búsqueda">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
+            <button translate="no" class="btn text-white rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2" type="button" onclick="document.getElementById('inventarioSearch').focus();" style="background-color: #1A1A1A; font-size: 0.82rem; letter-spacing: 0.05em; padding-top: 9px; padding-bottom: 9px;">
+                <i class="fa-solid fa-magnifying-glass" style="color: var(--tekfix-hover); font-size: 0.75rem;"></i> BUSCAR
+            </button>
         </div>
-        <div class="col-md-4 col-lg-6 text-md-end mt-3 mt-md-0">
-            <small class="text-tekfix-sec fw-bold text-uppercase" style="font-size: 0.75rem;">
-                Mostrando <span id="visibleCount" class="text-tekfix-primary">{{ productos|length }}</span> de {{ total_productos }} productos
-            </small>
+        <div class="text-uppercase text-secondary fw-bold text-nowrap ms-auto" style="font-size: 0.75rem; letter-spacing: 0.06em;">
+            MOSTRANDO <span id="visibleCount" class="fw-bolder" style="color: var(--tekfix-primary);">{{ productos|length }}</span> DE {{ total_productos }} PRODUCTOS
         </div>
     </div>
 </div>
 
-<div class="card card-custom p-0 overflow-hidden">
+<div class="card bg-white rounded-4 p-0 shadow-sm border overflow-hidden" style="border-color: var(--tekfix-border) !important;">
     <div class="table-responsive">
-        <table class="table table-hover table-custom mb-0">
-            <thead class="bg-tekfix-card">
-                <tr>
-                    <th width="120" class="ps-4">SKU</th>
-                    <th>PRODUCTO</th>
-                    <th width="150" class="text-center">STOCK</th>
-                    <th width="150" class="text-end">PRECIO COSTO</th>
-                    <th width="150" class="text-end">PRECIO MÍNIMO</th>
-                    <th width="150" class="text-end pe-4">PRECIO SUGERIDO</th>
-                    <th width="140" class="text-center">ACCIONES</th>
+        <table class="table table-hover align-middle mb-0">
+            <thead style="background-color: #FAFAFA; border-bottom: 2px solid var(--tekfix-primary);">
+                <tr class="text-uppercase" style="font-size: 0.78rem; letter-spacing: 0.07em; color: #1A1A1A;">
+                    <th class="ps-4 py-3" width="18%">SKU</th>
+                    <th class="py-3" width="28%">PRODUCTO</th>
+                    <th class="py-3 text-center" width="14%">EXISTENCIAS</th>
+                    <th class="py-3 text-center" width="12%">PRECIO COSTO</th>
+                    <th class="py-3 text-center" width="12%">PRECIO MÍNIMO</th>
+                    <th class="py-3 text-center" width="12%">PRECIO SUGERIDO</th>
+                    <th class="pe-4 py-3 text-center" width="14%">ACCIONES</th>
                 </tr>
             </thead>
             <tbody>
                 {% for p in productos %}
-                <tr>
-                    <td class="text-tekfix-sec"><small><strong>{{ p.sku }}</strong></small></td>
-                    <td class="fw-semibold text-tekfix-main">{{ p.nombre }}</td>
+                <tr style="font-size: 0.88rem;">
+                    <td class="ps-4 text-secondary fw-medium">{{ p.sku }}</td>
                     <td>
-                        <!-- Regla Estricta: Badge rojo si el stock <= 5 -->
-                        {% if p.total_stock <= 5 %}
-                            <span class="badge bg-danger rounded-pill px-3 py-2"><i class="fa-solid fa-triangle-exclamation me-1"></i> {{ p.total_stock }} (Stock Bajo)</span>
-                        {% else %}
-                            <span class="badge border border-tekfix-primary text-tekfix-main rounded-pill px-3 py-2" style="background-color: var(--tekfix-table-header);">{{ p.total_stock }} uds</span>
-                        {% endif %}
-
+                        <span class="fw-bold text-tekfix-main d-block" style="font-size: 0.92rem;">{{ p.nombre }}</span>
                         {% if p.variantes %}
-                            <div class="mt-2 text-tekfix-sec" style="font-size: 0.85rem;">
+                            <div class="mt-1" style="font-size: 0.72rem;">
                                 {% for v in p.variantes %}
-                                    <span class="badge border text-tekfix-main me-1 mb-1" style="background-color: var(--tekfix-bg); border-color: var(--tekfix-border) !important;">{{ v.nombre_variante }}: {{ v.cantidad_stock }}</span>
+                                    <span class="badge border text-secondary me-1 mb-1" style="background-color: #FAFAFA; font-weight: 500;">{{ v.nombre_variante }}: {{ v.cantidad_stock }}</span>
                                 {% endfor %}
                             </div>
                         {% endif %}
                     </td>
-                    <td class="text-end fw-bold" style="color: var(--tekfix-hover);">${{ (p.precio_costo)|cop }}</td>
-                    <td class="text-end text-tekfix-sec fw-bold">${{ (p.precio_minimo)|cop }}</td>
-                    <td class="text-end fw-bold text-tekfix-main pe-4">
+                    <td class="text-center">
+                        {% if p.total_stock <= 1 %}
+                            <span class="badge rounded-pill px-3 py-1 fw-bold text-white shadow-sm" style="background-color: #DC2626; font-size: 0.75rem;">
+                                <i class="fa-solid fa-triangle-exclamation me-1"></i> {{ p.total_stock }} (Bajo)
+                            </span>
+                        {% else %}
+                            <span class="badge rounded-pill px-3 py-1 fw-semibold text-tekfix-main border" style="background-color: #F4F4F5; font-size: 0.75rem; border-color: #E4E4E7 !important;">
+                                {{ p.total_stock }} <span translate="no">unidades</span>
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center fw-medium text-secondary" style="font-family: var(--font-mono); font-size: 0.93rem;">
+                        ${{ (p.precio_costo)|cop }}
+                    </td>
+                    <td class="text-center text-secondary fw-semibold" style="font-family: var(--font-mono); font-size: 0.9rem;">
+                        ${{ (p.precio_minimo)|cop }}
+                    </td>
+                    <td class="text-center fw-bold" style="color: var(--tekfix-primary); font-family: var(--font-mono); font-size: 0.95rem;">
                         {% if p.rango_precios %}
                             {% if p.rango_precios is number %}
                                 ${{ (p.rango_precios)|cop }}
                             {% else %}
-                                <div class="small text-tekfix-sec fw-normal" style="line-height:1;">Desde</div>
-                                ${{ (p.rango_precios[0])|cop }}<br>
-                                <div class="small text-tekfix-sec fw-normal mt-1" style="line-height:1;">hasta</div>
+                                <div class="small text-secondary fw-normal" style="line-height:1; font-size:0.65rem;">Desde</div>
+                                ${{ (p.rango_precios[0])|cop }}
+                                <div class="small text-secondary fw-normal mt-1" style="line-height:1; font-size:0.65rem;">hasta</div>
                                 ${{ (p.rango_precios[1])|cop }}
                             {% endif %}
                         {% else %}
                             ${{ (p.precio_sugerido)|cop }}
                         {% endif %}
-                    </td>
-                    <td class="text-center">
+                                        <td class="pe-4 text-center">
                         <div class="d-flex align-items-center justify-content-center gap-1">
-                            <!-- Acción Principal: Agregar al Carrito -->
-                            <button type="button" class="btn btn-tekfix rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" 
-                                    style="width: 34px; height: 34px;"
-                                    title="Agregar al Carrito" 
-                                    onclick="handleAddToCart(this)"
-                                    data-product='{{ {
-                                        "id": p.id,
-                                        "sku": p.sku,
-                                        "nombre": p.nombre,
-                                        "precio_sugerido": (p.precio_sugerido|float if p.precio_sugerido else 0),
-                                        "precio_minimo": (p.precio_minimo|float if p.precio_minimo else 0),
-                                        "precio_costo": (p.precio_costo|float if p.precio_costo else 0),
-                                        "cantidad_stock": p.total_stock,
-                                        "variantes": (p.variantes_json or "[]")
-                                    } | tojson }}'>
-                                <i class="fa-solid fa-cart-plus"></i>
+                            <!-- Botón Subcategorías / Variantes (Estilo Dorado Tekfix) -->
+                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 border shadow-none" 
+                                    data-bs-toggle="modal" data-bs-target="#variantesModal{{ p.id }}" 
+                                    style="color: var(--tekfix-primary); border-color: rgba(197, 160, 89, 0.5) !important; background: rgba(197, 160, 89, 0.08); font-size: 0.75rem;">
+                                <i class="fa-solid fa-diagram-project" style="color: var(--tekfix-primary);"></i> <span translate="no">Subcategorías</span>
                             </button>
+
+                            <!-- Ver detalles -->
+                            <a href="{{ url_for('inventory_bp.ver_producto', id=p.id) }}" 
+                               class="btn btn-sm p-1 shadow-none" style="color: var(--tekfix-primary);" title="Ver Detalles">
+                                <i class="fa-regular fa-eye fs-6"></i>
+                            </a>
 
                             <!-- Editar -->
                             <a href="{{ url_for('inventory_bp.editar_producto', id=p.id) }}" 
-                               class="btn btn-outline-warning rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" 
-                               style="width: 34px; height: 34px;" title="Editar">
-                                <i class="fa-solid fa-pen" style="font-size: 0.85rem;"></i>
+                               class="btn btn-sm p-1 text-dark shadow-none" title="Editar Producto">
+                                <i class="fa-solid fa-pen fs-6"></i>
                             </a>
 
-                            <!-- Eliminar -->
+                            <!-- Eliminar Seguro -->
                             <form method="POST" action="{{ url_for('inventory_bp.eliminar_producto', id=p.id) }}" 
-                                  onsubmit="return confirm('¿Eliminar permanentemente este producto?');" 
+                                  onsubmit="return confirm('¿Deseas retirar el producto «{{ p.nombre }}» del inventario? (Las ventas pasadas se mantendrán intactas)');" 
                                   class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-outline-danger rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" 
-                                        style="width: 34px; height: 34px;" title="Eliminar">
-                                    <i class="fa-solid fa-trash-can" style="font-size: 0.85rem;"></i>
+                                <button type="submit" class="btn btn-sm p-1 text-danger shadow-none" title="Eliminar del inventario">
+                                    <i class="fa-regular fa-trash-can fs-6"></i>
                                 </button>
                             </form>
-
-                            <!-- Ver más -->
-                            <div class="dropdown">
-                                <button class="btn btn-link text-tekfix-sec p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 34px; height: 34px;">
-                                    <i class="fa-solid fa-ellipsis-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 bg-tekfix-card p-2" style="min-width: 180px; border-radius: 12px;">
-                                    <li><h6 class="dropdown-header text-tekfix-primary small fw-bold text-uppercase pb-2">Opciones</h6></li>
-                                    <li>
-                                        <button class="dropdown-item rounded-3 py-2 text-tekfix-main" type="button" data-bs-toggle="modal" data-bs-target="#variantesModal{{ p.id }}">
-                                            <i class="fa-solid fa-layer-group me-2 text-primary"></i> Gestionar Subcategorías
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item rounded-3 py-2 text-tekfix-main" href="{{ url_for('inventory_bp.ver_producto', id=p.id) }}">
-                                            <i class="fa-solid fa-eye me-2 text-info"></i> Ver Detalles
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
                         </div>
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-tekfix-sec">
-                        <!-- Icono en Rosa Pastel -->
+                    <td colspan="7" class="text-center py-5 text-tekfix-sec">
                         <i class="fa-solid fa-box-open fs-1 mb-3 text-tekfix-primary"></i>
-                        <p class="mb-0">El inventario está vacío.</p>
+                        <p class="mb-0 fw-semibold">No se encontraron productos en el inventario activo.</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -307,7 +307,7 @@
                                     <label class="form-label small fw-bold mb-1" style="color: var(--tekfix-hover);">P. Sugerido (Opcional)</label>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-tekfix-card text-tekfix-sec border-end-0">$</span>
-                                        <input type="number" step="1" name="precio_sugerido" class="form-control border-start-0 ps-0 border-pink border-1" placeholder="{{ "%.0f"|format(p.precio_sugerido) }}">
+                                        <input type="number" step="1" name="precio_sugerido" class="form-control border-start-0 ps-0 border-light" placeholder="{{ "%.0f"|format(p.precio_sugerido) }}">
                                     </div>
                                 </div>
                             </div>
@@ -316,7 +316,7 @@
                     </div>
                 </div>
                 
-                <h6 class="fw-bold mb-3 text-tekfix-main"><i class="fa-solid fa-boxes-stacked text-primary me-2"></i>Variantes Registradas</h6>
+                <h6 class="fw-bold mb-3 text-tekfix-main"><i class="fa-solid fa-boxes-stacked me-2" style="color: var(--tekfix-primary);"></i>Variantes Registradas</h6>
                 {% if p.variantes %}
                 <div class="d-flex flex-column gap-3">
                     {% for v in p.variantes %}
@@ -335,7 +335,7 @@
                                     <div class="col-4">
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text bg-tekfix-card border-0 text-tekfix-sec"><i class="fa-solid fa-cubes"></i></span>
-                                            <input type="number" name="cantidad_stock" class="form-control text-center fw-bold text-primary border-light bg-tekfix-card" value="{{ v.cantidad_stock }}" required>
+                                            <input type="number" name="cantidad_stock" class="form-control text-center fw-bold border-light bg-tekfix-card" style="color: var(--tekfix-primary);" value="{{ v.cantidad_stock }}" required>
                                         </div>
                                     </div>
                                 </div>
@@ -370,7 +370,7 @@
                                             data-form-id="delVarForm{{ v.id }}">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
-                                    <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-4" title="Guardar Cambios">
+                                    <button type="submit" class="btn btn-sm btn-tekfix-secondary rounded-pill px-4" title="Guardar Cambios">
                                         <i class="fa-solid fa-arrows-rotate me-1"></i> Actualizar Variante
                                     </button>
                                 </div>
@@ -449,29 +449,64 @@ document.addEventListener('DOMContentLoaded', function() {
     </td>`;
     tbody.appendChild(noResultsRow);
 
+    const originalRowsOrder = Array.from(tableRows);
+
+    function normalizeText(txt) {
+        return (txt || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    }
+
+    function getRowScore(row, q) {
+        if (!q) return 0;
+        const sku = normalizeText(row.cells[0].textContent);
+        const nombre = normalizeText(row.cells[1].textContent);
+        
+        if (sku === q || nombre === q) return 0;
+        if (nombre.startsWith(q)) return 1;
+        if (sku.startsWith(q)) return 2;
+        const words = nombre.split(/\s+/);
+        if (words.some(w => w.startsWith(q))) return 3;
+        if (sku.includes(q)) return 4;
+        if (nombre.includes(q)) return 5;
+        return 999;
+    }
+
     function filterTable() {
-        const query = searchInput.value.toLowerCase().trim();
+        const query = normalizeText(searchInput.value);
         let matches = 0;
 
-        tableRows.forEach(row => {
-            // Obtener texto de SKU (primera col) y Nombre (segunda col)
-            const sku = row.cells[0].textContent.toLowerCase();
-            const nombre = row.cells[1].textContent.toLowerCase();
+        if (!query) {
+            originalRowsOrder.forEach(row => {
+                row.classList.remove('d-none');
+                tbody.appendChild(row);
+            });
+            visibleCount.textContent = originalRowsOrder.length;
+            noResultsRow.classList.add('d-none');
+            return;
+        }
 
-            if (sku.includes(query) || nombre.includes(query)) {
+        const scoredRows = [];
+        tableRows.forEach(row => {
+            const score = getRowScore(row, query);
+            if (score < 999) {
                 row.classList.remove('d-none');
                 matches++;
+                scoredRows.push({ row, score });
             } else {
                 row.classList.add('d-none');
             }
         });
 
+        // Ordenar filas coincidentes poniendo las que inician con el término primero
+        scoredRows.sort((a, b) => a.score - b.score);
+        scoredRows.forEach(item => tbody.appendChild(item.row));
+
         // Actualizar contador
         visibleCount.textContent = matches;
 
         // Mostrar/Ocultar mensaje de no resultados
-        if (matches === 0 && query !== '') {
+        if (matches === 0) {
             noResultsRow.classList.remove('d-none');
+            tbody.appendChild(noResultsRow);
         } else {
             noResultsRow.classList.add('d-none');
         }

@@ -1,200 +1,348 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12 d-flex justify-content-between align-items-center mb-4">
-        <!-- Título con acento Azul Turquesa según reglas de Branding (.text-tekfix-sec es #A3D8DE) -->
-        <h2 class="fw-bolder m-0" style="color: var(--tekfix-primary);">
-            <i class="fa-solid fa-clock-rotate-left me-2"></i>Historial de Operaciones
-        </h2>
-        <div class="d-flex align-items-center gap-2 d-print-none">
-            <button onclick="window.print()" class="btn px-4 rounded-pill fw-bold border shadow-sm" style="background-color: #F9C8D3; border-color: #ebaebc; color: #7d1a2f;">
-                <i class="fa-solid fa-print me-1"></i> Imprimir a PDF
-            </button>
-            <a href="/admin/dashboard" class="btn rounded-pill px-4 fw-bold border shadow-sm" style="border-color: var(--tekfix-border); color: var(--tekfix-text-main);">
-                <i class="fa-solid fa-arrow-left me-1"></i> Panel 
-            </a>
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+        <div class="rounded-4 d-flex align-items-center justify-content-center border shadow-sm flex-shrink-0" style="width: 50px; height: 50px; background: rgba(197, 160, 89, 0.12); border-color: rgba(197, 160, 89, 0.3) !important; color: var(--tekfix-primary);">
+            <i class="fa-solid fa-clock-rotate-left fs-4"></i>
         </div>
-    </div>
-
-    <!-- Encabezado de Impresión / PDF -->
-    <div class="col-12 d-none d-print-block text-center mb-4 pb-3 border-bottom">
-        <h1 class="fw-bold text-tekfix-main mb-1"><i class="fa-solid fa-chart-line me-2"></i> Tekfix Oficial</h1>
-        <h4 class="text-tekfix-sec fw-semibold">REPORTE CONSOLIDADO DE VENTAS</h4>
-        <p class="mb-0 text-secondary">
-            Período Analizado: <strong>{{ fecha_inicio if fecha_inicio else 'Inicios' }}</strong> hasta <strong>{{ fecha_fin if fecha_fin else 'Hoy' }}</strong>
-        </p>
-        {% if current_user.rol != 'admin' %}
-            <p class="mb-0 text-tekfix-main fw-bold">Usuario Solicitante: {{ current_user.nombre }}</p>
-        {% endif %}
-    </div>
-
-    <!-- UI: Resumen Financiero Dinámico (Tarjetas) -->
-    <div class="col-6 col-md-2 mb-3">
-        <div class="card card-custom h-100" style="border-left: 6px solid var(--tekfix-primary) !important;">
-            <div class="card-body py-2 ps-3">
-                <p class="text-tekfix-sec fw-bold text-uppercase mb-1" style="font-size: 0.70rem;"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</p>
-                <h5 class="fw-bolder m-0" style="color: var(--tekfix-primary);">${{ (total_efectivo)|cop }}</h5>
-            </div>
+        <div>
+            <h2 class="fw-bolder text-tekfix-main m-0" style="font-family: var(--font-heading); font-size: 2.1rem; letter-spacing: -0.02em;">
+                Historial de Operaciones
+            </h2>
+            <p class="text-secondary m-0" style="font-size: 0.88rem;">Consolidado de ventas y trazabilidad financiera</p>
         </div>
     </div>
     
-    <div class="col-6 col-md-2 mb-3">
-        <div class="card card-custom h-100" style="border-left: 6px solid #6f42c1 !important;">
-            <div class="card-body py-2 ps-3">
-                <p class="text-tekfix-sec fw-bold text-uppercase mb-1" style="font-size: 0.70rem;"><i class="fa-solid fa-mobile-button me-1"></i> Nequi</p>
-                <h5 class="fw-bolder m-0" style="color: #6f42c1;">${{ (total_nequi)|cop }}</h5>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-6 col-md-3 mb-3">
-        <div class="card card-custom h-100" style="border-left: 6px solid #fd7e14 !important;">
-            <div class="card-body py-2 ps-3">
-                <p class="text-tekfix-sec fw-bold text-uppercase mb-1" style="font-size: 0.70rem;"><i class="fa-solid fa-building-columns me-1"></i> Bancolombia</p>
-                <h5 class="fw-bolder m-0" style="color: #fd7e14;">${{ (total_bancolombia)|cop }}</h5>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-6 col-md-2 mb-3">
-        <div class="card card-custom h-100" style="border-left: 6px solid #dc3545 !important;">
-            <div class="card-body py-2 ps-3">
-                <p class="text-tekfix-sec fw-bold text-uppercase mb-1" style="font-size: 0.70rem;"><i class="fa-solid fa-mobile-screen me-1"></i> Daviplata</p>
-                <h5 class="fw-bolder m-0" style="color: #dc3545;">${{ (total_daviplata)|cop }}</h5>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-6 col-md-2 mb-3">
-        <div class="card card-custom h-100" style="border-left: 6px solid #17a2b8 !important;">
-            <div class="card-body py-2 ps-3">
-                <p class="text-tekfix-sec fw-bold text-uppercase mb-1" style="font-size: 0.70rem;"><i class="fa-solid fa-credit-card me-1"></i> Tarjeta</p>
-                <h5 class="fw-bolder m-0" style="color: #17a2b8;">${{ (total_tarjeta)|cop }}</h5>
-            </div>
-        </div>
-    </div>
-
-    {% if total_transferencia_legacy > 0 %}
-    <div class="col-12 mb-3">
-        <div class="card card-custom h-100" style="border-left: 6px solid var(--tekfix-hover) !important;">
-            <div class="card-body py-3 ps-3">
-                <p class="text-tekfix-sec fw-bold text-uppercase mb-1" style="font-size: 0.75rem;"><i class="fa-solid fa-clock-rotate-left me-1"></i> Transf. Históricas</p>
-                <h4 class="fw-bolder m-0" style="color: var(--tekfix-hover);">${{ (total_transferencia_legacy)|cop }}</h4>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-    
-    <!-- UI: Filtro de Fechas Oculto (Collapsible Bootstrap) -->
-    <div class="col-12 mt-2 mb-2 d-print-none">
-        <button class="btn btn-sm rounded-pill fw-bold border" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosCollapse" style="border-color: var(--tekfix-border) !important; color: var(--tekfix-text-main);">
-            <i class="fa-solid fa-filter me-1"></i> Ver más filtros
+    <div class="d-flex align-items-center gap-2 d-print-none">
+        <button onclick="window.print()" class="btn rounded-pill px-4 py-2 fw-bold text-white shadow-sm d-flex align-items-center gap-2" style="background: linear-gradient(135deg, #1A1A1A 0%, #2A2A2A 100%); border: 1px solid #1A1A1A; font-size: 0.85rem; letter-spacing: 0.03em;">
+            <i class="fa-solid fa-print" style="color: var(--tekfix-hover);"></i> Imprimir a PDF
         </button>
-        
-        <div class="collapse mt-3" id="filtrosCollapse">
-            <div class="card card-custom p-4 bg-tekfix-card">
-                <form method="GET" action="{{ url_for('sales_bp.historial') }}" class="row align-items-end g-3">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold text-tekfix-main small">Desde (Día)</label>
-                        <input type="date" name="fecha_inicio" class="form-control border-0 shadow-sm" value="{{ fecha_inicio or '' }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold text-tekfix-main small">Hasta (Límite)</label>
-                        <input type="date" name="fecha_fin" class="form-control border-0 shadow-sm" value="{{ fecha_fin or '' }}">
-                    </div>
-                    <div class="col-md-4">
-                        <!-- El botón manda la alerta GET en color predominante Turquesa -->
-                        <button type="submit" class="btn btn-tekfix-secondary w-100 rounded-3 shadow-sm fw-bold">
-                            <i class="fa-solid fa-magnifying-glass me-2"></i>Aplicar Filtros
-                        </button>
-                        {% if fecha_inicio or fecha_fin %}
-                        <div class="text-center mt-2">
-                            <a href="{{ url_for('sales_bp.historial') }}" class="text-tekfix-sec small text-decoration-none border-bottom border-secondary">Borrar Rango Analítico</a>
-                        </div>
-                        {% endif %}
-                    </div>
-                </form>
-            </div>
-        </div>
+        <a href="/admin/dashboard" class="btn bg-white border rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 text-tekfix-main" style="border-color: var(--tekfix-border) !important; font-size: 0.85rem;">
+            <i class="fa-solid fa-arrow-left text-secondary"></i> Panel
+        </a>
     </div>
 </div>
 
-<div class="card card-custom p-0 overflow-hidden">
+<!-- Encabezado exclusivo de Impresión / PDF -->
+<div class="d-none d-print-block text-center mb-4 pb-3 border-bottom">
+    <h2 class="fw-bold text-tekfix-main mb-1">TEKFIX - ACCESORIOS & TECNOLOGÍA</h2>
+    <h4 class="text-secondary fw-semibold mb-2">REPORTE CONSOLIDADO DE OPERACIONES</h4>
+    <p class="mb-1 text-secondary" style="font-size: 0.95rem;">
+        Período Analizado: <strong>{{ fecha_inicio if fecha_inicio else 'Inicios' }}</strong> hasta <strong>{{ fecha_fin if fecha_fin else 'Hoy' }}</strong>
+    </p>
+    <small class="text-muted">Generado por: {{ current_user.nombre }} ({{ current_user.rol|capitalize }}) | Total Operaciones: {{ total_operaciones }} | Total Recaudado: ${{ (total_consolidado)|cop }}</small>
+</div>
+
+<!-- Barra de Fechas y Filtro Activo -->
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 d-print-none">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="badge bg-white text-secondary border rounded-pill px-3 py-2 fw-semibold shadow-sm d-inline-flex align-items-center gap-2" style="font-size: 0.82rem; font-family: var(--font-mono); border-color: var(--tekfix-border) !important;">
+            <i class="fa-regular fa-calendar-days" style="color: var(--tekfix-primary);"></i>
+            <span translate="no">{{ fecha_inicio if fecha_inicio else 'Inicios' }}</span>
+            <i class="fa-solid fa-arrow-right fs-xs opacity-50"></i>
+            <span translate="no">{{ fecha_fin if fecha_fin else 'Hoy' }}</span>
+        </span>
+        <span class="badge bg-white text-secondary border rounded-pill px-3 py-2 fw-semibold shadow-sm d-inline-flex align-items-center gap-2" style="font-size: 0.82rem; border-color: var(--tekfix-border) !important;">
+            <i class="fa-solid fa-receipt" style="color: var(--tekfix-primary);"></i>
+            {{ total_operaciones }} Operaciones
+        </span>
+        {% if request.args.get('fecha_inicio') or request.args.get('fecha_fin') %}
+        <a href="{{ url_for('sales_bp.historial') }}" class="btn btn-sm btn-link text-decoration-none text-secondary p-0 ms-1" style="font-size: 0.8rem;" title="Restablecer a Hoy">
+            <i class="fa-solid fa-rotate-left me-1"></i> Restablecer
+        </a>
+        {% endif %}
+    </div>
+
+    <div>
+        <button class="btn bg-white border rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 text-tekfix-main" type="button" data-bs-toggle="modal" data-bs-target="#filtroFechasModal" style="border-color: var(--tekfix-border) !important; font-size: 0.82rem;">
+            <i class="fa-solid fa-filter" style="color: var(--tekfix-primary);"></i> Filtrar Rango de Fechas
+        </button>
+    </div>
+</div>
+
+<!-- ========== FILA 1: 3 TARJETAS KPI PRINCIPALES ========== -->
+<div class="row g-3 mb-3">
+
+    <!-- 1. Consolidado Total -->
+    <div class="col-12 col-md-4">
+        <div class="card bg-white rounded-4 border p-4 shadow-sm h-100 d-flex flex-column justify-content-between" style="border-color: var(--tekfix-border) !important; border-top: 3px solid #EF4444 !important;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: rgba(239, 68, 68, 0.1); color: #DC2626; font-size: 0.68rem; letter-spacing: 0.06em;">
+                        <i class="fa-solid fa-gem me-1"></i> CONSOLIDADO TOTAL
+                    </span>
+                    <h2 class="fw-bold mb-0 text-tekfix-main" style="font-family: var(--font-heading); font-size: 2.1rem; line-height: 1.1;">
+                        ${{ (total_consolidado)|cop }}
+                    </h2>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(239, 68, 68, 0.12); color: #DC2626;">
+                    <i class="fa-solid fa-sack-dollar fs-5"></i>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color: #F1F1F1 !important;">
+                <small class="text-secondary fw-semibold" style="font-size: 0.75rem;">
+                    <i class="fa-solid fa-cash-register me-1"></i> {{ total_operaciones }} ventas
+                </small>
+                <span class="fw-bold" style="color: #DC2626; font-size: 0.75rem;">
+                    Prom. ${{ (ticket_promedio)|cop }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Efectivo en Caja -->
+    <div class="col-12 col-md-4">
+        <div class="card bg-white rounded-4 border p-4 shadow-sm h-100 d-flex flex-column justify-content-between" style="border-color: var(--tekfix-border) !important; border-top: 3px solid #10B981 !important;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: rgba(16, 185, 129, 0.1); color: #059669; font-size: 0.68rem; letter-spacing: 0.06em;">
+                        <i class="fa-solid fa-money-bill-wave me-1"></i> EFECTIVO EN CAJA
+                    </span>
+                    <h2 class="fw-bold mb-0 text-tekfix-main" style="font-family: var(--font-heading); font-size: 2.1rem; line-height: 1.1;">
+                        ${{ (total_efectivo)|cop }}
+                    </h2>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(16, 185, 129, 0.12); color: #059669;">
+                    <i class="fa-solid fa-coins fs-5"></i>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color: #F1F1F1 !important;">
+                <small class="text-secondary fw-semibold" style="font-size: 0.75rem;">
+                    Disponibilidad Inmediata
+                </small>
+                <span class="badge border rounded-pill px-3 py-1 fw-semibold text-secondary" style="background: #FAFAFA; font-size: 0.68rem;">
+                    {{ pct_efectivo }}% del Total
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Transferencias / Bancos (Dorado Tekfix) -->
+    <div class="col-12 col-md-4">
+        <div class="card bg-white rounded-4 border p-4 shadow-sm h-100 d-flex flex-column justify-content-between" style="border-color: var(--tekfix-border) !important; border-top: 3px solid var(--tekfix-primary) !important;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: rgba(197, 160, 89, 0.15); color: var(--tekfix-primary); font-size: 0.68rem; letter-spacing: 0.06em;">
+                        <i class="fa-solid fa-building-columns me-1"></i> TRANSFERENCIAS / BANCOS
+                    </span>
+                    <h2 class="fw-bold mb-0 text-tekfix-main" style="font-family: var(--font-heading); font-size: 2.1rem; line-height: 1.1;">
+                        ${{ (total_transferencias)|cop }}
+                    </h2>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197, 160, 89, 0.16); color: var(--tekfix-primary);">
+                    <i class="fa-solid fa-network-wired fs-5"></i>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color: #F1F1F1 !important;">
+                <small class="text-secondary fw-semibold" style="font-size: 0.75rem;">
+                    Canales Electrónicos
+                </small>
+                <span class="badge border rounded-pill px-3 py-1 fw-semibold text-secondary" style="background: #FAFAFA; font-size: 0.68rem;">
+                    {{ pct_transferencias }}% del Total
+                </span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ========== FILA 2: CUADROS DE MÉTODOS DE PAGO ========== -->
+<div class="row g-3 mb-4">
+
+    <!-- 1. NEQUI -->
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card bg-white rounded-4 p-3 shadow-sm h-100 border" style="border-color: var(--tekfix-border) !important; border-left: 5px solid #8B5CF6 !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">NEQUI</span>
+                    <h3 class="fw-bold mb-1" style="color: #7C3AED; font-family: var(--font-heading); font-size: 1.6rem; line-height: 1.1;">
+                        ${{ (total_nequi)|cop }}
+                    </h3>
+                    <small class="text-secondary fw-semibold" style="font-size: 0.72rem;">Digital: {{ pct_nequi }}%</small>
+                </div>
+                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(139, 92, 246, 0.12); color: #7C3AED;">
+                    <i class="fa-solid fa-mobile-screen fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. BANCOLOMBIA -->
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card bg-white rounded-4 p-3 shadow-sm h-100 border" style="border-color: var(--tekfix-border) !important; border-left: 5px solid #F59E0B !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">BANCOLOMBIA</span>
+                    <h3 class="fw-bold mb-1" style="color: #D97706; font-family: var(--font-heading); font-size: 1.6rem; line-height: 1.1;">
+                        ${{ (total_bancolombia)|cop }}
+                    </h3>
+                    <small class="text-secondary fw-semibold" style="font-size: 0.72rem;">Digital: {{ pct_bancolombia }}%</small>
+                </div>
+                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(245, 158, 11, 0.12); color: #D97706;">
+                    <i class="fa-solid fa-building-columns fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. DAVIPLATA -->
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card bg-white rounded-4 p-3 shadow-sm h-100 border" style="border-color: var(--tekfix-border) !important; border-left: 5px solid #EF4444 !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">DAVIPLATA</span>
+                    <h3 class="fw-bold mb-1" style="color: #DC2626; font-family: var(--font-heading); font-size: 1.6rem; line-height: 1.1;">
+                        ${{ (total_daviplata)|cop }}
+                    </h3>
+                    <small class="text-secondary fw-semibold" style="font-size: 0.72rem;">Digital: {{ pct_daviplata }}%</small>
+                </div>
+                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(239, 68, 68, 0.12); color: #DC2626;">
+                    <i class="fa-solid fa-mobile fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. BOLT (DATÁFONO) -->
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card bg-white rounded-4 p-3 shadow-sm h-100 border" style="border-color: var(--tekfix-border) !important; border-left: 5px solid var(--tekfix-primary) !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">BOLT (DATÁFONO)</span>
+                    <h3 class="fw-bold mb-1" style="color: var(--tekfix-primary); font-family: var(--font-heading); font-size: 1.6rem; line-height: 1.1;">
+                        ${{ (total_tarjeta)|cop }}
+                    </h3>
+                    <small class="text-secondary fw-semibold" style="font-size: 0.72rem;">Digital: {{ pct_tarjeta }}%</small>
+                </div>
+                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197, 160, 89, 0.16); color: var(--tekfix-primary);">
+                    <i class="fa-solid fa-bolt fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ========== TABLA DE OPERACIONES ========== -->
+<div class="card bg-white rounded-4 p-0 shadow-sm border overflow-hidden mb-4" style="border-color: var(--tekfix-border) !important;">
     <div class="table-responsive">
-        <table class="table table-hover table-striped table-custom mb-0">
-            <thead class="bg-tekfix-card">
-                <tr>
-                    <th width="120">N° TIPO</th>
-                    <th>FECHA DE COBRO</th>
-                    <th>VENDEDOR RESPONSABLE</th>
-                    <th class="text-center">VÍA DE PAGO</th>
-                    <th class="text-end">IMPORTE CERRADO</th>
-                    <th class="text-center" width="160">AUDITAR</th>
+        <table class="table table-hover align-middle mb-0">
+            <thead style="background-color: #FAFAFA; border-bottom: 2px solid var(--tekfix-primary);">
+                <tr class="text-uppercase" style="font-size: 0.78rem; letter-spacing: 0.07em; color: #1A1A1A;">
+                    <th class="ps-4 py-3" width="14%">N° TIPO</th>
+                    <th class="py-3" width="22%">FECHA DE COBRO</th>
+                    <th class="py-3" width="24%">VENDEDOR RESPONSABLE</th>
+                    <th class="py-3 text-center" width="16%">VÍA DE PAGO</th>
+                    <th class="py-3 text-end" width="14%">IMPORTE CERRADO</th>
+                    <th class="pe-4 py-3 text-center d-print-none" width="10%">AUDITAR</th>
                 </tr>
             </thead>
             <tbody>
                 {% for venta in ventas %}
-                <tr>
-                    <td class="fw-bold text-tekfix-main align-middle">Ticket #{{ "%05d"|format(venta.id) }}</td>
-                    <td class="align-middle text-tekfix-sec"><i class="fa-regular fa-calendar text-tekfix-primary me-1"></i> {{ venta.fecha_venta.strftime('%Y-%m-%d a las %H:%M') }}</td>
-                    <td class="align-middle fw-semibold text-tekfix-main">
-                        <i class="fa-solid fa-user-circle text-tekfix-sec me-1"></i> {{ venta.vendedor.nombre }}
+                <tr style="font-size: 0.88rem;">
+                    <td class="ps-4 fw-bold text-tekfix-main">Ticket #{{ "%05d"|format(venta.id) }}</td>
+                    <td class="text-secondary">
+                        <i class="fa-regular fa-calendar me-1" style="color: var(--tekfix-primary);"></i>
+                        {{ venta.fecha_venta.strftime('%Y-%m-%d a las %H:%M') }}
                     </td>
-                    <td class="text-center align-middle">
+                    <td class="fw-semibold text-tekfix-main">
+                        <i class="fa-solid fa-user-circle text-secondary me-1"></i> {{ venta.vendedor.nombre if venta.vendedor else 'Cajero' }}
+                    </td>
+                    <td class="text-center">
+                        <div class="d-inline-flex align-items-center gap-1">
                         {% if venta.pagos|length > 1 %}
                             <!-- Pago Mixto: badge especial con tooltip de desglose -->
-                            <span class="badge bg-tekfix-card text-tekfix-main border border-warning border-opacity-50 rounded-pill px-3 py-2" 
+                            <span class="badge rounded-pill px-3 py-1 fw-semibold text-tekfix-main border shadow-none" 
                                   data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="left"
                                   title="{% for p in venta.pagos %}{{ p.metodo_pago|capitalize }}: ${{ (p.monto)|cop }}{% if not loop.last %}&lt;br&gt;{% endif %}{% endfor %}"
-                                  style="cursor: help;">
-                                <i class="fa-solid fa-arrows-split-up-and-left me-1" style="color: #fd7e14;"></i> Pago Mixto
+                                  style="background-color: #FFFBEB; border-color: #FDE68A !important; cursor: help; font-size: 0.75rem;">
+                                <i class="fa-solid fa-arrows-split-up-and-left me-1 text-warning"></i> Pago Mixto
                             </span>
                         {% elif venta.pagos|length == 1 %}
                             {% set metodo = venta.pagos[0].metodo_pago %}
                             {% if metodo == 'efectivo' %}
-                                <span class="badge bg-tekfix-card text-success border border-success border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
+                                <span class="badge rounded-pill px-3 py-1 fw-semibold border shadow-none" style="background-color: #ECFDF5; border-color: #A7F3D0 !important; color: #059669; font-size: 0.75rem;">
+                                    <i class="fa-solid fa-money-bills me-1"></i> Efectivo
+                                </span>
+                            {% elif metodo == 'nequi' %}
+                                <span class="badge rounded-pill px-3 py-1 fw-semibold border shadow-none" style="background-color: #F5F3FF; border-color: #DDD6FE !important; color: #7C3AED; font-size: 0.75rem;">
+                                    <i class="fa-solid fa-mobile-screen me-1"></i> Nequi
+                                </span>
+                            {% elif metodo == 'bancolombia' %}
+                                <span class="badge rounded-pill px-3 py-1 fw-semibold border shadow-none" style="background-color: #FFFBEB; border-color: #FDE68A !important; color: #D97706; font-size: 0.75rem;">
+                                    <i class="fa-solid fa-building-columns me-1"></i> Bancolombia
+                                </span>
+                            {% elif metodo == 'daviplata' %}
+                                <span class="badge rounded-pill px-3 py-1 fw-semibold border shadow-none" style="background-color: #FEF2F2; border-color: #FECACA !important; color: #DC2626; font-size: 0.75rem;">
+                                    <i class="fa-solid fa-mobile me-1"></i> Daviplata
+                                </span>
                             {% else %}
-                                <span class="badge bg-tekfix-card text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> {{ metodo|capitalize }}</span>
+                                <span class="badge rounded-pill px-3 py-1 fw-semibold border shadow-none" style="background-color: rgba(197, 160, 89, 0.12); border-color: rgba(197, 160, 89, 0.3) !important; color: var(--tekfix-primary); font-size: 0.75rem;">
+                                    <i class="fa-solid fa-bolt me-1"></i> {{ metodo|capitalize }}
+                                </span>
                             {% endif %}
                         {% else %}
                             {% if venta.metodo_pago == 'efectivo' %}
-                                <span class="badge bg-tekfix-card text-success border border-success border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-money-bills me-1"></i> Efectivo</span>
+                                <span class="badge rounded-pill px-3 py-1 fw-semibold border shadow-none" style="background-color: #ECFDF5; border-color: #A7F3D0 !important; color: #059669; font-size: 0.75rem;">
+                                    <i class="fa-solid fa-money-bills me-1"></i> Efectivo
+                                </span>
                             {% elif venta.metodo_pago == 'mixto' %}
-                                <span class="badge bg-tekfix-card text-tekfix-main border border-warning border-opacity-50 rounded-pill px-3 py-2"><i class="fa-solid fa-arrows-split-up-and-left me-1" style="color: #fd7e14;"></i> Pago Mixto</span>
+                                <span class="badge rounded-pill px-3 py-1 fw-semibold text-tekfix-main border shadow-none" style="background-color: #FFFBEB; border-color: #FDE68A !important; font-size: 0.75rem;">
+                                    <i class="fa-solid fa-arrows-split-up-and-left me-1 text-warning"></i> Pago Mixto
+                                </span>
                             {% else %}
-                                <span class="badge bg-tekfix-card text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2"><i class="fa-solid fa-building-columns me-1"></i> {{ venta.metodo_pago|capitalize }}</span>
+                                <span class="badge rounded-pill px-3 py-1 fw-semibold border shadow-none" style="background-color: rgba(197, 160, 89, 0.12); border-color: rgba(197, 160, 89, 0.3) !important; color: var(--tekfix-primary); font-size: 0.75rem;">
+                                    <i class="fa-solid fa-credit-card me-1"></i> {{ venta.metodo_pago|capitalize }}
+                                </span>
                             {% endif %}
                         {% endif %}
+
+                        {% if current_user.rol == 'admin' %}
+                            <!-- Botón para modificar método de pago -->
+                            <button type="button" class="btn btn-sm p-1 border-0 shadow-none text-secondary d-print-none" 
+                                    data-bs-toggle="modal" data-bs-target="#cambiarPagoModal{{ venta.id }}" 
+                                    title="Modificar Método de Pago" style="opacity: 0.75;">
+                                <i class="fa-solid fa-pen-to-square" style="color: var(--tekfix-primary); font-size: 0.85rem;"></i>
+                            </button>
+                        {% endif %}
+                        </div>
                     </td>
-                    <td class="text-end align-middle fw-bolder text-tekfix-main fs-5">
+                    <td class="text-end fw-bold text-tekfix-main" style="font-family: var(--font-mono); font-size: 0.95rem;">
                         ${{ (venta.monto_total)|cop }}
                     </td>
-                    <td class="text-center align-middle">
-                        <div class="d-flex flex-column gap-2">
-                            <!-- Botón Secundario Rosa Pastel -->
-                            <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=venta.id) }}" target="_blank" class="btn btn-tekfix btn-sm rounded-pill px-3 fw-bold shadow-sm w-100">
-                                <i class="fa-solid fa-receipt me-1"></i> Ver Recibo
+                    <td class="pe-4 text-center d-print-none">
+                        <div class="d-flex align-items-center justify-content-center gap-1">
+                            <!-- Ver Recibo Térmico -->
+                            <a href="{{ url_for('sales_bp.imprimir_ticket', sale_id=venta.id) }}" target="_blank" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold border shadow-none" style="color: var(--tekfix-primary); border-color: rgba(197, 160, 89, 0.45) !important; background: rgba(197, 160, 89, 0.08); font-size: 0.75rem;" title="Ver Ticket">
+                                <i class="fa-solid fa-receipt me-1"></i> Recibo
                             </a>
                             
                             {% if current_user.rol == 'admin' %}
-                            <form action="{{ url_for('sales_bp.eliminar_venta', sale_id=venta.id) }}" method="POST" onsubmit="return confirm('ATENCIÓN: ¿Está seguro de anular esta venta? Esta acción NO se puede deshacer y retornará el stock de los productos vendidos.');" class="m-0 p-0">
+                            <!-- Botón modal cambiar método -->
+                            <button type="button" class="btn btn-sm p-1 text-secondary shadow-none" data-bs-toggle="modal" data-bs-target="#cambiarPagoModal{{ venta.id }}" title="Modificar Método de Pago">
+                                <i class="fa-solid fa-pen-to-square fs-6" style="color: var(--tekfix-primary);"></i>
+                            </button>
+
+                            <!-- Anular venta -->
+                            <form action="{{ url_for('sales_bp.eliminar_venta', sale_id=venta.id) }}" method="POST" onsubmit="return confirm('¿Anular venta #{{ "%05d"|format(venta.id) }}? Se retornará el stock y esta acción no se puede deshacer.');" class="d-inline m-0 p-0">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold shadow-sm w-100">
-                                    <i class="fa-solid fa-trash me-1"></i> Anular
+                                <button type="submit" class="btn btn-sm p-1 text-danger shadow-none" title="Anular venta">
+                                    <i class="fa-regular fa-trash-can fs-6"></i>
                                 </button>
                             </form>
                             {% endif %}
                         </div>
                     </td>
-
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" class="text-center py-5">
-                        <i class="fa-solid fa-cash-register fs-1 mb-3" style="color: var(--tekfix-hover);"></i>
-                        <h4 class="text-tekfix-main fw-bold">Libro de Cajas en Blanco</h4>
-                        <p class="text-tekfix-sec mb-0">Acualmente no hay facturas ni transacciones emitidas.</p>
+                    <td colspan="6" class="text-center py-5 text-tekfix-sec">
+                        <div class="mb-3">
+                            <i class="fa-solid fa-cash-register fs-1" style="color: var(--tekfix-primary); opacity: 0.85;"></i>
+                        </div>
+                        <h4 class="text-tekfix-main fw-bold mb-1" style="font-family: var(--font-heading);">Libro de Cajas en Blanco</h4>
+                        <p class="text-secondary mb-0" style="font-size: 0.9rem;">Actualmente no hay facturas ni transacciones emitidas para este rango.</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -203,17 +351,368 @@
     </div>
 </div>
 
+<!-- ========== MODALES: MODIFICAR MÉTODO DE PAGO POR VENTA ========== -->
+{% if current_user.rol == 'admin' %}
+{% for venta in ventas %}
+{% set p_efectivo = namespace(val=0) %}
+{% set p_nequi = namespace(val=0) %}
+{% set p_bancolombia = namespace(val=0) %}
+{% set p_daviplata = namespace(val=0) %}
+{% set p_tarjeta = namespace(val=0) %}
+
+{% if venta.pagos %}
+    {% for p in venta.pagos %}
+        {% if p.metodo_pago == 'efectivo' %}{% set p_efectivo.val = p.monto %}
+        {% elif p.metodo_pago == 'nequi' %}{% set p_nequi.val = p.monto %}
+        {% elif p.metodo_pago == 'bancolombia' %}{% set p_bancolombia.val = p.monto %}
+        {% elif p.metodo_pago == 'daviplata' %}{% set p_daviplata.val = p.monto %}
+        {% elif p.metodo_pago == 'tarjeta' %}{% set p_tarjeta.val = p.monto %}
+        {% endif %}
+    {% endfor %}
+{% else %}
+    {% if venta.metodo_pago == 'efectivo' %}{% set p_efectivo.val = venta.monto_total %}
+    {% elif venta.metodo_pago == 'nequi' %}{% set p_nequi.val = venta.monto_total %}
+    {% elif venta.metodo_pago == 'bancolombia' %}{% set p_bancolombia.val = venta.monto_total %}
+    {% elif venta.metodo_pago == 'daviplata' %}{% set p_daviplata.val = venta.monto_total %}
+    {% elif venta.metodo_pago == 'tarjeta' %}{% set p_tarjeta.val = venta.monto_total %}
+    {% endif %}
+{% endif %}
+
+<div class="modal fade" id="cambiarPagoModal{{ venta.id }}" tabindex="-1" aria-labelledby="cambiarPagoModalLabel{{ venta.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 bg-tekfix-card pb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(197, 160, 89, 0.15); color: var(--tekfix-primary);">
+                        <i class="fa-solid fa-money-check-dollar fs-6"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-tekfix-main m-0" id="cambiarPagoModalLabel{{ venta.id }}" style="font-family: var(--font-heading);">
+                            Modificar Vía de Pago
+                        </h5>
+                        <small class="text-secondary">Ticket #{{ "%05d"|format(venta.id) }} &bull; Importe Total: <strong class="text-tekfix-main">${{ (venta.monto_total)|cop }}</strong></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form method="POST" action="{{ url_for('sales_bp.cambiar_metodo_pago', sale_id=venta.id) }}" id="formCambiarPago{{ venta.id }}" onsubmit="return validarPagoDividido({{ venta.id }});">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="fecha_inicio" value="{{ fecha_inicio or '' }}">
+                <input type="hidden" name="fecha_fin" value="{{ fecha_fin or '' }}">
+                <input type="hidden" name="tipo_pago" id="tipoPago{{ venta.id }}" value="{% if venta.pagos|length > 1 %}dividido{% else %}unico{% endif %}">
+
+                <div class="modal-body p-4">
+
+                    <!-- Píldoras de Selección de Modalidad -->
+                    <ul class="nav nav-pills nav-fill mb-3 p-1 rounded-pill bg-light border" id="pagoTabs{{ venta.id }}" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill py-2 fw-bold pago-pill-btn {% if venta.pagos|length <= 1 %}active{% endif %}" 
+                                    id="tab-unico-{{ venta.id }}" data-bs-toggle="pill" data-bs-target="#pane-unico-{{ venta.id }}" 
+                                    type="button" role="tab" onclick="document.getElementById('tipoPago{{ venta.id }}').value='unico';">
+                                <i class="fa-solid fa-credit-card me-1"></i> Método Único
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill py-2 fw-bold pago-pill-btn {% if venta.pagos|length > 1 %}active{% endif %}" 
+                                    id="tab-dividido-{{ venta.id }}" data-bs-toggle="pill" data-bs-target="#pane-dividido-{{ venta.id }}" 
+                                    type="button" role="tab" onclick="document.getElementById('tipoPago{{ venta.id }}').value='dividido'; recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                <i class="fa-solid fa-arrows-split-up-and-left me-1"></i> Pago Dividido (Mixto)
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="pagoTabContent{{ venta.id }}">
+                        
+                        <!-- PESTAÑA 1: MÉTODO ÚNICO -->
+                        <div class="tab-pane fade {% if venta.pagos|length <= 1 %}show active{% endif %}" id="pane-unico-{{ venta.id }}" role="tabpanel">
+                            <p class="small text-secondary mb-3">
+                                Selecciona el método que cubrió el 100% de esta operación:
+                            </p>
+
+                            <div class="d-flex flex-column gap-2">
+                                <!-- Efectivo -->
+                                <label class="d-flex align-items-center justify-content-between p-3 rounded-3 border" style="border-color: #E5E7EB !important; cursor: pointer;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input class="form-check-input mt-0" type="radio" name="nuevo_metodo" value="efectivo" {% if venta.metodo_pago == 'efectivo' %}checked{% endif %}>
+                                        <div>
+                                            <span class="fw-bold text-tekfix-main d-block" style="font-size: 0.92rem;"><i class="fa-solid fa-money-bills text-success me-2"></i>Efectivo</span>
+                                            <small class="text-secondary" style="font-size: 0.75rem;">Dinero físico ingresado en gaveta</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge rounded-pill px-2 py-1 text-success" style="background: rgba(16, 185, 129, 0.1);">Caja Física</span>
+                                </label>
+
+                                <!-- Nequi -->
+                                <label class="d-flex align-items-center justify-content-between p-3 rounded-3 border" style="border-color: #E5E7EB !important; cursor: pointer;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input class="form-check-input mt-0" type="radio" name="nuevo_metodo" value="nequi" {% if venta.metodo_pago == 'nequi' %}checked{% endif %}>
+                                        <div>
+                                            <span class="fw-bold text-tekfix-main d-block" style="font-size: 0.92rem;"><i class="fa-solid fa-mobile-screen me-2" style="color: #7C3AED;"></i>Nequi</span>
+                                            <small class="text-secondary" style="font-size: 0.75rem;">Canal digital Bancolombia / Nequi</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge rounded-pill px-2 py-1" style="background: rgba(139, 92, 246, 0.1); color: #7C3AED;">Billetera</span>
+                                </label>
+
+                                <!-- Bancolombia -->
+                                <label class="d-flex align-items-center justify-content-between p-3 rounded-3 border" style="border-color: #E5E7EB !important; cursor: pointer;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input class="form-check-input mt-0" type="radio" name="nuevo_metodo" value="bancolombia" {% if venta.metodo_pago == 'bancolombia' %}checked{% endif %}>
+                                        <div>
+                                            <span class="fw-bold text-tekfix-main d-block" style="font-size: 0.92rem;"><i class="fa-solid fa-building-columns me-2" style="color: #D97706;"></i>Bancolombia</span>
+                                            <small class="text-secondary" style="font-size: 0.75rem;">Transferencia cuenta de ahorros / corriente</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge rounded-pill px-2 py-1" style="background: rgba(245, 158, 11, 0.1); color: #D97706;">Bancos</span>
+                                </label>
+
+                                <!-- Daviplata -->
+                                <label class="d-flex align-items-center justify-content-between p-3 rounded-3 border" style="border-color: #E5E7EB !important; cursor: pointer;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input class="form-check-input mt-0" type="radio" name="nuevo_metodo" value="daviplata" {% if venta.metodo_pago == 'daviplata' %}checked{% endif %}>
+                                        <div>
+                                            <span class="fw-bold text-tekfix-main d-block" style="font-size: 0.92rem;"><i class="fa-solid fa-mobile me-2" style="color: #DC2626;"></i>Daviplata</span>
+                                            <small class="text-secondary" style="font-size: 0.75rem;">Canal digital Davivienda / Daviplata</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge rounded-pill px-2 py-1" style="background: rgba(239, 68, 68, 0.1); color: #DC2626;">Billetera</span>
+                                </label>
+
+                                <!-- Bolt (Datáfono / Tarjeta) -->
+                                <label class="d-flex align-items-center justify-content-between p-3 rounded-3 border" style="border-color: #E5E7EB !important; cursor: pointer;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input class="form-check-input mt-0" type="radio" name="nuevo_metodo" value="tarjeta" {% if venta.metodo_pago == 'tarjeta' %}checked{% endif %}>
+                                        <div>
+                                            <span class="fw-bold text-tekfix-main d-block" style="font-size: 0.92rem;"><i class="fa-solid fa-bolt me-2" style="color: var(--tekfix-primary);"></i>Bolt (Datáfono / Tarjeta)</span>
+                                            <small class="text-secondary" style="font-size: 0.75rem;">Cobro por datáfono Bolt, débito o crédito</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge rounded-pill px-2 py-1" style="background: rgba(197, 160, 89, 0.15); color: var(--tekfix-primary);">Datáfono</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- PESTAÑA 2: PAGO DIVIDIDO / MIXTO -->
+                        <div class="tab-pane fade {% if venta.pagos|length > 1 %}show active{% endif %}" id="pane-dividido-{{ venta.id }}" role="tabpanel">
+                            
+                            <!-- Tarjeta de Control y Balance -->
+                            <div class="p-3 rounded-3 mb-3 border bg-white shadow-sm" style="border-color: var(--tekfix-border) !important;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small fw-semibold text-secondary">Total a Cubrir:</span>
+                                    <strong class="text-tekfix-main" style="font-family: var(--font-mono); font-size: 1rem;">${{ (venta.monto_total)|cop }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small fw-semibold text-secondary">Suma Asignada:</span>
+                                    <strong id="sumaDisplay{{ venta.id }}" class="text-secondary" style="font-family: var(--font-mono); font-size: 1rem;">$0</strong>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                    <span class="small fw-bold text-tekfix-main">Estado:</span>
+                                    <span id="diffBadge{{ venta.id }}" class="badge rounded-pill px-3 py-1 fw-bold bg-secondary">
+                                        Calculando...
+                                    </span>
+                                </div>
+                            </div>
+
+                            <p class="small text-secondary mb-2">Distribuye el valor entre las vías utilizadas:</p>
+
+                            <div class="d-flex flex-column gap-2">
+                                <!-- Efectivo -->
+                                <div class="d-flex align-items-center gap-2 p-2 rounded-3 border bg-white">
+                                    <div class="d-flex align-items-center gap-2" style="width: 125px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-money-bills text-success"></i>
+                                        <span class="small fw-bold text-tekfix-main">Efectivo</span>
+                                    </div>
+                                    <div class="input-group input-group-sm flex-grow-1">
+                                        <span class="input-group-text bg-light text-secondary border-end-0">$</span>
+                                        <input type="number" step="1" min="0" name="monto_efectivo" id="in_efectivo_{{ venta.id }}" 
+                                               class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
+                                               value="{{ "%.0f"|format(p_efectivo.val) if p_efectivo.val > 0 else "0" }}" 
+                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_efectivo_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
+                                        Restante
+                                    </button>
+                                </div>
+
+                                <!-- Nequi -->
+                                <div class="d-flex align-items-center gap-2 p-2 rounded-3 border bg-white">
+                                    <div class="d-flex align-items-center gap-2" style="width: 125px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-mobile-screen" style="color: #7C3AED;"></i>
+                                        <span class="small fw-bold text-tekfix-main">Nequi</span>
+                                    </div>
+                                    <div class="input-group input-group-sm flex-grow-1">
+                                        <span class="input-group-text bg-light text-secondary border-end-0">$</span>
+                                        <input type="number" step="1" min="0" name="monto_nequi" id="in_nequi_{{ venta.id }}" 
+                                               class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
+                                               value="{{ "%.0f"|format(p_nequi.val) if p_nequi.val > 0 else "0" }}" 
+                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_nequi_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
+                                        Restante
+                                    </button>
+                                </div>
+
+                                <!-- Bancolombia -->
+                                <div class="d-flex align-items-center gap-2 p-2 rounded-3 border bg-white">
+                                    <div class="d-flex align-items-center gap-2" style="width: 125px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-building-columns" style="color: #D97706;"></i>
+                                        <span class="small fw-bold text-tekfix-main">Bancolombia</span>
+                                    </div>
+                                    <div class="input-group input-group-sm flex-grow-1">
+                                        <span class="input-group-text bg-light text-secondary border-end-0">$</span>
+                                        <input type="number" step="1" min="0" name="monto_bancolombia" id="in_bancolombia_{{ venta.id }}" 
+                                               class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
+                                               value="{{ "%.0f"|format(p_bancolombia.val) if p_bancolombia.val > 0 else "0" }}" 
+                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_bancolombia_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
+                                        Restante
+                                    </button>
+                                </div>
+
+                                <!-- Daviplata -->
+                                <div class="d-flex align-items-center gap-2 p-2 rounded-3 border bg-white">
+                                    <div class="d-flex align-items-center gap-2" style="width: 125px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-mobile" style="color: #DC2626;"></i>
+                                        <span class="small fw-bold text-tekfix-main">Daviplata</span>
+                                    </div>
+                                    <div class="input-group input-group-sm flex-grow-1">
+                                        <span class="input-group-text bg-light text-secondary border-end-0">$</span>
+                                        <input type="number" step="1" min="0" name="monto_daviplata" id="in_daviplata_{{ venta.id }}" 
+                                               class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
+                                               value="{{ "%.0f"|format(p_daviplata.val) if p_daviplata.val > 0 else "0" }}" 
+                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_daviplata_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
+                                        Restante
+                                    </button>
+                                </div>
+
+                                <!-- Bolt (Datáfono / Tarjeta) -->
+                                <div class="d-flex align-items-center gap-2 p-2 rounded-3 border bg-white">
+                                    <div class="d-flex align-items-center gap-2" style="width: 125px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-bolt" style="color: var(--tekfix-primary);"></i>
+                                        <span class="small fw-bold text-tekfix-main">Bolt (Tarj.)</span>
+                                    </div>
+                                    <div class="input-group input-group-sm flex-grow-1">
+                                        <span class="input-group-text bg-light text-secondary border-end-0">$</span>
+                                        <input type="number" step="1" min="0" name="monto_tarjeta" id="in_tarjeta_{{ venta.id }}" 
+                                               class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
+                                               value="{{ "%.0f"|format(p_tarjeta.val) if p_tarjeta.val > 0 else "0" }}" 
+                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_tarjeta_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
+                                        Restante
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 bg-tekfix-card rounded-bottom">
+                    <button type="button" class="btn btn-light rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn rounded-pill px-4 fw-bold text-white shadow-sm" style="background-color: #1A1A1A; font-size: 0.85rem;">
+                        <i class="fa-solid fa-check me-1" style="color: var(--tekfix-hover);"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- ========== MODAL: FILTRAR RANGO DE FECHAS ========== -->
+<div class="modal fade" id="filtroFechasModal" tabindex="-1" aria-labelledby="filtroFechasModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 bg-tekfix-card pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background: rgba(197, 160, 89, 0.15); color: var(--tekfix-primary);">
+                        <i class="fa-solid fa-calendar-days fs-6"></i>
+                    </div>
+                    <h5 class="modal-title fw-bold text-tekfix-main" id="filtroFechasModalLabel" style="font-family: var(--font-heading);">
+                        Filtrar Rango de Fechas
+                    </h5>
+                </div>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form method="GET" action="{{ url_for('sales_bp.historial') }}" id="dateFilterForm">
+                <div class="modal-body p-4">
+                    
+                    <!-- Atajos Rápidos -->
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-2" style="letter-spacing: 0.05em;">Atajos Rápidos</label>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fw-semibold" onclick="setPreset('hoy')" style="font-size: 0.78rem;">
+                            Hoy
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fw-semibold" onclick="setPreset('ayer')" style="font-size: 0.78rem;">
+                            Ayer
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fw-semibold" onclick="setPreset('7dias')" style="font-size: 0.78rem;">
+                            Últimos 7 días
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fw-semibold" onclick="setPreset('mes')" style="font-size: 0.78rem;">
+                            Este Mes
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fw-semibold" onclick="setPreset('mes_anterior')" style="font-size: 0.78rem;">
+                            Mes Anterior
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fw-semibold" onclick="setPreset('todo')" style="font-size: 0.78rem;">
+                            Todo el Año
+                        </button>
+                    </div>
+
+                    <!-- Selectores de Fecha -->
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-tekfix-main mb-1">Fecha Inicial (Desde)</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white border-end-0 text-secondary"><i class="fa-regular fa-calendar"></i></span>
+                                <input type="date" id="inputFechaInicio" name="fecha_inicio" class="form-control border-start-0 ps-0" value="{{ fecha_inicio or '' }}" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-tekfix-main mb-1">Fecha Final (Hasta)</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white border-end-0 text-secondary"><i class="fa-regular fa-calendar"></i></span>
+                                <input type="date" id="inputFechaFin" name="fecha_fin" class="form-control border-start-0 ps-0" value="{{ fecha_fin or '' }}" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 bg-tekfix-card rounded-bottom d-flex justify-content-between">
+                    <a href="{{ url_for('sales_bp.historial') }}" class="btn btn-link text-secondary text-decoration-none small p-0">
+                        <i class="fa-solid fa-arrow-rotate-left me-1"></i> Ver Todo
+                    </a>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn rounded-pill px-4 fw-bold text-white shadow-sm" style="background-color: #1A1A1A; font-size: 0.85rem;">
+                            <i class="fa-solid fa-filter me-1" style="color: var(--tekfix-hover);"></i> Aplicar Filtros
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
-/* ====== Estilos Exclusivos para PDF/Impresión del Reporte de Ventas ====== */
+/* ====== Estilos de Impresión / Guardar PDF ====== */
 @media print {
-    /* 1. Resetear Página y Contenedores Base */
-    @page { margin: 1.5cm; }
+    @page { 
+        margin: 1.2cm;
+        size: letter portrait;
+    }
     body, html {
-        background-color: white !important;
-        margin: 0 !important; 
-        padding: 0 !important;
-        font-size: 10pt !important;
-        color: black !important;
+        background-color: #FFFFFF !important;
+        color: #1A1A1A !important;
+        font-size: 9.5pt !important;
     }
     
     .container, main.container, .container-fluid {
@@ -223,86 +722,39 @@
         padding: 0 !important;
     }
 
-    /* 2. Ocultar Elementos Interactivos Innecesarios */
-    main > nav, header, footer, .d-print-none, #filtrosCollapse {
+    /* Ocultar elementos interactivos */
+    main > nav, header, footer, .d-print-none, .modal, .btn {
         display: none !important;
     }
     
-    /* Mostrar cabecera oficial de impresión */
     .d-print-block {
         display: block !important;
     }
 
-    /* 3. Arreglar Tarjetas Superiores (Resumen) para que no se sobrepongan */
-    .row {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        gap: 15px !important;
-        margin-bottom: 20px !important;
-    }
-    .col-6 {
-        flex: 1 !important;
-        max-width: 50% !important;
-        padding: 0 !important;
-    }
-    
-    /* Simplificar tarjetas, quitando sombras y rebordes gigantes */
-    .card-custom, .card {
-        border: 1px solid #ccc !important;
+    /* Tarjetas adaptadas a impresión */
+    .card {
+        border: 1px solid #E5E7EB !important;
         box-shadow: none !important;
         background-color: transparent !important;
-        border-radius: 4px !important;
         page-break-inside: avoid;
     }
-    .card-custom[style] {
-        border-left: 1px solid #ccc !important; /* Sobrescribir borde de color grueso */
-    }
-    .card-body {
-        padding: 10px 15px !important;
-    }
-    .card-body p { margin-bottom: 5px !important; font-size: 9pt !important; }
-    .card-body h2 { font-size: 16pt !important; color: black !important; }
 
-    /* 4. Arreglar la Tabla de Datos para evitar desbordamientos */
+    /* Tabla de auditoría en PDF */
     .table-responsive {
-        overflow: visible !important; /* Desactiva el scroll horizontal */
+        overflow: visible !important;
     }
     .table {
         width: 100% !important;
         border-collapse: collapse !important;
-        table-layout: auto !important; /* Permite adaptación de columnas */
     }
     .table th, .table td {
-        padding: 6px !important;
-        font-size: 9pt !important;
-        white-space: normal !important; 
-        word-wrap: break-word !important;
-        border: 1px solid #eee !important;
-        color: black !important;
+        padding: 6px 8px !important;
+        border-bottom: 1px solid #E5E7EB !important;
     }
     .table thead th {
-        background-color: #f8f9fa !important;
-        border-bottom: 2px solid #ccc !important;
-        color: black !important;
-    }
-
-    /* Ocultar la columna de botones "Auditar / Ver Recibo" */
-    th:nth-child(6), td:nth-child(6) {
-        display: none !important;
-    }
-
-    /* 5. Limpiar Etiquetas (Badges) */
-    .badge {
-        border: none !important;
-        background: transparent !important;
-        color: black !important;
-        padding: 0 !important;
-        font-size: 9pt !important;
-        font-weight: bold !important;
-    }
-    .badge i {
-        display: none !important; /* Ocultar íconos para ahorrar espacio horizontal */
+        background-color: #F8FAFC !important;
+        border-bottom: 2px solid #C5A059 !important;
+        color: #1A1A1A !important;
     }
 
     * {
@@ -310,15 +762,141 @@
         print-color-adjust: exact !important;
     }
 }
+    .pago-pill-btn {
+        color: var(--tekfix-text-sec) !important;
+        font-size: 0.82rem;
+        transition: all 0.2s ease;
+    }
+    .pago-pill-btn.active {
+        background-color: #1A1A1A !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
 </style>
 
-<!-- Inicializar Tooltips Bootstrap para Desglose de Pagos Mixtos -->
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (el) {
-            return new bootstrap.Tooltip(el);
+// Atajos rápidos de fechas
+function setPreset(tipo) {
+    const inicioInput = document.getElementById('inputFechaInicio');
+    const finInput = document.getElementById('inputFechaFin');
+    const hoy = new Date();
+    
+    const formatDate = (d) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    if (tipo === 'hoy') {
+        const str = formatDate(hoy);
+        inicioInput.value = str;
+        finInput.value = str;
+    } else if (tipo === 'ayer') {
+        const ayer = new Date(hoy);
+        ayer.setDate(ayer.getDate() - 1);
+        const str = formatDate(ayer);
+        inicioInput.value = str;
+        finInput.value = str;
+    } else if (tipo === '7dias') {
+        const d7 = new Date(hoy);
+        d7.setDate(d7.getDate() - 6);
+        inicioInput.value = formatDate(d7);
+        finInput.value = formatDate(hoy);
+    } else if (tipo === 'mes') {
+        const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+        inicioInput.value = formatDate(primerDia);
+        finInput.value = formatDate(hoy);
+    } else if (tipo === 'mes_anterior') {
+        const primerDia = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+        const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+        inicioInput.value = formatDate(primerDia);
+        finInput.value = formatDate(ultimoDia);
+    } else if (tipo === 'todo') {
+        const inicioAnio = new Date(hoy.getFullYear(), 0, 1);
+        inicioInput.value = formatDate(inicioAnio);
+        finInput.value = formatDate(hoy);
+    }
+}
+
+// ====== GESTIÓN DE PAGO DIVIDIDO EN TIEMPO REAL ======
+function recalcularDividido(saleId, totalVenta) {
+    const inputs = document.querySelectorAll('.split-input-' + saleId);
+    let suma = 0;
+    inputs.forEach(inp => {
+        const val = parseFloat(inp.value) || 0;
+        suma += val;
+    });
+
+    const formatMoney = (n) => '$' + Math.round(n).toLocaleString('es-CO');
+    const sumaDisplay = document.getElementById('sumaDisplay' + saleId);
+    const diffBadge = document.getElementById('diffBadge' + saleId);
+
+    if (sumaDisplay) sumaDisplay.textContent = formatMoney(suma);
+    
+    const diff = totalVenta - suma;
+    if (diffBadge) {
+        if (Math.abs(diff) < 1) {
+            diffBadge.className = 'badge rounded-pill px-3 py-1 fw-bold bg-success text-white';
+            diffBadge.innerHTML = '<i class="fa-solid fa-check me-1"></i> Exacto (Cuadrado)';
+        } else if (diff > 0) {
+            diffBadge.className = 'badge rounded-pill px-3 py-1 fw-bold bg-warning text-dark';
+            diffBadge.textContent = 'Faltan ' + formatMoney(diff);
+        } else {
+            diffBadge.className = 'badge rounded-pill px-3 py-1 fw-bold bg-danger text-white';
+            diffBadge.textContent = 'Sobran ' + formatMoney(Math.abs(diff));
+        }
+    }
+}
+
+function llenarRestante(targetInputId, saleId, totalVenta) {
+    const targetInput = document.getElementById(targetInputId);
+    if (!targetInput) return;
+    
+    const inputs = document.querySelectorAll('.split-input-' + saleId);
+    let otraSuma = 0;
+    inputs.forEach(inp => {
+        if (inp.id !== targetInputId) {
+            otraSuma += parseFloat(inp.value) || 0;
+        }
+    });
+
+    const restante = Math.max(0, totalVenta - otraSuma);
+    targetInput.value = Math.round(restante);
+    recalcularDividido(saleId, totalVenta);
+}
+
+function validarPagoDividido(saleId) {
+    const tipo = document.getElementById('tipoPago' + saleId).value;
+    if (tipo !== 'dividido') return true;
+
+    const diffBadge = document.getElementById('diffBadge' + saleId);
+    if (diffBadge && !diffBadge.textContent.includes('Exacto')) {
+        alert('Para guardar el pago dividido, la suma de los valores ingresados debe coincidir exactamente con el valor total del ticket.');
+        return false;
+    }
+    return true;
+}
+
+// Inicializar Tooltips Bootstrap y disparar cálculo inicial en modales
+document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (el) {
+        return new bootstrap.Tooltip(el);
+    });
+
+    // Escuchar apertura de modales de pago para sincronizar su estado
+    document.querySelectorAll('[id^="cambiarPagoModal"]').forEach(function(modalEl) {
+        modalEl.addEventListener('shown.bs.modal', function () {
+            const saleId = modalEl.id.replace('cambiarPagoModal', '');
+            const activeTab = modalEl.querySelector('.pago-pill-btn.active');
+            if (activeTab && activeTab.id.includes('dividido')) {
+                const totalText = modalEl.querySelector('strong.text-tekfix-main').textContent.replace(/[^0-9]/g, '');
+                const totalNum = parseFloat(totalText) || 0;
+                recalcularDividido(saleId, totalNum);
+            }
         });
     });
+});
 </script>
 {% endblock %}

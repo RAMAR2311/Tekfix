@@ -127,22 +127,28 @@ def eliminar_vendedor(id):
 @admin_required
 def dashboard():
     from datetime import datetime
-    
-    # Se obtienen métricas clave para que el administrador tenga un resumen rápido de las operaciones del negocio
-    total_productos = Product.query.count()
-    
-    # Se calcula el stock bajo considerando tanto productos planos como con variantes
-    # Unificamos la regla a 5 unidades según requerimiento del usuario
-    productos = Product.query.all()
-    productos_bajo_stock = sum(1 for p in productos if p.total_stock <= 5)
-    
-    maneos_activos = Maneo.query.filter_by(estado='PENDIENTE').count()
-    
-    # Obtener el mes dinámico a filtrar (formato YYYY-MM)
+    from models import (
+        Product, ProductVariant, Sale, User, Maneo, SaleDetail, SalePayment,
+        StockAdjustment, Expense, Loss, Provider, ProviderInvoice, ProviderPayment,
+        Warranty, SimCard, PriceApproval, obtener_hora_bogota
+    )
+
     hoy = obtener_hora_bogota()
-    mes_str = request.args.get('mes')
     
-    if mes_str:
+    # Parámetros de filtro de fecha:
+    # Acepta 'mes' (YYYY-MM) o select_mes (1..12) y select_anio (YYYY)
+    mes_str = request.args.get('mes')
+    select_mes = request.args.get('select_mes')
+    select_anio = request.args.get('select_anio')
+
+    if select_mes and select_anio:
+        try:
+            m = int(select_mes)
+            y = int(select_anio)
+            inicio_mes = datetime(y, m, 1)
+        except (ValueError, TypeError):
+            inicio_mes = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    elif mes_str:
         try:
             inicio_mes = datetime.strptime(mes_str, '%Y-%m')
         except ValueError:
@@ -157,59 +163,146 @@ def dashboard():
         fin_mes = datetime(inicio_mes.year, inicio_mes.month + 1, 1)
         
     mes_seleccionado = inicio_mes.strftime('%Y-%m')
+    anio_seleccionado = inicio_mes.year
+    mes_num_seleccionado = inicio_mes.month
     
     # Mapeo de meses en español
     meses_es = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     nombre_mes = meses_es[inicio_mes.month - 1]
-    
-    # Se delega la suma al motor de base de datos para no saturar la memoria de la aplicación con registros a medida que crecen las ventas
-    total_ventas = db.session.query(func.sum(Sale.monto_total)).filter(Sale.fecha_venta >= inicio_mes, Sale.fecha_venta < fin_mes).scalar() or 0.0
-    
-    # Cálculos para modulo de Pérdidas (Mermas) del mes seleccionado
-    perdidas_valor = float(db.session.query(func.sum(Loss.cost_at_loss * Loss.quantity)).filter(Loss.date >= inicio_mes, Loss.date < fin_mes).scalar() or 0)
-    ventas_mes_actual = float(total_ventas)
-    
-    porcentaje_perdidas = 0
-    if ventas_mes_actual > 0:
-        porcentaje_perdidas = round((perdidas_valor / ventas_mes_actual) * 100, 2)
-        
-    # Cálculos modulo Proveedores (Cuentas por Pagar) - Permanecen globales por ser deudas activas
-    total_deuda_facturas = db.session.query(func.sum(ProviderInvoice.monto_total)).scalar() or 0.0
-    total_deuda_abonos = db.session.query(func.sum(ProviderPayment.monto_abonado)).scalar() or 0.0
-    deuda_proveedores = float(total_deuda_facturas) - float(total_deuda_abonos)
+
+    # --- CARD 1: INGRESOS (MES) ---
+    ventas_query = Sale.query.filter(Sale.fecha_venta >= inicio_mes, Sale.fecha_venta < fin_mes).all()
+    total_ventas = sum(float(v.monto_total or 0.0) for v in ventas_query)
+    ventas_realizadas_count = len(ventas_query)
+
+    # Desglose de ingresos (Efectivo/Transferencia vs Tarjeta)
+    ingresos_tarjeta = 0.0
+    ingresos_efectivo_transferencia = 0.0
+
+    for v in ventas_query:
+        if v.pagos:
+            for p in v.pagos:
+                monto_pago = float(p.monto or 0.0)
+                if p.metodo_pago == 'tarjeta':
+                    ingresos_tarjeta += monto_pago
+                else:
+                    ingresos_efectivo_transferencia += monto_pago
+        else:
+            monto_v = float(v.monto_total or 0.0)
+            if v.metodo_pago == 'tarjeta':
+                ingresos_tarjeta += monto_v
+            else:
+                ingresos_efectivo_transferencia += monto_v
+
+    # --- CARD 2: MERCANCÍA VENDIDA ---
+    total_unidades_vendidas = db.session.query(func.sum(SaleDetail.cantidad_vendida)).join(Sale, SaleDetail.sale_id == Sale.id).filter(
+        Sale.fecha_venta >= inicio_mes, Sale.fecha_venta < fin_mes
+    ).scalar() or 0
+    total_unidades_vendidas = int(total_unidades_vendidas)
+
+    referencias_vendidas = db.session.query(func.count(func.distinct(SaleDetail.product_id))).join(Sale, SaleDetail.sale_id == Sale.id).filter(
+        Sale.fecha_venta >= inicio_mes, Sale.fecha_venta < fin_mes, SaleDetail.product_id.isnot(None)
+    ).scalar() or 0
+
+    total_referencias_catalogo = Product.query.count()
+
+    # --- CARD 3: GASTOS (MES) ---
+    gastos_query = Expense.query.filter(Expense.fecha_gasto >= inicio_mes, Expense.fecha_gasto < fin_mes).all()
+    total_gastos_mes = sum(float(g.monto or 0.0) for g in gastos_query)
+    gastos_registrados_count = len(gastos_query)
+    gastos_diarios = sum(float(g.monto or 0.0) for g in gastos_query if 'diario' in (g.tipo_gasto or '').lower())
+    gastos_indirectos = sum(float(g.monto or 0.0) for g in gastos_query if 'indirecto' in (g.tipo_gasto or '').lower())
+
+    # --- CARD 4: UTILIDAD ESTIMADA ---
+    # Costo Directo (COGS)
+    detalles_vendidos = db.session.query(SaleDetail, Product).outerjoin(Product, SaleDetail.product_id == Product.id).join(Sale, SaleDetail.sale_id == Sale.id).filter(
+        Sale.fecha_venta >= inicio_mes, Sale.fecha_venta < fin_mes
+    ).all()
+
+    costos_directos_cogs = sum(
+        (detalle.SaleDetail.cantidad_vendida * (
+            float(detalle.SaleDetail.precio_costo_manual) if detalle.SaleDetail.precio_costo_manual is not None
+            else (float(detalle.Product.precio_costo) if detalle.Product and detalle.Product.precio_costo else 0.0)
+        )) for detalle in detalles_vendidos
+    )
+
+    utilidad_estimada = float(total_ventas) - float(costos_directos_cogs) - float(total_gastos_mes)
+
+    # --- CARD 5: ALERTAS DE STOCK ---
+    productos = Product.query.all()
+    productos_bajo_stock = sum(1 for p in productos if p.total_stock <= 10)
+    ajustes_stock_periodo = StockAdjustment.query.filter(
+        StockAdjustment.fecha_ajuste >= inicio_mes, StockAdjustment.fecha_ajuste < fin_mes
+    ).count()
+
+    # --- CARD 6: ABONOS A PROVEEDORES ---
+    abonos_proveedores_mes = float(db.session.query(func.sum(ProviderPayment.monto_abonado)).filter(
+        ProviderPayment.fecha_pago >= inicio_mes, ProviderPayment.fecha_pago < fin_mes
+    ).scalar() or 0.0)
+    abonos_proveedores_count = ProviderPayment.query.filter(
+        ProviderPayment.fecha_pago >= inicio_mes, ProviderPayment.fecha_pago < fin_mes
+    ).count()
+
+    total_deuda_facturas = float(db.session.query(func.sum(ProviderInvoice.monto_total)).scalar() or 0.0)
+    total_deuda_abonos = float(db.session.query(func.sum(ProviderPayment.monto_abonado)).scalar() or 0.0)
+    deuda_proveedores = max(0.0, total_deuda_facturas - total_deuda_abonos)
     total_proveedores = Provider.query.count()
 
-    # Cálculos modulo Garantías del mes seleccionado
-    total_garantias_mes = Warranty.query.filter(Warranty.created_at >= inicio_mes, Warranty.created_at < fin_mes).count()
-    garantias_pendientes = Warranty.query.filter(Warranty.resolution == 'Pendiente').count()
-        
-    from models import PriceApproval
+    # --- CARD 7: APROBACIONES DE PRECIOS ---
+    aprobaciones_totales_mes = PriceApproval.query.filter(
+        PriceApproval.fecha_solicitud >= inicio_mes, PriceApproval.fecha_solicitud < fin_mes
+    ).count()
+    aprobaciones_autorizadas_mes = PriceApproval.query.filter(
+        PriceApproval.fecha_solicitud >= inicio_mes, PriceApproval.fecha_solicitud < fin_mes,
+        PriceApproval.estado == 'aprobado'
+    ).count()
     aprobaciones_pendientes = PriceApproval.query.filter_by(estado='pendiente').count()
 
-    # Módulo SIMs
+    # --- OTRAS MÉTRICAS OPERATIVAS ---
+    perdidas_valor = float(db.session.query(func.sum(Loss.cost_at_loss * Loss.quantity)).filter(Loss.date >= inicio_mes, Loss.date < fin_mes).scalar() or 0.0)
+    porcentaje_perdidas = round((perdidas_valor / total_ventas * 100), 2) if total_ventas > 0 else 0.0
+
+    maneos_activos = Maneo.query.filter_by(estado='PENDIENTE').count()
+    total_garantias_mes = Warranty.query.filter(Warranty.created_at >= inicio_mes, Warranty.created_at < fin_mes).count()
+    garantias_pendientes = Warranty.query.filter(Warranty.resolution == 'Pendiente').count()
+
     sims_disponibles = SimCard.query.filter_by(estado='Disponible').count()
     sims_vendidas_mes = SimCard.query.filter(SimCard.estado == 'Vendida', SimCard.fecha_venta >= inicio_mes, SimCard.fecha_venta < fin_mes).count()
 
-    # Módulo Gastos
-    total_gastos_mes = db.session.query(func.sum(Expense.monto)).filter(Expense.fecha_gasto >= inicio_mes, Expense.fecha_gasto < fin_mes).scalar() or 0.0
-
-    return render_template('admin/dashboard.html', 
-                           total_productos=total_productos,
-                           productos_bajo_stock=productos_bajo_stock,
+    return render_template('admin/dashboard.html',
+                           nombre_mes=nombre_mes,
+                           mes_seleccionado=mes_seleccionado,
+                           anio_seleccionado=anio_seleccionado,
+                           mes_num_seleccionado=mes_num_seleccionado,
                            total_ventas=total_ventas,
-                           maneos_activos=maneos_activos,
-                           total_perdidas=perdidas_valor,
-                           porcentaje_perdidas=porcentaje_perdidas,
+                           ventas_realizadas_count=ventas_realizadas_count,
+                           ingresos_efectivo_transferencia=ingresos_efectivo_transferencia,
+                           ingresos_tarjeta=ingresos_tarjeta,
+                           total_unidades_vendidas=total_unidades_vendidas,
+                           referencias_vendidas=referencias_vendidas,
+                           total_referencias_catalogo=total_referencias_catalogo,
+                           total_gastos_mes=total_gastos_mes,
+                           gastos_registrados_count=gastos_registrados_count,
+                           gastos_diarios=gastos_diarios,
+                           gastos_indirectos=gastos_indirectos,
+                           costos_directos_cogs=costos_directos_cogs,
+                           utilidad_estimada=utilidad_estimada,
+                           productos_bajo_stock=productos_bajo_stock,
+                           ajustes_stock_periodo=ajustes_stock_periodo,
+                           abonos_proveedores_mes=abonos_proveedores_mes,
+                           abonos_proveedores_count=abonos_proveedores_count,
                            deuda_proveedores=deuda_proveedores,
                            total_proveedores=total_proveedores,
+                           aprobaciones_totales_mes=aprobaciones_totales_mes,
+                           aprobaciones_autorizadas_mes=aprobaciones_autorizadas_mes,
+                           aprobaciones_pendientes=aprobaciones_pendientes,
+                           total_perdidas=perdidas_valor,
+                           porcentaje_perdidas=porcentaje_perdidas,
+                           maneos_activos=maneos_activos,
                            total_garantias_mes=total_garantias_mes,
                            garantias_pendientes=garantias_pendientes,
-                           aprobaciones_pendientes=aprobaciones_pendientes,
-                           mes_seleccionado=mes_seleccionado,
-                           nombre_mes=nombre_mes,
                            sims_disponibles=sims_disponibles,
-                           sims_vendidas_mes=sims_vendidas_mes,
-                           total_gastos_mes=total_gastos_mes)
+                           sims_vendidas_mes=sims_vendidas_mes)
 
 # --- ENDPOINTS MODULO PERDIDAS ---
 @admin_bp.route('/perdidas')

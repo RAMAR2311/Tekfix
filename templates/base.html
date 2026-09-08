@@ -2,49 +2,81 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tekfix Oficial - CRM & POS</title>
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/Tekfix.png') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Tekfix - Accesorios & Tecnología</title>
+    
+    <!-- PWA & Mobile Meta Tags (Android, iOS Safari, Windows & Mac) -->
+    <meta name="theme-color" content="#C5A059">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Tekfix">
+    <meta name="application-name" content="Tekfix">
+    <meta name="msapplication-TileColor" content="#C5A059">
+    <meta name="msapplication-TileImage" content="{{ url_for('static', filename='img/icon-192.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    
+    <!-- Favicon & PWA Web App Manifest -->
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/Tekfix.jpg') }}">
+    <link rel="manifest" href="/manifest.json">
+    
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Luxury & High Legibility Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* REGLA DE BRANDING TEKFIX (Dark Premium) */
+        /* REGLA DE BRANDING TEKFIX: LUXURY LIGHT THEME */
         :root {
-            --tekfix-bg: #1A1818;          /* Antracita profundo */
-            --tekfix-primary: #DDB856;     /* Dorado medio */
-            --tekfix-hover: #F9E491;       /* Dorado brillante */
-            --tekfix-border: #A37E2C;      /* Dorado oscuro */
-            --tekfix-text-sec: #C5C5C5;    /* Gris plata */
-            --tekfix-text-main: #FFFFFF;   /* Blanco puro */
-            --tekfix-card-bg: #252323;     /* Fondo de tarjetas */
-            --tekfix-navbar-bg: #1A1818;
-            --tekfix-input-bg: #1A1818;
-            --tekfix-table-header: rgba(221, 184, 86, 0.1);
-        }
-
-        /* MODALIDAD DIA (Light Mode) */
-        body.light-mode {
-            --tekfix-bg: #f8f9fa;
-            --tekfix-card-bg: #ffffff;
-            --tekfix-text-main: #212529;
-            --tekfix-text-sec: #495057;
-            --tekfix-border: #dee2e6;
-            --tekfix-primary: #9d7c2a;
-            --tekfix-hover: #856404;
-            --tekfix-navbar-bg: #ffffff;
-            --tekfix-input-bg: #ffffff;
-            --tekfix-table-header: #f1f3f5;
+            --tekfix-bg: #FFFFFF;                  /* Canvas: Blanco Puro */
+            --tekfix-card-bg: #FAFAFA;             /* Contenedores y Tarjetas */
+            --tekfix-border: #EAEAEA;              /* Bordes sutiles */
+            --tekfix-primary: #C5A059;             /* Oro cepillado */
+            --tekfix-hover: #DFBA73;               /* Oro claro */
+            --tekfix-accent: #DFBA73;              /* Acento oro claro */
+            --tekfix-text-main: #1A1A1A;           /* Gris casi negro para lectura nítida */
+            --tekfix-text-sec: #5A5A5A;            /* Texto secundario */
+            --tekfix-navbar-bg: #FFFFFF;           /* Navbar blanco puro */
+            --tekfix-input-bg: #FFFFFF;            /* Inputs blancos */
+            --tekfix-table-header: #F4F4F5;        /* Cabeceras de tabla */
+            --tekfix-gradient: linear-gradient(135deg, #A8833B 0%, #DFBA73 50%, #C5A059 100%);
+            --tekfix-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            --tekfix-shadow-hover: 0 8px 30px rgba(197, 160, 89, 0.15);
+            --font-heading: 'Playfair Display', Georgia, serif;
+            --font-brand: 'Cinzel', 'Playfair Display', serif;
+            --font-subtitle: 'Montserrat', sans-serif;
+            --font-body: 'Inter', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
         body {
             background-color: var(--tekfix-bg);
             color: var(--tekfix-text-main);
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: var(--font-body);
             -webkit-font-smoothing: antialiased;
             transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Tipografías de Marca */
+        h1, h2, h3, .brand-title, .display-total {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            color: var(--tekfix-text-main);
+        }
+
+        .brand-display {
+            font-family: var(--font-brand);
+            letter-spacing: 0.04em;
+        }
+
+        .section-subtitle, .text-uppercase-tracking, .table th {
+            font-family: var(--font-subtitle);
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            font-size: 0.75rem;
         }
 
         /* Variables Utilitarias Auxiliares */
@@ -53,58 +85,70 @@
         .text-tekfix-main { color: var(--tekfix-text-main) !important; }
         .text-tekfix-primary { color: var(--tekfix-primary) !important; }
         .text-tekfix-sec { color: var(--tekfix-text-sec) !important; }
+        .border-tekfix { border-color: var(--tekfix-border) !important; }
 
         /* Navbar Tekfix */
         .navbar-custom {
             background-color: var(--tekfix-navbar-bg);
             border-bottom: 1px solid var(--tekfix-border);
-            padding: 1rem 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 0.85rem 0;
+            box-shadow: var(--tekfix-shadow);
             transition: background-color 0.3s;
         }
         
         .navbar-custom .navbar-brand {
             font-weight: 800;
             color: var(--tekfix-primary) !important;
-            font-size: 1.75rem;
+            font-size: 1.5rem;
             letter-spacing: -0.5px;
         }
 
         .navbar-custom .nav-link {
             color: var(--tekfix-text-sec);
-            font-weight: 500;
+            font-family: var(--font-subtitle);
+            font-weight: 600;
+            font-size: 0.85rem;
             margin-left: 1rem;
             transition: color 0.2s;
         }
 
         .navbar-custom .nav-link:hover {
-            color: var(--tekfix-hover);
+            color: var(--tekfix-primary);
         }
 
         /* Botones Pro */
         .btn-tekfix {
             background-color: var(--tekfix-primary);
             color: #fff !important;
+            font-family: var(--font-subtitle);
             font-weight: 600;
             border: none;
-            transition: all 0.2s ease-in-out;
+            border-radius: 9999px;
+            padding: 0.6rem 1.4rem;
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.25);
+            transition: all 0.25s ease-in-out;
         }
         .btn-tekfix:hover {
             background-color: var(--tekfix-hover);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 6px 20px rgba(197, 160, 89, 0.35);
         }
 
         .btn-tekfix-secondary {
             background-color: transparent;
-            color: var(--tekfix-primary);
+            color: var(--tekfix-primary) !important;
+            font-family: var(--font-subtitle);
             font-weight: 600;
-            border: 1px solid var(--tekfix-primary);
-            transition: all 0.2s ease-in-out;
+            border: 1.5px solid var(--tekfix-primary);
+            border-radius: 9999px;
+            padding: 0.6rem 1.4rem;
+            transition: all 0.25s ease-in-out;
         }
         .btn-tekfix-secondary:hover {
             background-color: var(--tekfix-primary);
             color: #fff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.25);
         }
 
         /* Cards */
@@ -113,64 +157,418 @@
             color: var(--tekfix-text-main);
             border: 1px solid var(--tekfix-border);
             border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: background-color 0.3s, border-color 0.3s;
+            box-shadow: var(--tekfix-shadow);
+            transition: all 0.25s ease;
+        }
+        .card-custom:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+            border-color: #DFDFDF;
         }
 
-        /* Tablas - Adaptación Universal */
-        .table-custom {
+        /* =========================================================
+           SISTEMA GLOBAL DE TABLAS TEKFIX LUXURY GOLD
+           Aplica a TODAS las tablas del sistema (.table, .table-custom, etc.)
+           priorizando la identidad de marca dorada (#C5A059)
+           ========================================================= */
+        .table,
+        .table-custom,
+        .premium-table,
+        table.table {
             --bs-table-bg: transparent !important;
             --bs-table-color: var(--tekfix-text-main) !important;
+            --bs-table-hover-bg: rgba(197, 160, 89, 0.05) !important;
             color: var(--tekfix-text-main) !important;
-        }
-        
-        .table-custom thead th {
-            color: var(--tekfix-primary) !important;
-            background-color: var(--tekfix-table-header) !important;
-            border-bottom: 2px solid var(--tekfix-primary) !important;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            padding: 1.25rem 1rem;
-        }
-
-        .table-custom tbody td {
-            color: var(--tekfix-text-main) !important;
-            border-bottom: 1px solid var(--tekfix-border) !important;
-            padding: 1.25rem 1rem;
-            vertical-align: middle;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+            width: 100% !important;
+            margin-bottom: 0 !important;
             background-color: transparent !important;
         }
 
-        /* Hover y Zebra Striping adaptables */
-        .table-hover tbody tr:hover td {
-            background-color: rgba(221, 184, 86, 0.05) !important;
-        }
-        
-        body.light-mode .table-striped tbody tr:nth-of-type(odd) td {
-            background-color: rgba(0, 0, 0, 0.02) !important;
-        }
-
-        body:not(.light-mode) .table-striped tbody tr:nth-of-type(odd) td {
-            background-color: rgba(255, 255, 255, 0.02) !important;
-        }
-
-        /* Sidebar Offcanvas */
-        .offcanvas { 
-            background-color: var(--tekfix-bg) !important; 
-            border-right: 1px solid var(--tekfix-border) !important; 
+        /* Neutralizar clases oscuras residuales (.table-dark) en favor del Luxury Light */
+        .table.table-dark,
+        .table-custom.table-dark,
+        .table-dark {
+            --bs-table-bg: transparent !important;
+            --bs-table-color: var(--tekfix-text-main) !important;
+            background-color: transparent !important;
             color: var(--tekfix-text-main) !important;
+            border-color: var(--tekfix-border) !important;
         }
+
+        /* Contenedores de tabla: Bordes suaves y tarjetas unificadas */
+        .table-responsive {
+            border-radius: 16px;
+            background-color: #FFFFFF;
+        }
+
+        .card:has(.table),
+        .card-custom:has(.table) {
+            background-color: #FFFFFF !important;
+            border-radius: 16px !important;
+            border: 1px solid var(--tekfix-border) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+            overflow: hidden !important;
+        }
+
+        /* Cabeceras de tabla: LÍNEA DORADA TEKFIX OBLIGATORIA Y FONDO REFINADO */
+        .table thead,
+        .table-custom thead,
+        .premium-table thead,
+        table thead {
+            background-color: #FAFAFA !important;
+            border-bottom: 2px solid var(--tekfix-primary) !important;
+        }
+
+        .table thead th,
+        .table-custom thead th,
+        .premium-table thead th,
+        table thead th {
+            color: #1A1A1A !important;
+            background-color: #FAFAFA !important;
+            border-top: none !important;
+            border-bottom: 2px solid var(--tekfix-primary) !important;
+            border-left: none !important;
+            border-right: none !important;
+            font-family: var(--font-subtitle);
+            text-transform: uppercase;
+            font-size: 0.76rem !important;
+            letter-spacing: 0.08em !important;
+            padding: 0.95rem 1rem !important;
+            font-weight: 700 !important;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        /* Celdas del cuerpo */
+        .table tbody td,
+        .table-custom tbody td,
+        .premium-table tbody td,
+        table tbody td {
+            color: var(--tekfix-text-main) !important;
+            border-bottom: 1px solid var(--tekfix-border) !important;
+            border-top: none !important;
+            border-left: none !important;
+            border-right: none !important;
+            padding: 0.9rem 1rem !important;
+            vertical-align: middle;
+            background-color: transparent !important;
+            font-size: 0.88rem;
+            transition: background-color 0.15s ease;
+        }
+
+        /* Hover unificado con sutil brillo dorado */
+        .table tbody tr:hover td,
+        .table-hover tbody tr:hover td,
+        .table-custom tbody tr:hover td,
+        .table-hover > tbody > tr:hover > * {
+            background-color: rgba(197, 160, 89, 0.04) !important;
+            --bs-table-accent-bg: rgba(197, 160, 89, 0.04) !important;
+        }
+
+        /* Quitar borde a la última fila para armonizar con esquinas redondeadas */
+        .table tbody tr:last-child td,
+        .table-custom tbody tr:last-child td {
+            border-bottom: none !important;
+        }
+
+        /* Paginación universal Tekfix Gold */
+        .pagination .page-item.active .page-link {
+            background-color: var(--tekfix-primary) !important;
+            border-color: var(--tekfix-primary) !important;
+            color: #FFFFFF !important;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(197, 160, 89, 0.25);
+        }
+        .pagination .page-link {
+            color: var(--tekfix-text-main);
+            border-color: var(--tekfix-border);
+            transition: all 0.2s ease;
+        }
+        .pagination .page-link:hover {
+            color: var(--tekfix-primary);
+            background-color: rgba(197, 160, 89, 0.08);
+        }
+
+        /* =========================================================
+           BARRA LATERAL (SIDEBAR) MODERNA & ULTRA LEGIBLE TEKFIX
+           Diseño refinado, tipografía legible y acentos dorados (#C5A059)
+           ========================================================= */
+        .offcanvas { 
+            width: 320px !important;
+            background-color: #FFFFFF !important; 
+            border-right: 1px solid #E2E8F0 !important; 
+            color: var(--tekfix-text-main) !important;
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08) !important;
+        }
+
         .offcanvas-header { 
-            background-color: var(--tekfix-card-bg) !important; 
-            border-bottom: 1px solid var(--tekfix-border) !important; 
+            background-color: #FFFFFF !important; 
+            border-bottom: 1px solid #F1F5F9 !important; 
+            padding: 1.25rem 1.4rem !important;
         }
-        
-        .btn-close { 
-            filter: var(--tekfix-close-filter, invert(1) grayscale(100%) brightness(200%)); 
+
+        .sidebar-brand-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        body.light-mode {
-            --tekfix-close-filter: none;
+
+        .sidebar-user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #A8833B 0%, #DFBA73 50%, #C5A059 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-size: 1.35rem;
+            box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3);
+            flex-shrink: 0;
+        }
+
+        .sidebar-user-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: #0F172A;
+            letter-spacing: -0.02em;
+            margin: 0;
+            line-height: 1.1;
+        }
+
+        .sidebar-user-role {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 0.72rem;
+            color: var(--tekfix-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .sidebar-close-btn {
+            font-size: 1.15rem;
+            color: #64748B;
+            opacity: 0.8;
+            transition: all 0.2s ease;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 10px;
+        }
+
+        .sidebar-close-btn:hover {
+            color: #0F172A;
+            background-color: #F1F5F9;
+            transform: scale(1.08);
+        }
+
+        /* Items de Navegación */
+        .sidebar-menu-list {
+            list-style: none;
+            padding: 1rem 1.15rem;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            overflow-y: auto;
+            max-height: calc(100vh - 235px);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(197, 160, 89, 0.4) transparent;
+        }
+
+        .sidebar-menu-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar-menu-list::-webkit-scrollbar-thumb {
+            background-color: rgba(197, 160, 89, 0.35);
+            border-radius: 10px;
+        }
+
+        .sidebar-menu-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.72rem 0.95rem;
+            border-radius: 12px;
+            color: #1E293B !important;
+            text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: -0.01em;
+            transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+            background-color: transparent;
+        }
+
+        .sidebar-menu-link:hover {
+            background-color: rgba(197, 160, 89, 0.08);
+            color: #0F172A !important;
+            border-color: rgba(197, 160, 89, 0.25);
+            transform: translateX(4px);
+        }
+
+        .sidebar-link-content {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .sidebar-menu-icon {
+            width: 22px;
+            font-size: 1.15rem;
+            color: var(--tekfix-primary);
+            text-align: center;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .sidebar-menu-link:hover .sidebar-menu-icon {
+            transform: scale(1.16);
+            color: #A8833B;
+        }
+
+        /* Item Destacado: Arqueo de Caja */
+        .sidebar-item-highlight {
+            background-color: #F8FAFC !important;
+            border: 1.5px solid #E2E8F0 !important;
+            border-radius: 14px !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            margin-top: 0.35rem;
+        }
+
+        .sidebar-item-highlight:hover {
+            background-color: #FFFFFF !important;
+            border-color: var(--tekfix-primary) !important;
+            box-shadow: 0 4px 14px rgba(197, 160, 89, 0.16) !important;
+        }
+
+        /* Acordeón para Módulos (Inventario, etc.) */
+        .sidebar-accordion-btn {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .sidebar-chevron {
+            font-size: 0.8rem;
+            color: #64748B;
+            transition: transform 0.25s ease;
+        }
+
+        .sidebar-accordion-btn[aria-expanded="true"] .sidebar-chevron {
+            transform: rotate(180deg);
+            color: var(--tekfix-primary);
+        }
+
+        .sidebar-submenu {
+            list-style: none;
+            padding-left: 1.25rem;
+            padding-right: 0.5rem;
+            margin: 0.25rem 0 0.5rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            border-left: 2px dashed rgba(197, 160, 89, 0.35);
+        }
+
+        .sidebar-submenu-link {
+            display: flex;
+            align-items: center;
+            padding: 0.45rem 0.75rem;
+            border-radius: 8px;
+            color: #475569;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 0.86rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-submenu-link:hover {
+            color: var(--tekfix-primary);
+            background-color: rgba(197, 160, 89, 0.06);
+            transform: translateX(3px);
+        }
+
+        /* Sección de Separador Suave */
+        .sidebar-section-divider {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #94A3B8;
+            padding: 0.6rem 0.5rem 0.25rem 0.5rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Footer con Botones Estilo Pastilla (Pills) */
+        .sidebar-footer {
+            padding: 1.1rem 1.25rem 1.35rem 1.25rem;
+            background-color: #FFFFFF;
+            border-top: 1px solid #F1F5F9;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            margin-top: auto;
+        }
+
+        .btn-sidebar-pwa {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 0.72rem 1.25rem;
+            border-radius: 9999px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: #A8833B !important;
+            background-color: #FFFDF9;
+            border: 1.5px solid var(--tekfix-primary);
+            text-decoration: none;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(197, 160, 89, 0.12);
+            cursor: pointer;
+        }
+
+        .btn-sidebar-pwa:hover {
+            background-color: var(--tekfix-primary);
+            color: #FFFFFF !important;
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-sidebar-logout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 0.72rem 1.25rem;
+            border-radius: 9999px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: #DC2626 !important;
+            background-color: #FEF2F2;
+            border: 1.5px solid #F87171;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        .btn-sidebar-logout:hover {
+            background-color: #DC2626;
+            color: #FFFFFF !important;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.25);
+            transform: translateY(-1px);
         }
         
         /* Inputs */
@@ -178,21 +576,24 @@
             background-color: var(--tekfix-input-bg) !important;
             border: 1px solid var(--tekfix-border) !important;
             color: var(--tekfix-text-main) !important;
+            border-radius: 10px;
         }
         .form-control:focus, .form-select:focus {
             border-color: var(--tekfix-primary) !important;
-            box-shadow: 0 0 0 0.25rem rgba(221, 184, 86, 0.2);
+            box-shadow: 0 0 0 0.25rem rgba(197, 160, 89, 0.2);
         }
         .form-control::placeholder {
             color: var(--tekfix-text-sec) !important;
-            opacity: 0.5;
+            opacity: 0.7;
         }
 
         /* Modales */
         .modal-content {
-            background-color: var(--tekfix-card-bg) !important;
+            background-color: #FFFFFF !important;
             color: var(--tekfix-text-main) !important;
             border: 1px solid var(--tekfix-border) !important;
+            border-radius: 16px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
         }
         .modal-header, .modal-footer {
             border-color: var(--tekfix-border) !important;
@@ -200,41 +601,26 @@
 
         /* Alertas */
         .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border-color: #c3e6cb;
+            background-color: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
         }
         .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border-color: #f5c6cb;
-        }
-        body:not(.light-mode) .alert-success {
-            background-color: rgba(40, 167, 69, 0.2);
-            color: #2ecc71;
-            border: 1px solid #2ecc71;
-        }
-        body:not(.light-mode) .alert-danger {
-            background-color: rgba(220, 53, 69, 0.2);
-            color: #e74c3c;
-            border: 1px solid #e74c3c;
+            background-color: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
         }
 
         /* Mini-Cart Dropdown Style */
         .cart-dropdown-menu {
-            width: 320px;
-            background: rgba(37, 35, 35, 0.95);
+            width: 330px;
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(15px);
             border: 1px solid var(--tekfix-border);
             border-radius: 16px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            padding: 1rem;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+            padding: 1.25rem;
             margin-top: 0.5rem;
-        }
-
-        body.light-mode .cart-dropdown-menu {
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
         }
 
         .mini-cart-item {
@@ -242,7 +628,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 8px 0;
-            border-bottom: 1px solid rgba(221, 184, 86, 0.1);
+            border-bottom: 1px solid var(--tekfix-border);
         }
 
         .mini-cart-item:last-child {
@@ -264,12 +650,12 @@
 
     <!-- Navbar Tekfix -->
     <nav class="navbar navbar-custom mb-5 position-relative">
-        <div class="container-fluid px-3 d-flex justify-content-between align-items-center">
+        <div class="container-fluid px-3 px-md-4 d-flex justify-content-between align-items-center">
             
             {% if current_user.is_authenticated %}
             <!-- Botón Hamburguesa (Izquierda) -->
             <button class="navbar-toggler border-0 shadow-none p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
-                <i class="fa-solid fa-bars fs-3 text-tekfix-primary"></i>
+                <i class="fa-solid fa-bars fs-4 text-tekfix-primary"></i>
             </button>
             {% else %}
             <!-- Spacer if not authenticated -->
@@ -277,12 +663,13 @@
             {% endif %}
 
             <!-- Brand Logo (Centro) -->
-            <div class="navbar-brand d-flex align-items-center fw-bold m-0 position-absolute start-50 translate-middle-x">
-                <button id="theme-toggle" class="btn btn-link p-0 me-3 border-0 shadow-none" style="color: var(--tekfix-primary); text-decoration: none;">
-                    <i class="fa-solid fa-sun fs-4" id="theme-icon"></i>
-                </button>
-                <a class="d-flex align-items-center fw-bold m-0 text-decoration-none" style="color: inherit;" href="{{ url_for('index') }}">
-                    <i class="fa-brands fa-xing fs-3 me-2"></i> TEKFIX
+            <div class="navbar-brand d-flex align-items-center m-0 position-absolute start-50 translate-middle-x">
+                <a class="d-flex align-items-center gap-2 m-0 text-decoration-none" href="{{ url_for('index') }}">
+                    <img src="{{ url_for('static', filename='img/Tekfix.jpg') }}" alt="Tekfix" style="height: 38px; width: 38px; object-fit: cover; border-radius: 8px; border: 1px solid var(--tekfix-border);">
+                    <div class="d-flex flex-column text-start">
+                        <span class="brand-display fw-bold" style="font-size: 1.35rem; color: var(--tekfix-text-main); line-height: 1;">TEKFIX</span>
+                        <span style="font-family: var(--font-subtitle); font-size: 0.58rem; letter-spacing: 0.18em; color: var(--tekfix-primary); font-weight: 700;">ACCESORIOS & TECNOLOGÍA</span>
+                    </div>
                 </a>
             </div>
 
@@ -318,99 +705,289 @@
     </nav>
 
     {% if current_user.is_authenticated %}
-    <!-- Offcanvas Menú Lateral (Sidebar) -->
-    <div class="offcanvas offcanvas-start border-0 shadow" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel" style="width: 280px;">
-        <div class="offcanvas-header bg-tekfix-card border-bottom">
-            <h5 class="offcanvas-title fw-bold text-tekfix-main" id="offcanvasNavbarLabel">
-                <i class="fa-solid fa-user-circle me-2"></i>{{ current_user.rol | capitalize }}
-            </h5>
-            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    <!-- Offcanvas Menú Lateral (Sidebar) Ultra Moderno Tekfix -->
+    <div class="offcanvas offcanvas-start border-0 shadow" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+        <div class="offcanvas-header d-flex justify-content-between align-items-center">
+            <div class="sidebar-brand-user">
+                <div class="sidebar-user-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div>
+                    <h5 class="sidebar-user-title" id="offcanvasNavbarLabel">
+                        {{ current_user.nombre if current_user.nombre else (current_user.rol | capitalize) }}
+                    </h5>
+                    <span class="sidebar-user-role">{{ current_user.rol | capitalize }}</span>
+                </div>
+            </div>
+            <button type="button" class="sidebar-close-btn" data-bs-dismiss="offcanvas" aria-label="Close">
+                <i class="fa-solid fa-xmark fs-5"></i>
+            </button>
         </div>
+        
         <div class="offcanvas-body d-flex flex-column p-0">
-            <ul class="navbar-nav w-100 mb-auto px-3 py-3 gap-2">
+            <ul class="sidebar-menu-list">
                 {% if current_user.rol == 'admin' %}
-                    <!-- Enlaces Únicos para el Administrador de la Tienda -->
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/dashboard"><i class="fa-solid fa-chart-pie text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/inventory"><i class="fa-solid fa-box text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Inventario Tienda</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/nueva"><i class="fa-solid fa-cash-register text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Caja Terminal</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/admin/vendedores"><i class="fa-solid fa-users text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Personal</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('admin_bp.perdidas') }}"><i class="fa-solid fa-heart-crack text-danger me-2" style="width:20px; text-align:center;"></i> Pérdidas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/gastos"><i class="fa-solid fa-money-bill-transfer me-2" style="color: var(--tekfix-primary); width:20px; text-align:center;"></i> Gastos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('providers_bp.index') }}"><i class="fa-solid fa-address-book text-tekfix-hover me-2" style="width:20px; text-align:center;"></i> Proveedores</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('warranties_bp.index') }}"><i class="fa-solid fa-shield-halved me-2" style="color: #DDB856; width:20px; text-align:center;"></i> Garantías</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('sims_bp.index') }}"><i class="fa-solid fa-sim-card text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> SIM's</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-bold border-bottom" href="/sales/catalogo"><i class="fa-solid fa-book-open text-tekfix-primary me-2" style="width:20px; text-align:center;"></i> Catálogo Físico</a>
-                    </li>
-                    <li class="nav-item mt-2">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-bold bg-tekfix-card border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Arqueo de Caja</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-bold" href="/arqueo/sobrantes"><i class="fa-solid fa-coins text-tekfix-primary me-2" style="width:20px; text-align:center;"></i> Log de Sobrantes</a>
-                    </li>
-                {% elif current_user.rol == 'vendedor' %}
-                    <!-- Vistas Estrictamente Operativas (Cajeros) -->
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/catalogo"><i class="fa-solid fa-book-open text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Catálogo Rápido</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/sales/nueva"><i class="fa-solid fa-cash-register text-tekfix-primary me-2" style="width:20px; text-align:center;"></i> Módulo de Caja</a>
+                    <!-- 1. Dashboard -->
+                    <li>
+                        <a class="sidebar-menu-link" href="/admin/dashboard">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-chart-pie sidebar-menu-icon"></i>
+                                <span>Dashboard</span>
+                            </div>
+                        </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="/gastos"><i class="fa-solid fa-money-bill-transfer text-success me-2" style="width:20px; text-align:center;"></i> Gastos</a>
+                    <!-- 2. Módulo Inventario (Colapsable con Acordeón) -->
+                    <li>
+                        <a class="sidebar-menu-link sidebar-accordion-btn" data-bs-toggle="collapse" href="#menuInventarioCollapse" role="button" aria-expanded="false" aria-controls="menuInventarioCollapse">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-box sidebar-menu-icon"></i>
+                                <span>Módulo Inventario</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down sidebar-chevron"></i>
+                        </a>
+                        <div class="collapse" id="menuInventarioCollapse">
+                            <ul class="sidebar-submenu">
+                                <li>
+                                    <a class="sidebar-submenu-link" href="/inventory">
+                                        <i class="fa-solid fa-boxes-stacked me-2 text-tekfix-primary" style="font-size: 0.8rem;"></i>
+                                        <span>Inventario General</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="sidebar-submenu-link" href="{{ url_for('admin_bp.perdidas') }}">
+                                        <i class="fa-solid fa-heart-crack me-2 text-danger" style="font-size: 0.8rem;"></i>
+                                        <span>Pérdidas</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="sidebar-submenu-link" href="/sales/catalogo">
+                                        <i class="fa-solid fa-book-open me-2 text-tekfix-primary" style="font-size: 0.8rem;"></i>
+                                        <span>Catálogo Físico</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('sims_bp.index') }}"><i class="fa-solid fa-sim-card text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> SIM's</a>
+
+                    <!-- 3. Caja Registradora -->
+                    <li>
+                        <a class="sidebar-menu-link" href="/sales/nueva">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-cash-register sidebar-menu-icon"></i>
+                                <span>Caja Registradora</span>
+                            </div>
+                        </a>
                     </li>
-                    <li class="nav-item mt-2">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-bold bg-tekfix-card border" href="/arqueo/nuevo"><i class="fa-solid fa-calculator text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Arqueo</a>
+
+                    <!-- 4. Personal -->
+                    <li>
+                        <a class="sidebar-menu-link" href="/admin/vendedores">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-users sidebar-menu-icon"></i>
+                                <span>Personal</span>
+                            </div>
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('arqueo_bp.reporte') }}"><i class="fa-solid fa-file-invoice text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Reporte Arqueo</a>
+
+                    <!-- 5. Proveedores -->
+                    <li>
+                        <a class="sidebar-menu-link" href="{{ url_for('providers_bp.index') }}">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-truck sidebar-menu-icon"></i>
+                                <span>Proveedores</span>
+                            </div>
+                        </a>
                     </li>
+
+                    <!-- 6. Gastos -->
+                    <li>
+                        <a class="sidebar-menu-link" href="/gastos">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-money-bill-transfer sidebar-menu-icon"></i>
+                                <span>Gastos</span>
+                            </div>
+                        </a>
+                    </li>
+
+                    <!-- 7. Aprobaciones de Precios -->
+                    <li>
+                        <a class="sidebar-menu-link" href="{{ url_for('admin_bp.panel_aprobaciones') }}">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-gavel sidebar-menu-icon"></i>
+                                <span>Aprobaciones de Precios</span>
+                            </div>
+                        </a>
+                    </li>
+
+                    <!-- 8. Arqueo de Caja (Destacado Estilo Tarjeta como en la imagen) -->
+                    <li>
+                        <a class="sidebar-menu-link sidebar-item-highlight" href="/arqueo/nuevo">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-calculator sidebar-menu-icon"></i>
+                                <span>Arqueo de Caja</span>
+                            </div>
+                        </a>
+                    </li>
+
+                    <!-- Separador Operativo -->
+                    <div class="sidebar-section-divider">Operaciones</div>
+
+                    <!-- 9. Historial de Ventas -->
+                    <li>
+                        <a class="sidebar-menu-link" href="{{ url_for('sales_bp.historial') }}">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-clock-rotate-left sidebar-menu-icon"></i>
+                                <span>Historial de Ventas</span>
+                            </div>
+                        </a>
+                    </li>
+
+                    <!-- 10. Maneos / Préstamos -->
+                    <li>
+                        <a class="sidebar-menu-link" href="{{ url_for('admin_bp.maneos') }}">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-handshake sidebar-menu-icon"></i>
+                                <span>Maneos / Préstamos</span>
+                            </div>
+                        </a>
+                    </li>
+
+                    <!-- 11. Garantías -->
+                    <li>
+                        <a class="sidebar-menu-link" href="{{ url_for('warranties_bp.index') }}">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-shield-halved sidebar-menu-icon"></i>
+                                <span>Garantías</span>
+                            </div>
+                        </a>
+                    </li>
+
+                    <!-- 12. SIM's -->
+                    <li>
+                        <a class="sidebar-menu-link" href="{{ url_for('sims_bp.index') }}">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-sim-card sidebar-menu-icon"></i>
+                                <span>SIM's</span>
+                            </div>
+                        </a>
+                    </li>
+
+                    <!-- 13. Log de Sobrantes -->
+                    <li>
+                        <a class="sidebar-menu-link" href="/arqueo/sobrantes">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-coins sidebar-menu-icon"></i>
+                                <span>Log de Sobrantes</span>
+                            </div>
+                        </a>
+                    </li>
+
+                {% elif current_user.rol == 'vendedor' %}
+                    <!-- Vistas Operativas Vendedor -->
+                    <li>
+                        <a class="sidebar-menu-link" href="/sales/nueva">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-cash-register sidebar-menu-icon"></i>
+                                <span>Caja Registradora</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-link" href="/sales/catalogo">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-book-open sidebar-menu-icon"></i>
+                                <span>Catálogo Rápido</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-link" href="{{ url_for('sales_bp.historial') }}">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-clock-rotate-left sidebar-menu-icon"></i>
+                                <span>Mis Ventas</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-link" href="/gastos">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-money-bill-transfer sidebar-menu-icon"></i>
+                                <span>Gastos</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-link" href="{{ url_for('sims_bp.index') }}">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-sim-card sidebar-menu-icon"></i>
+                                <span>SIM's</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="sidebar-menu-link sidebar-item-highlight" href="/arqueo/nuevo">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-calculator sidebar-menu-icon"></i>
+                                <span>Arqueo de Caja</span>
+                            </div>
+                        </a>
+                    </li>
+
                 {% elif current_user.rol == 'bodega' %}
-                    <!-- Vistas Exclusivas para el Encargado de Bodega -->
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.dashboard') }}"><i class="fa-solid fa-boxes-stacked text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Bodega</a>
+                    <!-- Vistas Bodega -->
+                    <li>
+                        <a class="sidebar-menu-link" href="{{ url_for('bodega_bp.dashboard') }}">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-boxes-stacked sidebar-menu-icon"></i>
+                                <span>Bodega Principal</span>
+                            </div>
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('inventory_bp.index') }}"><i class="fa-solid fa-box text-tekfix-primary me-2" style="width:20px; text-align:center;"></i> Mi Inventario (Bodega)</a>
+                    <li>
+                        <a class="sidebar-menu-link" href="{{ url_for('inventory_bp.index') }}">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-box sidebar-menu-icon"></i>
+                                <span>Mi Inventario</span>
+                            </div>
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.clientes') }}"><i class="fa-solid fa-address-book text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Directorio Clientes</a>
+                    <li>
+                        <a class="sidebar-menu-link" href="{{ url_for('bodega_bp.clientes') }}">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-address-book sidebar-menu-icon"></i>
+                                <span>Directorio Clientes</span>
+                            </div>
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.nuevo_cliente') }}"><i class="fa-solid fa-user-plus text-tekfix-sec me-2" style="width:20px; text-align:center;"></i> Registrar Cliente</a>
+                    <li>
+                        <a class="sidebar-menu-link" href="{{ url_for('bodega_bp.nuevo_cliente') }}">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-user-plus sidebar-menu-icon"></i>
+                                <span>Registrar Cliente</span>
+                            </div>
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-tekfix-main rounded-3 px-3 py-2 fw-semibold border-bottom" href="{{ url_for('bodega_bp.nueva_factura') }}"><i class="fa-solid fa-file-invoice text-tekfix-primary me-2" style="width:20px; text-align:center;"></i> Subir Factura</a>
+                    <li>
+                        <a class="sidebar-menu-link" href="{{ url_for('bodega_bp.nueva_factura') }}">
+                            <div class="sidebar-link-content">
+                                <i class="fa-solid fa-file-invoice sidebar-menu-icon"></i>
+                                <span>Subir Factura</span>
+                            </div>
+                        </a>
                     </li>
                 {% endif %}
             </ul>
             
-            <!-- Interfaz de Desconexión / Fin de Turno al final del sidebar -->
-            <div class="px-3 pb-4 mt-auto">
-                <a class="btn w-100 rounded-pill fw-bold border shadow-sm" href="{{ url_for('auth_bp.logout') }}" style="border-color: var(--tekfix-border) !important; color: var(--tekfix-text-main);">
-                    <i class="fa-solid fa-sign-out-alt me-2"></i> Salir del Sistema
+            <!-- Footer con Botones Estilo Pastilla (Pills) idénticos al diseño -->
+            <div class="sidebar-footer">
+                <button type="button" class="btn-sidebar-pwa" id="btn-pwa-install" onclick="triggerPWAInstall()">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Instalar App PWA</span>
+                </button>
+                <a class="btn-sidebar-logout" href="{{ url_for('auth_bp.logout') }}">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Salir del Sistema</span>
                 </a>
             </div>
         </div>
@@ -434,38 +1011,70 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Modal Guía de Instalación PWA (Multiplataforma: Android, iOS, Windows, Mac) -->
+    <div class="modal fade" id="modalPwaInstallGuide" tabindex="-1" aria-labelledby="modalPwaInstallGuideLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="modal-header text-white border-0 py-3" style="background: linear-gradient(135deg, #A8833B 0%, #DFBA73 50%, #C5A059 100%);">
+                    <div class="d-flex align-items-center gap-2">
+                        <img src="{{ url_for('static', filename='img/Tekfix.jpg') }}" alt="Tekfix" style="width: 34px; height: 34px; border-radius: 8px; border: 1.5px solid rgba(255,255,255,0.7); object-fit: cover;">
+                        <h5 class="modal-title fw-bold text-white mb-0" id="modalPwaInstallGuideLabel" style="font-family: 'Montserrat', sans-serif;">
+                            Instalar Tekfix App
+                        </h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3">
+                        <div class="d-inline-flex p-3 rounded-circle shadow-sm" style="background: rgba(197, 160, 89, 0.12); color: var(--tekfix-primary);">
+                            <i class="fa-solid fa-mobile-screen-button fs-1"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold text-tekfix-main mb-2" style="font-family: 'Montserrat', sans-serif;">Instala Tekfix en tu Dispositivo</h5>
+                    <p class="text-tekfix-sec small mb-4">
+                        Disfruta de una experiencia rápida a pantalla completa sin barras de navegador, optimizada para <strong>Android, iPhone (iOS), Windows y Mac</strong>.
+                    </p>
+                    
+                    <!-- Guía específica para iPhone / iPad (Safari) -->
+                    <div id="pwa-guide-ios" class="d-none text-start p-3 rounded-3 mb-3" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
+                        <div class="fw-bold text-tekfix-main mb-2 small" style="font-family: 'Montserrat', sans-serif;">
+                            <i class="fa-brands fa-apple me-2 text-tekfix-primary fs-6"></i>Instrucciones para iPhone / iPad (Safari):
+                        </div>
+                        <ol class="small text-tekfix-sec mb-0 ps-3" style="line-height: 1.75;">
+                            <li>Presiona el botón <strong>Compartir</strong> <i class="fa-solid fa-arrow-up-from-bracket text-primary"></i> en la barra inferior de Safari.</li>
+                            <li>Desplaza la lista y selecciona <strong>"Agregar al inicio"</strong> <i class="fa-regular fa-square-plus text-primary"></i>.</li>
+                            <li>Toca <strong>"Agregar"</strong> en la esquina superior derecha para confirmar.</li>
+                        </ol>
+                    </div>
+
+                    <!-- Guía para Windows / Mac / Otros Navegadores -->
+                    <div id="pwa-guide-desktop" class="d-none text-start p-3 rounded-3 mb-3" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
+                        <div class="fw-bold text-tekfix-main mb-2 small" style="font-family: 'Montserrat', sans-serif;">
+                            <i class="fa-solid fa-laptop me-2 text-tekfix-primary fs-6"></i>Instrucciones para Windows / Mac (Chrome o Edge):
+                        </div>
+                        <p class="small text-tekfix-sec mb-0" style="line-height: 1.65;">
+                            Haz clic en el icono de instalación <i class="fa-solid fa-circle-down text-tekfix-primary"></i> situado a la derecha de la barra de direcciones de tu navegador, o abre el menú principal y elige <strong>"Instalar Tekfix..."</strong>.
+                        </p>
+                    </div>
+
+                    <!-- Estado ya instalado o modo PWA standalone -->
+                    <div id="pwa-guide-installed" class="d-none alert alert-success small mb-0 text-start">
+                        <i class="fa-solid fa-circle-check me-2"></i>¡Tekfix ya está instalada en tu equipo o estás ejecutándola en modo aplicación nativa!
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light p-3">
+                    <button type="button" class="btn btn-tekfix w-100 rounded-pill fw-bold" data-bs-dismiss="modal">
+                        Entendido
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Script de Cambio de Tema (Modo Día / Modo Noche) -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const themeToggle = document.getElementById('theme-toggle');
-            const themeIcon = document.getElementById('theme-icon');
-            const body = document.body;
-
-            // Cargar preferencia guardada
-            if (localStorage.getItem('theme') === 'light') {
-                body.classList.add('light-mode');
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-            }
-
-            themeToggle.addEventListener('click', () => {
-                body.classList.toggle('light-mode');
-                
-                if (body.classList.contains('light-mode')) {
-                    localStorage.setItem('theme', 'light');
-                    themeIcon.classList.remove('fa-sun');
-                    themeIcon.classList.add('fa-moon');
-                } else {
-                    localStorage.setItem('theme', 'dark');
-                    themeIcon.classList.remove('fa-moon');
-                    themeIcon.classList.add('fa-sun');
-                }
-            });
-        });
-
         // --- LÓGICA DE CARRITO GLOBAL TEKFIX (MINI-DROPDOWN) ---
         let globalCart = JSON.parse(localStorage.getItem('tekfix_global_cart') || '[]');
 
@@ -583,6 +1192,77 @@
                 console.error("Error al procesar data-product:", e);
             }
         };
+
+        // --- SISTEMA PWA MULTIPLATAFORMA (ANDROID, IOS SAFARI, WINDOWS, MAC) ---
+        let deferredPrompt = null;
+
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => {
+                        console.log('✅ Tekfix PWA Service Worker activo. Scope:', reg.scope);
+                    })
+                    .catch(err => {
+                        console.warn('⚠️ Error registrando Service Worker PWA:', err);
+                    });
+            });
+        }
+
+        // Capturar beforeinstallprompt en Android, Windows, Mac (Chrome / Edge)
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('📱 Tekfix PWA: evento de instalación capturado.');
+        });
+
+        // Evento cuando la PWA se instala con éxito
+        window.addEventListener('appinstalled', () => {
+            deferredPrompt = null;
+            console.log('🎉 Tekfix PWA instalada exitosamente.');
+        });
+
+        // Activador de Instalación desde el botón de la barra lateral
+        function triggerPWAInstall() {
+            const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+            const modalEl = document.getElementById('modalPwaInstallGuide');
+            const guideIos = document.getElementById('pwa-guide-ios');
+            const guideDesktop = document.getElementById('pwa-guide-desktop');
+            const guideInstalled = document.getElementById('pwa-guide-installed');
+
+            if (isStandalone) {
+                guideInstalled.classList.remove('d-none');
+                guideIos.classList.add('d-none');
+                guideDesktop.classList.add('d-none');
+                new bootstrap.Modal(modalEl).show();
+                return;
+            }
+
+            if (deferredPrompt) {
+                // Prompt nativo disponible (Android, Chrome/Edge en Windows y Mac)
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('El usuario aceptó la instalación de la PWA.');
+                    }
+                    deferredPrompt = null;
+                });
+            } else if (isIos) {
+                // iOS Safari: Mostrar instrucciones paso a paso
+                guideIos.classList.remove('d-none');
+                guideDesktop.classList.add('d-none');
+                guideInstalled.classList.add('d-none');
+                new bootstrap.Modal(modalEl).show();
+            } else {
+                // Desktop / navegadores sin evento pendiente
+                guideDesktop.classList.remove('d-none');
+                guideIos.classList.add('d-none');
+                guideInstalled.classList.add('d-none');
+                new bootstrap.Modal(modalEl).show();
+            }
+        }
 
         // Inicializar UI
         document.addEventListener('DOMContentLoaded', updateGlobalCartUI);

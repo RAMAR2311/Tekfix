@@ -185,7 +185,7 @@
                     <div class="progress" style="height: 6px; background-color: var(--tekfix-border); border-radius: 10px;">
                         {% if cat.tipo_gasto == 'Gasto Diario' %}
                             <!-- Degradado Celeste Turquesa para Diario -->
-                            <div class="progress-bar" role="progressbar" style="width: {{ cat.porcentaje }}%; background: linear-gradient(90deg, #A3D8DE, #7BC8D0); border-radius: 10px;" aria-valuenow="{{ cat.porcentaje }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="progress-bar" role="progressbar" style="width: {{ cat.porcentaje }}%; background: linear-gradient(90deg, #C5A059, #DFBA73); border-radius: 10px;" aria-valuenow="{{ cat.porcentaje }}" aria-valuemin="0" aria-valuemax="100"></div>
                         {% else %}
                             <!-- Degradado Rosa/Dorado de Costo Fijo -->
                             <div class="progress-bar" role="progressbar" style="width: {{ cat.porcentaje }}%; background: linear-gradient(90deg, var(--tekfix-primary), #fd7e14); border-radius: 10px;" aria-valuenow="{{ cat.porcentaje }}" aria-valuemin="0" aria-valuemax="100"></div>

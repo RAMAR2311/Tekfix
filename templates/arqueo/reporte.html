@@ -4,22 +4,30 @@
 <div class="row justify-content-center">
     <!-- Navbar y Filtros: Ocultos en Impresión -->
     <div class="col-12 d-print-none mb-4">
-        <div class="card card-custom p-4 border-0 shadow-sm d-flex justify-content-between align-items-center flex-row">
-            <h4 class="fw-bold m-0" style="color: #A3D8DE;">
-                <i class="fa-solid fa-file-invoice me-1"></i> Reporte Arqueo Caja
-            </h4>
+        <div class="card card-custom p-4 border-0 d-flex justify-content-between align-items-center flex-row">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle p-2 d-flex align-items-center justify-content-center" style="background: rgba(197, 160, 89, 0.12); width: 48px; height: 48px;">
+                    <i class="fa-solid fa-file-invoice fs-5 text-tekfix-primary"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold m-0" style="font-family: var(--font-heading); color: var(--tekfix-text-main);">
+                        Reporte de Arqueo de Caja
+                    </h4>
+                    <small class="section-subtitle" style="color: var(--tekfix-primary);">TEKFIX - ACCESORIOS & TECNOLOGÍA</small>
+                </div>
+            </div>
             
             <form action="{{ url_for('arqueo_bp.reporte') }}" method="GET" class="d-flex align-items-center justify-content-end gap-3 flex-grow-1 mx-4">
-                <label for="fecha_inicio" class="fw-bold text-tekfix-main m-0">Desde:</label>
-                <input type="date" name="fecha_inicio" id="fecha_inicio" value="{{ fecha_inicio }}" class="form-control w-auto">
+                <label for="fecha_inicio" class="fw-bold text-tekfix-main m-0 small">Desde:</label>
+                <input type="date" name="fecha_inicio" id="fecha_inicio" value="{{ fecha_inicio }}" class="form-control w-auto form-control-sm">
 
-                <label for="fecha_fin" class="fw-bold text-tekfix-main m-0 ms-2">Hasta:</label>
-                <input type="date" name="fecha_fin" id="fecha_fin" value="{{ fecha_fin }}" class="form-control w-auto">
+                <label for="fecha_fin" class="fw-bold text-tekfix-main m-0 ms-2 small">Hasta:</label>
+                <input type="date" name="fecha_fin" id="fecha_fin" value="{{ fecha_fin }}" class="form-control w-auto form-control-sm">
                 
-                <button type="submit" class="btn btn-outline-secondary rounded-pill px-4">Filtrar</button>
+                <button type="submit" class="btn btn-tekfix-secondary btn-sm px-4">Filtrar</button>
             </form>
 
-            <button onclick="window.print()" class="btn px-4 rounded-pill fw-bold text-tekfix-main border shadow-sm" style="background-color: #F9C8D3; border-color: #ebaebc;">
+            <button onclick="window.print()" class="btn btn-tekfix px-4 shadow-sm">
                 <i class="fa-solid fa-print me-1"></i> Imprimir Tirilla
             </button>
         </div>
@@ -27,70 +35,72 @@
 
     <!-- Contenido del Reporte EN PANTALLA e IMPRESIÓN A4 -->
     <div class="col-12 col-xl-10">
-        <div class="card bg-tekfix-card p-5 border-0 shadow-sm rounded-4 printable-document">
+        <div class="card bg-white p-4 p-md-5 border rounded-4 printable-document" style="border-color: var(--tekfix-border) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.04);">
             
             <!-- Encabezado Ticket / Documento Contable -->
-            <div class="text-center mb-5 pb-3 border-bottom">
-                <h1 class="fw-bold text-tekfix-main mb-1"><i class="fa-solid fa-calculator me-2"></i> Tekfix Oficial</h1>
-                <h4 class="text-tekfix-sec fw-semibold">INFORME CONTABLE DE CIERRE DE CAJA (ARQUEO)</h4>
-                <p class="mb-0 text-secondary">
-                    Período: <strong>{{ fecha_inicio }}</strong> hasta <strong>{{ fecha_fin }}</strong>
-                    <br>
-                    Generado el: <strong>{{ fecha_generacion }}</strong>
+            <div class="text-center mb-5 pb-3 border-bottom" style="border-color: var(--tekfix-border) !important;">
+                <img src="{{ url_for('static', filename='img/Tekfix.jpg') }}" alt="Tekfix - Accesorios & Tecnología" style="max-height: 80px; border-radius: 12px; border: 1px solid var(--tekfix-border);" class="mb-3 shadow-sm">
+                <h3 class="brand-display fw-bold mb-1" style="color: var(--tekfix-text-main); letter-spacing: 0.08em;">TEKFIX</h3>
+                <p class="section-subtitle mb-2" style="color: var(--tekfix-primary); font-size: 0.78rem;">ACCESORIOS & TECNOLOGÍA</p>
+                <h5 class="text-uppercase fw-bold mt-2" style="font-family: var(--font-subtitle); font-size: 0.95rem; letter-spacing: 0.12em;">
+                    INFORME CONTABLE DE CIERRE DE CAJA (ARQUEO)
+                </h5>
+                <p class="mb-0 text-secondary small">
+                    Período: <strong>{{ fecha_inicio }}</strong> hasta <strong>{{ fecha_fin }}</strong> | Generado el: <strong>{{ fecha_generacion }}</strong>
                 </p>
-                <p class="mb-0 text-tekfix-main fw-bold">Usuario Solicitante: {{ current_user.nombre }} ({{ current_user.rol|capitalize }})</p>
+                <p class="mb-0 text-tekfix-main small fw-bold mt-1">Usuario Solicitante: {{ current_user.nombre }} ({{ current_user.rol|capitalize }})</p>
             </div>
 
             <!-- Resumen Consolidado de Totales -->
-            <h5 class="fw-bold text-tekfix-main mb-3">📍 Resumen General del Período Recaudado</h5>
+            <h6 class="section-subtitle text-tekfix-main mb-3">RESUMEN GENERAL DEL PERÍODO RECAUDADO</h6>
             <div class="row g-3 mb-5 resumen-totales">
                 <div class="col-sm-6 col-md">
-                    <div class="card p-3 border rounded shadow-sm text-center h-100" style="background-color: #d4edda; border-left: 4px solid #28a745 !important;">
-                        <small class="fw-bold text-uppercase d-block mb-1" style="color: #155724;">Venta Total</small>
-                        <h4 class="mb-0 fw-bold" style="color: #155724;">
+                    <div class="card p-3 border rounded-3 text-center h-100 bg-white" style="border-color: var(--tekfix-border) !important; border-top: 3px solid var(--tekfix-primary) !important;">
+                        <small class="section-subtitle d-block mb-1 text-tekfix-primary" style="font-size:0.65rem;">Venta Total</small>
+                        <h4 class="mb-0 fw-bold" style="font-family: var(--font-heading); color: var(--tekfix-text-main);">
                             ${{ (resumen.total_efectivo + resumen.total_transferencia)|cop }}
                         </h4>
-                        <small class="d-block mt-1 opacity-75" style="font-size:0.7rem; color: #155724;">Efectivo + Transferencias</small>
+                        <small class="d-block mt-1 text-secondary" style="font-size:0.7rem;">Efectivo + Transferencias</small>
                     </div>
                 </div>
                 <div class="col-sm-6 col-md">
-                    <div class="card p-3 border rounded shadow-sm bg-tekfix-card text-center h-100">
-                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Efectivo Sistema (Ventas)</small>
-                        <h4 class="mb-0 text-success fw-bold">${{ (resumen.total_efectivo)|cop }}</h4>
+                    <div class="card p-3 border rounded-3 text-center h-100 bg-white" style="border-color: var(--tekfix-border) !important;">
+                        <small class="section-subtitle d-block mb-1 text-secondary" style="font-size:0.65rem;">Efectivo Sistema</small>
+                        <h4 class="mb-0 text-success fw-bold" style="font-family: var(--font-heading);">${{ (resumen.total_efectivo)|cop }}</h4>
                     </div>
                 </div>
                 <div class="col-sm-6 col-md">
-                    <div class="card p-3 border rounded shadow-sm bg-tekfix-card text-center h-100">
-                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Bancos / Transf. Sistema</small>
-                        <h4 class="mb-0 text-info fw-bold">${{ (resumen.total_transferencia)|cop }}</h4>
+                    <div class="card p-3 border rounded-3 text-center h-100 bg-white" style="border-color: var(--tekfix-border) !important;">
+                        <small class="section-subtitle d-block mb-1 text-secondary" style="font-size:0.65rem;">Bancos / Transf.</small>
+                        <h4 class="mb-0 text-tekfix-primary fw-bold" style="font-family: var(--font-heading);">${{ (resumen.total_transferencia)|cop }}</h4>
                     </div>
                 </div>
                 <div class="col-sm-6 col-md">
-                    <div class="card p-3 border rounded shadow-sm bg-tekfix-card text-center h-100">
-                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">Gastos Operativos Retirados</small>
-                        <h4 class="mb-0 text-danger fw-bold">$-{{ (resumen.total_gastos)|cop }}</h4>
+                    <div class="card p-3 border rounded-3 text-center h-100 bg-white" style="border-color: var(--tekfix-border) !important;">
+                        <small class="section-subtitle d-block mb-1 text-danger" style="font-size:0.65rem;">Gastos Retirados</small>
+                        <h4 class="mb-0 text-danger fw-bold" style="font-family: var(--font-heading);">$-{{ (resumen.total_gastos)|cop }}</h4>
                     </div>
                 </div>
                 <div class="col-sm-6 col-md">
-                    <div class="card p-3 border rounded shadow-sm bg-tekfix-card text-center h-100" style="border-left: 4px solid #A3D8DE !important;">
-                        <small class="text-secondary fw-bold d-block mb-1">CAJA FÍSICA ESPERADA FINAL</small>
-                        <h4 class="mb-0 text-tekfix-main fw-bold">${{ (resumen.efectivo_esperado)|cop }}</h4>
-                        <small class="text-tekfix-sec d-block mt-1" style="font-size:0.7rem;">(Base Inicial + VentasCash) - Gastos</small>
+                    <div class="card p-3 border rounded-3 text-center h-100 bg-white" style="border-color: var(--tekfix-border) !important; border-top: 3px solid var(--tekfix-primary) !important;">
+                        <small class="section-subtitle d-block mb-1 text-tekfix-primary" style="font-size:0.65rem;">Caja Física Esperada</small>
+                        <h4 class="mb-0 text-tekfix-main fw-bold" style="font-family: var(--font-heading);">${{ (resumen.efectivo_esperado)|cop }}</h4>
+                        <small class="text-secondary d-block mt-1" style="font-size:0.7rem;">(Base + Cash) - Gastos</small>
                     </div>
                 </div>
             </div>
 
             <!-- Tabla Desglosada Registro a Registro -->
-            <h5 class="fw-bold text-tekfix-main mb-3 border-bottom pb-2">📋 Desglose Analítico por Cierres de Día</h5>
+            <h5 class="fw-bold text-tekfix-main mb-3 border-bottom pb-2" style="font-family: var(--font-heading);">📋 Desglose Analítico por Cierres de Día</h5>
             <div class="table-responsive">
                 <table class="table table-bordered table-sm fw-semibold mb-0 table-hover align-middle">
-                    <thead class="table-light text-center text-uppercase" style="font-size: 0.85rem;">
+                    <thead class="text-center text-uppercase" style="background-color: var(--tekfix-table-header); border-bottom: 2px solid var(--tekfix-primary); font-size: 0.8rem; letter-spacing: 0.05em;">
                         <tr>
                             <th width="8%">Fecha</th>
                             <th width="14%">Cajero / Perfil</th>
-                            <th width="10%" class="text-primary">Base</th>
+                            <th width="10%" style="color: var(--tekfix-primary);">Base</th>
                             <th width="10%" class="text-success">Ventas Cash</th>
-                            <th width="12%" class="text-info">Bancos</th>
+                            <th width="12%" style="color: var(--tekfix-accent);">Bancos</th>
                             <th width="10%" class="text-danger">Gastos</th>
                             <th width="10%" class="text-tekfix-main">Físico</th>
                             <th width="10%">Diferencia</th>
@@ -107,12 +117,12 @@
                                     <span class="fw-semibold d-block" style="font-size:0.85rem;">{{ arqueo.cajero.nombre }}</span>
                                     {% if arqueo.cajero.rol == 'admin' %}
                                         <span class="badge rounded-pill px-2 mt-1"
-                                              style="background:rgba(163,216,222,0.2); color:#1a6b72; border:1px solid rgba(163,216,222,0.5); font-size:0.65rem; letter-spacing:.03em;">
+                                              style="background:rgba(197,160,89,0.15); color:#8A6D3B; border:1px solid rgba(197,160,89,0.4); font-size:0.65rem; letter-spacing:.04em;">
                                             <i class="fa-solid fa-shield-halved me-1"></i>Administrador
                                         </span>
                                     {% else %}
                                         <span class="badge rounded-pill px-2 mt-1"
-                                              style="background:rgba(249,200,211,0.25); color:#8c3a50; border:1px solid rgba(249,200,211,0.6); font-size:0.65rem; letter-spacing:.03em;">
+                                              style="background:#F4F4F5; color:#5A5A5A; border:1px solid #EAEAEA; font-size:0.65rem; letter-spacing:.04em;">
                                             <i class="fa-solid fa-user me-1"></i>Vendedor
                                         </span>
                                     {% endif %}
@@ -121,7 +131,7 @@
                                 {% endif %}
                             </td>
 
-                            <td class="text-end text-primary">${{ (arqueo.base_inicial)|cop }}</td>
+                            <td class="text-end" style="color: var(--tekfix-primary);">${{ (arqueo.base_inicial)|cop }}</td>
                             <td class="text-end text-success">${{ (arqueo.total_efectivo_sistema)|cop }}</td>
                             <td class="text-end text-info">${{ (arqueo.total_transferencia_sistema)|cop }}</td>
                             <td class="text-end text-danger">${{ (arqueo.gastos_del_dia)|cop }}</td>
@@ -157,12 +167,12 @@
     <!-- TABLA DE VENTAS DETALLADAS (Pantalla Completa A4) -->
     <div class="col-12 col-xl-10 mt-4">
         <div class="card bg-tekfix-card p-5 border-0 shadow-sm rounded-4 printable-document">
-            <h5 class="fw-bold text-tekfix-main mb-3 border-bottom pb-2">
-                <i class="fa-solid fa-list-check me-2"></i> Detalle de Ventas y Productos Involucrados
+            <h5 class="fw-bold text-tekfix-main mb-3 border-bottom pb-2" style="font-family: var(--font-heading);">
+                <i class="fa-solid fa-list-check me-2" style="color: var(--tekfix-primary);"></i> Detalle de Ventas y Productos Involucrados
             </h5>
             <div class="table-responsive">
                 <table class="table table-bordered table-sm fw-semibold mb-0 table-hover align-middle">
-                    <thead class="table-light text-center text-uppercase" style="font-size: 0.85rem;">
+                    <thead class="text-center text-uppercase" style="background-color: var(--tekfix-table-header); border-bottom: 2px solid var(--tekfix-primary); font-size: 0.8rem; letter-spacing: 0.05em;">
                         <tr>
                             <th width="10%">Ticket ID</th>
                             <th width="12%">Hora</th>

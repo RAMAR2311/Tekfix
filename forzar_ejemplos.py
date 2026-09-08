@@ -7,8 +7,6 @@ from decimal import Decimal
 
 def forzar():
     app = create_app()
-    # Forzar la URL de conexión que funcionó
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin123@localhost:5432/Tekfix'
     
     with app.app_context():
         print("--- INICIANDO CREACIÓN FORZADA DE EJEMPLOS ---")

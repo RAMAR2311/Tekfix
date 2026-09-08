@@ -1,149 +1,295 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-5">
+<!-- Cabecera Principal del Dashboard -->
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 mb-4">
     <div>
-        <h2 class="fw-bold text-tekfix-main mb-0">Dashboard Operativo</h2>
-        <p class="text-tekfix-sec">Bienvenido al panel central, {{ current_user.nombre }}!</p>
+        <h1 class="fw-bolder text-tekfix-main mb-1" style="font-family: 'Montserrat', sans-serif; font-size: 2rem; letter-spacing: -0.03em;">
+            Dashboard Operativo
+        </h1>
+        <p class="text-tekfix-sec mb-2" style="font-size: 0.95rem;">
+            ¡Bienvenido al panel central, {{ current_user.nombre if current_user.nombre else (current_user.rol | capitalize) }}!
+        </p>
+        <div class="badge rounded-pill bg-white text-secondary border px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm" style="border-color: #E2E8F0 !important; font-size: 0.82rem;">
+            <i class="fa-regular fa-calendar-check text-tekfix-primary fs-6"></i>
+            <span>Periodo: <strong class="text-dark">{{ nombre_mes }} {{ anio_seleccionado }}</strong></span>
+        </div>
     </div>
-    <div class="d-flex gap-2 align-items-center">
-        <!-- Selector de Mes Dinámico -->
-        <form method="GET" action="{{ url_for('admin_bp.dashboard') }}" class="d-flex align-items-center gap-2 px-3 py-2 border rounded-pill shadow-sm bg-tekfix-card" style="border-color: var(--tekfix-border) !important;">
-            <i class="fa-solid fa-calendar-days text-tekfix-primary" style="color: var(--tekfix-primary) !important;"></i>
-            <span class="text-tekfix-sec small fw-bold text-nowrap d-none d-sm-inline" style="color: var(--tekfix-text-sec) !important; font-size: 0.85rem;">Ver Periodo:</span>
-            <input type="month" name="mes" class="form-control form-control-sm border-0 bg-transparent shadow-none p-0 text-tekfix-main" 
-                   value="{{ mes_seleccionado }}" onchange="this.form.submit()" 
-                   style="cursor: pointer; width: 145px; font-size: 0.9rem; color: var(--tekfix-text-main) !important; background: transparent !important; border: none !important; outline: none !important; box-shadow: none !important; font-weight: bold;">
-        </form>
-        
-        <button type="button" class="btn btn-tekfix-secondary rounded-pill fw-bold shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#modalBalance">
-            <i class="fa-solid fa-scale-balanced me-2"></i>Generar Balance
+
+    <!-- Barra de Filtros y Acciones estilo Píldora -->
+    <form method="GET" action="{{ url_for('admin_bp.dashboard') }}" class="d-flex align-items-center gap-2 flex-wrap">
+        <!-- Modo Selección -->
+        <div class="dropdown">
+            <button class="btn btn-white bg-white border rounded-pill px-3 py-2 fw-bold text-secondary d-flex align-items-center gap-2 shadow-sm" type="button" style="font-size: 0.88rem; border-color: #E2E8F0 !important; height: 42px;">
+                <i class="fa-regular fa-calendar-days text-tekfix-primary"></i>
+                <span>Por Mes</span>
+            </button>
+        </div>
+
+        <!-- Selector de Mes (Corregido con espacio suficiente para que la flecha nunca tape el texto) -->
+        <select name="select_mes" class="form-select border rounded-pill fw-bold text-dark shadow-sm bg-white" 
+                style="font-size: 0.88rem; cursor: pointer; border-color: #E2E8F0 !important; width: auto; min-width: 165px; padding-left: 1.25rem !important; padding-right: 2.75rem !important; height: 42px;">
+            {% set meses = [('1', 'Enero'), ('2', 'Febrero'), ('3', 'Marzo'), ('4', 'Abril'), ('5', 'Mayo'), ('6', 'Junio'), ('7', 'Julio'), ('8', 'Agosto'), ('9', 'Septiembre'), ('10', 'Octubre'), ('11', 'Noviembre'), ('12', 'Diciembre')] %}
+            {% for m_num, m_name in meses %}
+                <option value="{{ m_num }}" {% if mes_num_seleccionado|string == m_num %}selected{% endif %}>{{ m_name }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Selector de Año (Corregido con espacio suficiente para que la flecha nunca tape el texto) -->
+        <select name="select_anio" class="form-select border rounded-pill fw-bold text-dark shadow-sm bg-white" 
+                style="font-size: 0.88rem; cursor: pointer; border-color: #E2E8F0 !important; width: auto; min-width: 115px; padding-left: 1.25rem !important; padding-right: 2.5rem !important; height: 42px;">
+            {% for y in [2024, 2025, 2026, 2027, 2028] %}
+                <option value="{{ y }}" {% if anio_seleccionado|int == y %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Botón Filtrar -->
+        <button type="submit" class="btn btn-dark rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm" style="font-size: 0.88rem; height: 42px;">
+            <i class="fa-solid fa-filter"></i> Filtrar
         </button>
-    </div>
+
+        <!-- Botón Generar Balance -->
+        <button type="button" class="btn btn-white bg-white border rounded-pill px-3 py-2 fw-bold text-primary d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalBalance" style="border-color: #CBD5E1 !important; font-size: 0.88rem; height: 42px;">
+            <i class="fa-solid fa-scale-balanced"></i> Generar Balance
+        </button>
+    </form>
 </div>
 
 <!-- Modal Balance Financiero -->
 <div class="modal fade" id="modalBalance" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg rounded-4 bg-tekfix-card">
-      <div class="modal-header border-bottom-0 pb-0">
-        <h5 class="fw-bold text-tekfix-main"><i class="fa-solid fa-file-invoice-dollar me-2" style="color: var(--tekfix-primary);"></i>Balance Financiero</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-content border-0 shadow-lg rounded-4 bg-white" style="overflow: hidden;">
+      <div class="modal-header border-0 py-3 text-white" style="background: linear-gradient(135deg, #A8833B 0%, #DFBA73 50%, #C5A059 100%);">
+        <h5 class="fw-bold mb-0 text-white" style="font-family: 'Montserrat', sans-serif;"><i class="fa-solid fa-scale-balanced me-2"></i>Balance Financiero Tekfix</h5>
+        <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
       </div>
       <form action="{{ url_for('admin_bp.balance_financiero') }}" method="GET">
-          <div class="modal-body">
-              <p class="text-tekfix-sec small">Selecciona el rango de fechas para cruzar ventas, costos directos y gastos registrados.</p>
-              <div class="mb-3"><label class="form-label fw-bold text-tekfix-main small">Fecha de Inicio</label><input type="date" name="fecha_inicio" class="form-control" required></div>
-              <div class="mb-4"><label class="form-label fw-bold text-tekfix-main small">Fecha de Fin</label><input type="date" name="fecha_fin" class="form-control" required></div>
+          <div class="modal-body p-4">
+              <p class="text-tekfix-sec small mb-4">Selecciona el rango de fechas para cruzar ventas facturadas, costos directos (COGS) y gastos registrados.</p>
+              <div class="mb-3">
+                  <label class="form-label fw-bold text-tekfix-main small">Fecha de Inicio</label>
+                  <input type="date" name="fecha_inicio" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label fw-bold text-tekfix-main small">Fecha de Fin</label>
+                  <input type="date" name="fecha_fin" class="form-control" required>
+              </div>
           </div>
-          <div class="modal-footer border-top-0 pt-0">
+          <div class="modal-footer border-0 bg-light p-3">
             <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-tekfix-secondary rounded-pill px-4 fw-bold"><i class="fa-solid fa-file-pdf me-1"></i> Calcular</button>
+            <button type="submit" class="btn btn-tekfix rounded-pill px-4 fw-bold"><i class="fa-solid fa-file-pdf me-1"></i> Calcular Balance</button>
           </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- Tarjetas KPI -->
+<!-- FILA 1: 4 TARJETAS KPI PRINCIPALES (Ingresos, Mercancía, Gastos, Utilidad) -->
 <div class="row g-3 mb-4">
 
-    <!-- 1. Total Ventas -->
-    <div class="col-md-4">
-        <div class="card card-custom h-100 p-4 border" style="border-color: #DDB856 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-sack-dollar fs-1" style="color: #DDB856;"></i></div>
-            <h5 class="text-tekfix-main fw-bold">Ventas de {{ nombre_mes }}</h5>
-            <h3 class="fw-bolder" style="color: #DDB856;">${{ (total_ventas)|cop }}</h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Total facturado en el mes seleccionado.</p>
-            <div class="mt-auto pt-2">
-                <a href="{{ url_for('sales_bp.historial') }}" class="btn btn-tekfix w-100 rounded-pill fw-bold"><i class="fa-solid fa-file-invoice-dollar me-2"></i> Ver Ventas</a>
+    <!-- 1. Ingresos (Mes) -->
+    <div class="col-xl-3 col-md-6 col-12">
+        <div class="dash-card h-100 p-4">
+            <div>
+                <div class="dash-card-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-sack-dollar dash-card-icon text-tekfix-main"></i>
+                        <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
+                    </div>
+                    <span class="dash-badge-dark">{{ nombre_mes }} {{ anio_seleccionado }}</span>
+                </div>
+                <div class="dash-title">Ingresos (Mes)</div>
+                <div class="dash-value">${{ (total_ventas)|cop }}</div>
+                <div class="dash-subtitle">
+                    <i class="fa-solid fa-receipt me-1 text-tekfix-primary"></i> {{ ventas_realizadas_count }} ventas realizadas
+                </div>
             </div>
-        </div>
-    </div>
-
-    <!-- 2. Inventario -->
-    <div class="col-md-4">
-        <div class="card card-custom h-100 p-4 border" style="border-color: #DDB856 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-cubes fs-1" style="color: #DDB856;"></i></div>
-            <h5 class="text-tekfix-main fw-bold">Inventario</h5>
-            <h3 class="fw-bolder" style="color: #DDB856;">{{ total_productos }} uds.</h3>
-            <div class="mt-auto pt-4">
-                <a href="/inventory/" class="btn btn-tekfix w-100 rounded-pill fw-bold"><i class="fa-solid fa-sliders me-2"></i> Inventario</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. Perdidas -->
-    <div class="col-md-4">
-        <div class="card card-custom h-100 p-4 border" style="border-color: #dc3545 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3"><i class="fa-solid fa-heart-crack fs-1 text-danger"></i></div>
-            <h5 class="text-tekfix-main fw-bold">Pérdidas de {{ nombre_mes }}</h5>
-            <h3 class="fw-bolder text-danger">${{ (total_perdidas)|cop }} <span class="fs-6 text-tekfix-sec">({{ porcentaje_perdidas }}%)</span></h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Impacto de mermas en el mes seleccionado.</p>
-            <div class="mt-auto pt-2">
-                <a href="{{ url_for('admin_bp.perdidas') }}" class="btn btn-tekfix-secondary w-100 rounded-pill fw-bold border-danger text-danger"><i class="fa-solid fa-expand me-2"></i> Ver Detalle</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. APROBACIONES DE PRECIO - TARJETA KPI -->
-    <div class="col-md-4">
-        <div class="card card-custom h-100 p-4 border position-relative" id="card-aprobaciones"
-             style="border-color: #DDB856 !important;">
-            <span id="badge-aprobaciones-kpi"
-                  class="position-absolute badge rounded-pill bg-danger"
-                  style="display:none; top:10px; right:10px; font-size:.75rem; z-index:2; animation: pulseBadge 1.5s infinite;">0</span>
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-bell-concierge fs-1" style="color: #DDB856;"></i>
-            </div>
-            <h5 class="text-tekfix-main fw-bold">Aprobaciones</h5>
-            <h3 class="fw-bolder" style="color: #DDB856;">
-                <span id="kpi-aprobaciones-num">{{ aprobaciones_pendientes }}</span>
-                <span class="fs-6 text-tekfix-sec">pendientes</span>
-            </h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Solicitudes de precio especial del vendedor en espera.</p>
-            <div class="mt-auto pt-2">
-                <a href="{{ url_for('admin_bp.panel_aprobaciones') }}"
-                   class="btn btn-tekfix w-100 rounded-pill fw-bold">
-                    <i class="fa-solid fa-gavel me-2"></i> Gestionar
+            <div>
+                <div class="dash-divider-info d-flex justify-content-between">
+                    <span title="Efectivo y transferencias"><i class="fa-solid fa-money-bill text-success me-1"></i>${{ (ingresos_efectivo_transferencia)|cop }}</span>
+                    <span title="Tarjeta de crédito/débito"><i class="fa-solid fa-credit-card text-primary me-1"></i>${{ (ingresos_tarjeta)|cop }}</span>
+                </div>
+                <a href="{{ url_for('sales_bp.historial') }}" class="btn-dash-action-dark">
+                    <i class="fa-solid fa-file-lines"></i> Ver Historial
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- 5. SIM'S - TARJETA KPI -->
-    <div class="col-md-4">
-        <div class="card card-custom h-100 p-4 border" style="border-color: #DDB856 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-sim-card fs-1" style="color: #DDB856;"></i>
+    <!-- 2. Mercancía Vendida -->
+    <div class="col-xl-3 col-md-6 col-12">
+        <div class="dash-card h-100 p-4">
+            <div>
+                <div class="dash-card-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-boxes-stacked dash-card-icon text-tekfix-main"></i>
+                        <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
+                    </div>
+                    <span class="dash-badge-dark">{{ nombre_mes }} {{ anio_seleccionado }}</span>
+                </div>
+                <div class="dash-title">Mercancía Vendida</div>
+                <div class="dash-value">{{ total_unidades_vendidas }} uds.</div>
+                <div class="dash-subtitle">
+                    <i class="fa-solid fa-tag me-1 text-tekfix-primary"></i> {{ referencias_vendidas }} referencias vendidas
+                </div>
             </div>
-            <h5 class="text-tekfix-main fw-bold">Chips SIM</h5>
-            <h3 class="fw-bolder" style="color: #DDB856;">
-                {{ sims_disponibles }} <span class="fs-6 text-tekfix-sec">Disponibles</span>
-            </h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">{{ sims_vendidas_mes }} vendidas en {{ nombre_mes }} (control independiente).</p>
-            <div class="mt-auto pt-2">
-                <a href="{{ url_for('sims_bp.index') }}" class="btn btn-tekfix w-100 rounded-pill fw-bold">
-                    <i class="fa-solid fa-gear me-2"></i> Administrar
+            <div>
+                <div class="dash-divider-info">
+                    <i class="fa-solid fa-layer-group text-secondary me-1"></i> Total en catálogo: <strong>{{ total_referencias_catalogo }}</strong> referencias
+                </div>
+                <a href="/inventory" class="btn-dash-action-dark">
+                    <i class="fa-solid fa-sliders"></i> Gestionar Inventario
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- 6. GASTOS / EGRESOS - TARJETA KPI -->
-    <div class="col-md-4">
-        <div class="card card-custom h-100 p-4 border" style="border-color: #dc3545 !important;">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <i class="fa-solid fa-receipt fs-1 text-danger"></i>
+    <!-- 3. Gastos (Mes) -->
+    <div class="col-xl-3 col-md-6 col-12">
+        <div class="dash-card h-100 p-4">
+            <div>
+                <div class="dash-card-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-file-invoice-dollar dash-card-icon text-danger"></i>
+                        <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
+                    </div>
+                    <span class="dash-badge-red">{{ nombre_mes }} {{ anio_seleccionado }}</span>
+                </div>
+                <div class="dash-title">Gastos (Mes)</div>
+                <div class="dash-value text-danger">${{ (total_gastos_mes)|cop }}</div>
+                <div class="dash-subtitle text-danger">
+                    <i class="fa-solid fa-arrow-trend-down me-1"></i> {{ gastos_registrados_count }} gastos registrados
+                </div>
             </div>
-            <h5 class="text-tekfix-main fw-bold">Egresos de {{ nombre_mes }}</h5>
-            <h3 class="fw-bolder text-danger">
-                ${{ (total_gastos_mes)|cop }}
-            </h3>
-            <p class="text-tekfix-sec small m-0 mt-2 lh-sm">Total de salidas de dinero registradas.</p>
-            <div class="mt-auto pt-2">
-                <a href="{{ url_for('gastos_bp.index') }}" class="btn btn-tekfix-secondary w-100 rounded-pill fw-bold border-danger text-danger">
-                    <i class="fa-solid fa-wallet me-2"></i> Control Gastos
+            <div>
+                <div class="dash-divider-info d-flex justify-content-between">
+                    <span>Diarios: ${{ (gastos_diarios)|cop }}</span>
+                    <span>Indirectos: ${{ (gastos_indirectos)|cop }}</span>
+                </div>
+                <a href="{{ url_for('gastos_bp.index') }}" class="btn-dash-action-danger">
+                    <i class="fa-solid fa-wallet"></i> Ver Gastos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Utilidad Estimada -->
+    <div class="col-xl-3 col-md-6 col-12">
+        <div class="dash-card h-100 p-4">
+            <div>
+                <div class="dash-card-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-arrow-trend-up dash-card-icon text-success"></i>
+                        <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
+                    </div>
+                    <span class="dash-badge-green">{{ nombre_mes }} {{ anio_seleccionado }}</span>
+                </div>
+                <div class="dash-title">Utilidad Estimada</div>
+                <div class="dash-value text-success">${{ (utilidad_estimada)|cop }}</div>
+                <div class="dash-subtitle">
+                    <i class="fa-solid fa-calculator me-1 text-muted"></i> Ventas - Costos - Gastos
+                </div>
+            </div>
+            <div>
+                <div class="dash-divider-info d-flex justify-content-between">
+                    <span>Costo Directo (COGS):</span>
+                    <strong>${{ (costos_directos_cogs)|cop }}</strong>
+                </div>
+                <button type="button" class="btn-dash-action-outline" data-bs-toggle="modal" data-bs-target="#modalBalance">
+                    <i class="fa-solid fa-scale-balanced"></i> Reporte Detallado
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- FILA 2: 3 TARJETAS OPERATIVAS DESTACADAS (Alertas Stock, Abonos Proveedores, Aprobaciones de Precios) -->
+<div class="row g-3 mb-4">
+
+    <!-- 5. Alertas de Stock -->
+    <div class="col-lg-4 col-md-6 col-12">
+        <div class="dash-card h-100 p-4">
+            <div>
+                <div class="dash-card-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation dash-card-icon text-warning"></i>
+                        <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
+                    </div>
+                    <span class="dash-badge-amber">Stock Crítico</span>
+                </div>
+                <div class="dash-title">Alertas de Stock</div>
+                <div class="dash-value" style="color: #D97706;">{{ productos_bajo_stock }} productos</div>
+                <div class="dash-subtitle">
+                    Tienen existencias limitadas (10 o menos unidades).
+                </div>
+            </div>
+            <div>
+                <div class="dash-divider-info">
+                    <i class="fa-solid fa-boxes-packing text-secondary me-1"></i> {{ ajustes_stock_periodo }} ajustes de inventario registrados en el periodo
+                </div>
+                <a href="/inventory" class="btn-dash-action-dark">
+                    <i class="fa-solid fa-eye"></i> Revisar Urgencias
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Abonos a Proveedores -->
+    <div class="col-lg-4 col-md-6 col-12">
+        <div class="dash-card card-accent-dark h-100 p-4">
+            <div>
+                <div class="dash-card-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-truck dash-card-icon text-tekfix-main"></i>
+                        <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
+                    </div>
+                    <span class="dash-badge-dark">{{ nombre_mes }} {{ anio_seleccionado }}</span>
+                </div>
+                <div class="dash-title">Abonos a Proveedores</div>
+                <div class="dash-value">${{ (abonos_proveedores_mes)|cop }}</div>
+                <div class="dash-subtitle">
+                    <i class="fa-solid fa-receipt me-1 text-tekfix-primary"></i> {{ abonos_proveedores_count }} abonos pagados a proveedores en el periodo
+                </div>
+            </div>
+            <div>
+                <div class="dash-divider-info d-flex justify-content-between">
+                    <span><i class="fa-solid fa-folder me-1"></i>Deuda pendiente:</span>
+                    <strong class="text-danger">${{ (deuda_proveedores)|cop }}</strong>
+                </div>
+                <a href="{{ url_for('providers_bp.index') }}" class="btn-dash-action-dark">
+                    <i class="fa-solid fa-folder-open"></i> Abrir Proveedores
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Aprobaciones de Precios -->
+    <div class="col-lg-4 col-md-6 col-12">
+        <div class="dash-card card-accent-blue h-100 p-4" id="card-aprobaciones-modern">
+            <div>
+                <div class="dash-card-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-stamp dash-card-icon text-primary"></i>
+                        <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
+                    </div>
+                    <span class="dash-badge-dark">{{ nombre_mes }} {{ anio_seleccionado }}</span>
+                </div>
+                <div class="dash-title">Aprobaciones de Precios</div>
+                <div class="dash-value text-primary">
+                    <span id="kpi-aprobaciones-totales">{{ aprobaciones_totales_mes }}</span> solicitudes
+                </div>
+                <div class="dash-subtitle">
+                    <i class="fa-solid fa-circle-check text-success me-1"></i> {{ aprobaciones_autorizadas_mes }} autorizadas en el periodo
+                </div>
+            </div>
+            <div>
+                <div class="dash-divider-info d-flex justify-content-between align-items-center">
+                    <span><i class="fa-solid fa-circle text-warning me-1"></i><strong id="kpi-aprobaciones-num">{{ aprobaciones_pendientes }}</strong> pendientes en tiempo real</span>
+                    <span id="badge-aprobaciones-pulse" class="badge rounded-pill bg-danger" style="display: {{ 'inline-block' if aprobaciones_pendientes > 0 else 'none' }}; font-size: 0.72rem;">Alerta</span>
+                </div>
+                <a href="{{ url_for('admin_bp.panel_aprobaciones') }}" class="btn-dash-action-dark">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Ver Historial
                 </a>
             </div>
         </div>
@@ -151,11 +297,354 @@
 
 </div>
 
+<!-- FILA 3: OTRAS MÉTRICAS OPERATIVAS COMPACTAS (Pérdidas, Maneos, Chips SIM, Garantías) -->
+<div class="mt-4 pt-2">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h6 class="fw-bold text-tekfix-sec text-uppercase mb-0" style="letter-spacing: 0.1em; font-size: 0.8rem;">
+            <i class="fa-solid fa-layer-group me-2 text-tekfix-primary"></i>Otras Operaciones del Negocio
+        </h6>
+    </div>
+
+    <div class="row g-3">
+        <!-- Pérdidas / Mermas -->
+        <div class="col-xl-3 col-md-6 col-12">
+            <div class="dash-card h-100 p-3" style="border-radius: 16px;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small fw-bold text-muted">Pérdidas (Mermas)</span>
+                    <i class="fa-solid fa-heart-crack text-danger fs-5"></i>
+                </div>
+                <div class="fs-4 fw-bolder text-danger mb-1">${{ (total_perdidas)|cop }}</div>
+                <div class="small text-muted mb-3">{{ porcentaje_perdidas }}% sobre ingresos del mes</div>
+                <a href="{{ url_for('admin_bp.perdidas') }}" class="btn btn-sm btn-outline-danger rounded-pill fw-bold w-100 py-1" style="font-size: 0.8rem;">
+                    Ver Mermas
+                </a>
+            </div>
+        </div>
+
+        <!-- Maneos Activos -->
+        <div class="col-xl-3 col-md-6 col-12">
+            <div class="dash-card h-100 p-3" style="border-radius: 16px;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small fw-bold text-muted">Maneos Activos</span>
+                    <i class="fa-solid fa-handshake text-tekfix-primary fs-5"></i>
+                </div>
+                <div class="fs-4 fw-bolder text-tekfix-main mb-1">{{ maneos_activos }} <span class="fs-6 text-muted">pendientes</span></div>
+                <div class="small text-muted mb-3">Mercancía prestada por cobrar o devolver</div>
+                <a href="{{ url_for('admin_bp.maneos') }}" class="btn btn-sm btn-outline-dark rounded-pill fw-bold w-100 py-1" style="font-size: 0.8rem;">
+                    Ver Maneos
+                </a>
+            </div>
+        </div>
+
+        <!-- Chips SIM -->
+        <div class="col-xl-3 col-md-6 col-12">
+            <div class="dash-card h-100 p-3" style="border-radius: 16px;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small fw-bold text-muted">Chips SIM</span>
+                    <i class="fa-solid fa-sim-card text-tekfix-primary fs-5"></i>
+                </div>
+                <div class="fs-4 fw-bolder text-tekfix-main mb-1">{{ sims_disponibles }} <span class="fs-6 text-muted">disponibles</span></div>
+                <div class="small text-muted mb-3">{{ sims_vendidas_mes }} vendidas en {{ nombre_mes }}</div>
+                <a href="{{ url_for('sims_bp.index') }}" class="btn btn-sm btn-outline-dark rounded-pill fw-bold w-100 py-1" style="font-size: 0.8rem;">
+                    Control SIMs
+                </a>
+            </div>
+        </div>
+
+        <!-- Garantías -->
+        <div class="col-xl-3 col-md-6 col-12">
+            <div class="dash-card h-100 p-3" style="border-radius: 16px;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small fw-bold text-muted">Garantías (Mes)</span>
+                    <i class="fa-solid fa-shield-halved text-tekfix-primary fs-5"></i>
+                </div>
+                <div class="fs-4 fw-bolder text-tekfix-main mb-1">{{ total_garantias_mes }} <span class="fs-6 text-muted">casos</span></div>
+                <div class="small text-muted mb-3">{{ garantias_pendientes }} casos pendientes</div>
+                <a href="{{ url_for('warranties_bp.index') }}" class="btn btn-sm btn-outline-dark rounded-pill fw-bold w-100 py-1" style="font-size: 0.8rem;">
+                    Ver Garantías
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-@keyframes pulseBadge {
-    0%,100% { transform: scale(1); }
-    50%      { transform: scale(1.2); }
-}
+    /* =========================================================
+       TARJETAS KPI TEKFIX CON DESTELLOS DORADOS & ALTA LEGIBILIDAD
+       ========================================================= */
+    .dash-card {
+        background: #FFFFFF;
+        border: 1.5px solid rgba(197, 160, 89, 0.32);
+        border-radius: 20px;
+        box-shadow: 0 4px 22px rgba(197, 160, 89, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Línea superior con destello de oro cepillado */
+    .dash-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3.5px;
+        background: linear-gradient(90deg, #A8833B 0%, #DFBA73 35%, #FFFFFF 50%, #DFBA73 65%, #C5A059 100%);
+        border-radius: 20px 20px 0 0;
+        opacity: 0.95;
+    }
+
+    /* Reflejo y destello de luz dinámico (Shimmer) */
+    .dash-card::before {
+        content: '';
+        position: absolute;
+        top: -60%;
+        left: -120%;
+        width: 120%;
+        height: 220%;
+        background: linear-gradient(
+            115deg,
+            transparent 25%,
+            rgba(223, 186, 115, 0.12) 42%,
+            rgba(255, 255, 255, 0.65) 50%,
+            rgba(197, 160, 89, 0.22) 58%,
+            transparent 75%
+        );
+        transform: rotate(18deg);
+        transition: left 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .dash-card:hover::before {
+        left: 140%;
+    }
+
+    .dash-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 38px rgba(197, 160, 89, 0.26), 0 0 20px rgba(223, 186, 115, 0.35);
+        border-color: var(--tekfix-primary) !important;
+    }
+
+    .dash-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.85rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .dash-card-icon {
+        font-size: 1.65rem;
+        color: #0F172A;
+    }
+
+    /* Pequeño destello estelar dorado */
+    .dash-sparkle-dot {
+        color: var(--tekfix-primary);
+        font-size: 0.72rem;
+        animation: pulseGoldSparkle 2.5s infinite;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @keyframes pulseGoldSparkle {
+        0%, 100% {
+            transform: scale(1) rotate(0deg);
+            opacity: 0.75;
+            filter: drop-shadow(0 0 2px rgba(197, 160, 89, 0.5));
+        }
+        50% {
+            transform: scale(1.35) rotate(20deg);
+            opacity: 1;
+            filter: drop-shadow(0 0 7px rgba(223, 186, 115, 0.95));
+        }
+    }
+
+    .dash-badge-dark {
+        background: #0F172A;
+        color: #FFFFFF;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        letter-spacing: 0.02em;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .dash-badge-red {
+        background: #FEE2E2;
+        color: #DC2626;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        border: 1px solid #FECACA;
+    }
+
+    .dash-badge-green {
+        background: #DCFCE7;
+        color: #16A34A;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        border: 1px solid #BBF7D0;
+    }
+
+    .dash-badge-amber {
+        background: #FEF3C7;
+        color: #B45309;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        border: 1px solid #FDE68A;
+    }
+
+    .dash-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #4B5563;
+        margin-bottom: 0.25rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .dash-value {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.85rem;
+        font-weight: 800;
+        color: #0F172A;
+        line-height: 1.15;
+        margin-bottom: 0.4rem;
+        letter-spacing: -0.02em;
+        position: relative;
+        z-index: 2;
+    }
+
+    .dash-subtitle {
+        font-size: 0.82rem;
+        color: #64748B;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .dash-divider-info {
+        padding-top: 0.65rem;
+        margin-top: auto;
+        border-top: 1px solid #F1F5F9;
+        font-size: 0.8rem;
+        color: #64748B;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .btn-dash-action-dark {
+        background-color: #0F172A;
+        color: #FFFFFF !important;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.62rem 1rem;
+        border-radius: 9999px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        border: none;
+        width: 100%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        position: relative;
+        z-index: 2;
+    }
+
+    .btn-dash-action-dark:hover {
+        background-color: var(--tekfix-primary);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(197, 160, 89, 0.4);
+    }
+
+    .btn-dash-action-danger {
+        background-color: #FFFFFF;
+        color: #DC2626 !important;
+        border: 1.5px solid #FCA5A5;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.62rem 1rem;
+        border-radius: 9999px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        width: 100%;
+        position: relative;
+        z-index: 2;
+    }
+
+    .btn-dash-action-danger:hover {
+        background-color: #DC2626;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.2);
+    }
+
+    .btn-dash-action-outline {
+        background-color: #FFFFFF;
+        color: #475569 !important;
+        border: 1.5px solid #CBD5E1;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.62rem 1rem;
+        border-radius: 9999px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        width: 100%;
+        position: relative;
+        z-index: 2;
+    }
+
+    .btn-dash-action-outline:hover {
+        background-color: #F8FAFC;
+        border-color: #94A3B8;
+        color: #0F172A !important;
+    }
+
+    .card-accent-dark {
+        border-left: 4.5px solid #0F172A !important;
+    }
+
+    .card-accent-blue {
+        border-left: 4.5px solid #2563EB !important;
+    }
+    
+    @keyframes pulseBadge {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+    }
 </style>
 
 <script>
@@ -166,19 +655,22 @@
             if (!r.ok) return;
             const lista = await r.json();
             const n = lista.length;
-            const numEl   = document.getElementById('kpi-aprobaciones-num');
-            const badge   = document.getElementById('badge-aprobaciones-kpi');
-            const card    = document.getElementById('card-aprobaciones');
+            const numEl = document.getElementById('kpi-aprobaciones-num');
+            const badge = document.getElementById('badge-aprobaciones-pulse');
+            const card = document.getElementById('card-aprobaciones-modern');
             if (numEl) numEl.textContent = n;
             if (n > 0) {
-                badge.textContent   = n;
-                badge.style.display = 'inline-block';
-                card.style.borderColor = '#dc3545';
-                card.style.boxShadow   = '0 0 0 3px rgba(220,53,69,.25)';
+                if (badge) badge.style.display = 'inline-block';
+                if (card) {
+                    card.style.borderColor = '#2563EB';
+                    card.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.2)';
+                }
             } else {
-                badge.style.display    = 'none';
-                card.style.borderColor = '#DDB856';
-                card.style.boxShadow   = '';
+                if (badge) badge.style.display = 'none';
+                if (card) {
+                    card.style.borderColor = '#EAEAEA';
+                    card.style.boxShadow = '';
+                }
             }
         } catch(e) {}
     }

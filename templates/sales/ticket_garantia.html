@@ -3,26 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Garantía #{{ garantia.id }} - Tekfix</title>
-    <!-- Roboto Mono = estándar impresoras térmicas 80mm -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <title>Garantía #{{ garantia.id }} - Tekfix - Accesorios & Tecnología</title>
+    <!-- Fuentes: Roboto Mono e institucionales -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@600;700&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --paper-bg: #FFFFFF;
+            --paper-text: #1A1A1A;
+            --desktop-bg: #F8F9FA;
+            --tekfix-gold: #C5A059;
+            --tekfix-gold-hover: #DFBA73;
+            --tekfix-border: #EAEAEA;
+        }
+
         body {
-            background-color: #555;
+            background-color: var(--desktop-bg);
             margin: 0;
             padding: 30px;
             display: flex;
             justify-content: center;
             font-family: 'Roboto Mono', monospace;
+            color: var(--paper-text);
         }
 
         .ticket {
-            background-color: #FFFFFF;
+            background-color: var(--paper-bg);
             width: 100%;
-            max-width: 380px; /* 80mm ~ 380px en pantalla */
+            max-width: 380px; /* 80mm térmica */
             padding: 25px 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.35);
-            color: #1A1A1A;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--tekfix-border);
+            border-radius: 6px;
             box-sizing: border-box;
         }
 
@@ -34,30 +47,45 @@
         }
 
         .logo {
-            font-size: 2rem;
+            font-family: 'Cinzel', 'Roboto Mono', monospace;
+            font-size: 1.85rem;
             font-weight: 700;
-            letter-spacing: -1.5px;
-            margin: 0 0 6px 0;
+            margin: 0;
+            letter-spacing: 0.05em;
+            color: var(--paper-text);
+        }
+
+        .descriptor {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            color: var(--tekfix-gold);
+            margin: 4px 0 12px 0;
+            text-transform: uppercase;
         }
 
         .badge-garantia {
             display: inline-block;
             background: #1A1A1A;
             color: #FFFFFF;
-            font-size: 0.75rem;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.72rem;
             font-weight: 700;
             padding: 4px 14px;
             letter-spacing: 1.5px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
         }
 
         .info {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             margin: 3px 0;
             line-height: 1.5;
         }
 
         .section-title {
+            font-family: 'Montserrat', sans-serif;
             font-size: 0.7rem;
             font-weight: 700;
             letter-spacing: 1.5px;
@@ -92,14 +120,14 @@
         .motivo-box {
             margin: 14px 0;
             padding: 10px;
-            background: #f5f5f5;
-            border-left: 3px solid #1A1A1A;
+            background: #f8f9fa;
+            border-left: 3px solid var(--tekfix-gold);
             font-size: 0.85rem;
             line-height: 1.5;
         }
 
         .legal-box {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             line-height: 1.5;
             color: #555;
             border: 1px dashed #999;
@@ -120,29 +148,35 @@
             display: block;
             width: 100%;
             padding: 14px;
-            background-color: #1A1A1A;
+            background-color: var(--tekfix-gold);
             color: #FFF;
-            border: 2px solid #1A1A1A;
-            font-size: 1rem;
-            border-radius: 5px;
-            font-weight: bold;
+            border: none;
+            font-size: 0.95rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
             cursor: pointer;
             margin-top: 24px;
-            font-family: inherit;
-            transition: 0.2s;
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.25);
+            transition: all 0.25s ease;
         }
 
         .btn-print:hover {
-            background-color: #fff;
-            color: #1A1A1A;
+            background-color: var(--tekfix-gold-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(197, 160, 89, 0.35);
         }
 
+        /* 100% MONOCROMÁTICA PARA IMPRESIONES TÉRMICAS */
         @media print {
-            body { background-color: #FFF; padding: 0; display: block; }
-            .ticket { box-shadow: none; max-width: 100%; width: 80mm; padding: 0; margin: 0 auto; border: none; }
-            .btn-print { display: none; }
-            .badge-garantia { background: #1A1A1A !important; color: #FFF !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .motivo-box { border-left-color: #1A1A1A !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            body { background-color: #FFF !important; padding: 0 !important; display: block !important; color: #000 !important; }
+            .ticket { box-shadow: none !important; max-width: 100% !important; width: 80mm !important; padding: 0 !important; margin: 0 auto !important; border: none !important; }
+            .btn-print { display: none !important; }
+            .descriptor { color: #000 !important; }
+            .badge-garantia { background: #000 !important; color: #FFF !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .motivo-box { border-left-color: #000 !important; background: transparent !important; }
         }
     </style>
 </head>
@@ -152,9 +186,10 @@
     <!-- Encabezado -->
     <div class="header">
         <h1 class="logo">TEKFIX</h1>
+        <p class="descriptor">ACCESORIOS & TECNOLOGÍA</p>
         <div class="badge-garantia">COMPROBANTE DE GARANTÍA</div>
-        <p class="info" style="font-size: 0.75rem; color: #555;">Folio Garantía: <strong>#{{ garantia.id }}</strong></p>
-        <p class="info" style="font-size: 0.75rem;">Fecha Recepción: {{ garantia.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+        <p class="info" style="font-size: 0.78rem; color: #555;">Folio Garantía: <strong>#{{ garantia.id }}</strong></p>
+        <p class="info" style="font-size: 0.78rem;">Fecha Recepción: {{ garantia.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
     </div>
 
     <!-- Datos de la factura de origen -->
@@ -203,16 +238,16 @@
 
     <!-- Nota legal -->
     <div class="legal-box">
-        <strong>Texto Legal:</strong> Este documento ampara la recepción del artículo descrito para revisión técnica bajo los términos de garantía del establecimiento. El tiempo de diagnóstico y resolución puede variar. Tekfix se reserva el derecho de negar la garantía si el producto presenta daños por mal uso, golpes físicos o humedad no cubiertos bajo esta garantía. Conserve este comprobante para reclamar.
+        <strong>Texto Legal:</strong> Este documento ampara la recepción del artículo descrito para revisión técnica bajo los términos de garantía de Tekfix - Accesorios & Tecnología. El tiempo de diagnóstico y resolución puede variar. Tekfix se reserva el derecho de negar la garantía si el producto presenta daños por mal uso, golpes físicos o humedad no cubiertos bajo esta garantía. Conserve este comprobante para reclamar.
     </div>
 
     <div class="footer">
-        <p style="font-weight: bold; font-size: 0.9rem;">TEKFIX — Soporte al Cliente</p>
-        <p style="font-size: 0.75rem;">Este comprobante es válido como recibo oficial de recepción del equipo.</p>
+        <p style="font-weight: bold; font-size: 0.9rem; margin-bottom: 4px;">Tekfix - Accesorios & Tecnología</p>
+        <p style="font-size: 0.75rem; margin: 0;">Soporte al Cliente & Garantías</p>
     </div>
 
     <button class="btn-print" onclick="window.print()">
-        [ IMPRIMIR COMPROBANTE ]
+        Imprimir Comprobante
     </button>
 </div>
 

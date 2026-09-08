@@ -53,6 +53,7 @@ class Product(db.Model):
     imagen = db.Column(db.String(255), nullable=True) # Nombre de la foto subida
     observacion = db.Column(db.Text, nullable=True) # Nota descriptiva
     fecha_creacion = db.Column(db.DateTime, default=obtener_hora_bogota)
+    activo = db.Column(db.Boolean, default=True, server_default='1', nullable=False)
     
     detalles_venta = db.relationship('SaleDetail', backref='producto', lazy=True)
     ajustes_stock = db.relationship('StockAdjustment', backref='producto_rel', lazy=True)
@@ -129,6 +130,7 @@ class Sale(db.Model):
     fecha_venta = db.Column(db.DateTime, default=obtener_hora_bogota)
     monto_total = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
     metodo_pago = db.Column(db.String(50), nullable=False, default='efectivo')
+    comision_tarjeta = db.Column(db.Numeric(10, 2), nullable=True, default=0.0)
     
     detalles = db.relationship('SaleDetail', backref='venta', lazy=True, cascade="all, delete-orphan")
     pagos = db.relationship('SalePayment', backref='venta', lazy=True, cascade="all, delete-orphan")

@@ -5,17 +5,33 @@ from flask_migrate import Migrate
 from flask_login import LoginManager, current_user
 from flask_wtf.csrf import CSRFProtect
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Importar la instancia de db desde models
 from models import db, User
+
+def get_database_uri():
+    db_uri = os.environ.get('DATABASE_URL')
+    if db_uri:
+        return db_uri
+    
+    # Si no se configuró DATABASE_URL, verificar si PostgreSQL local está activo
+    pg_uri = 'postgresql://postgres:admin123@localhost:5432/Tekfix'
+    try:
+        import socket
+        with socket.create_connection(('localhost', 5432), timeout=0.8):
+            return pg_uri
+    except (OSError, socket.error):
+        print("[INFO] PostgreSQL no está activo en localhost:5432. Usando SQLite local ('sqlite:///tekfix.db').")
+        return 'sqlite:///tekfix.db'
 
 def create_app():
     app = Flask(__name__)
     
-    # Configuración mediante variables de entorno (con fallback a PostgreSQL local)
+    # Configuración mediante variables de entorno (con fallback dinámico)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-super-secreta')
-    
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://postgres:admin123@localhost:5432/Tekfix')
-    
+    app.config['SQLALCHEMY_DATABASE_URI'] = get_database_uri()
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = 'static/uploads'
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Permitir hasta 16MB por archivo
@@ -85,6 +101,18 @@ def create_app():
         # Por defecto, Vendedores van directo a Cajas
         return redirect(url_for('sales_bp.procesar_venta'))
 
+    @app.route('/sw.js')
+    @app.route('/service-worker.js')
+    def service_worker():
+        response = app.send_static_file('sw.js')
+        response.headers['Service-Worker-Allowed'] = '/'
+        response.headers['Cache-Control'] = 'no-cache'
+        return response
+
+    @app.route('/manifest.json')
+    def manifest():
+        return app.send_static_file('manifest.json')
+
     return app
 
 if __name__ == '__main__':
@@ -111,6 +139,6 @@ if __name__ == '__main__':
             )
             db.session.add(master_admin)
             db.session.commit()
-            print("🚀 [INFO] Usuario maestro 'admin@tekfix.com' fue creado automáticamente.")
+            print("[INFO] Usuario maestro 'admin@tekfix.com' fue creado exitosamente.")
             
     app.run(debug=True)

@@ -21,16 +21,18 @@ def index():
     # --- Paginación ---
     PER_PAGE = 15
     page = request.args.get('page', 1, type=int)
-    paginacion = Product.query.filter_by(tipo_inventario=tipo).order_by(Product.nombre).paginate(
+    paginacion = Product.query.filter_by(tipo_inventario=tipo, activo=True).order_by(Product.nombre).paginate(
         page=page, per_page=PER_PAGE, error_out=False
     )
     productos = paginacion.items
 
-    # --- KPIs: Valor total a costo y a precio sugerido ---
-    todos = Product.query.filter_by(tipo_inventario=tipo).all()
+    # --- KPIs: Valor total a costo, sugerido y total de unidades físicas ---
+    todos = Product.query.filter_by(tipo_inventario=tipo, activo=True).all()
     valor_costo = 0.0
     valor_sugerido = 0.0
+    total_stock_unidades = 0
     for p in todos:
+        total_stock_unidades += p.total_stock
         if p.variantes:
             for v in p.variantes:
                 costo = float(v.precio_costo or p.precio_costo or 0)
@@ -51,7 +53,8 @@ def index():
         valor_costo=valor_costo,
         valor_sugerido=valor_sugerido,
         total_ventas=total_ventas,
-        total_productos=len(todos)
+        total_productos=len(todos),
+        total_stock_unidades=total_stock_unidades
     )
 
 @inventory_bp.route('/nuevo', methods=['GET', 'POST'])
@@ -185,34 +188,51 @@ def eliminar_producto(id):
     if producto.tipo_inventario != tipo:
         abort(403)
         
-    from models import SaleDetail, Maneo, FacturaBodegaDetalle
+    from models import SaleDetail, Maneo, FacturaBodegaDetalle, Loss
     
-    # 1. Validación de seguridad en cascada (No eliminar lo que tiene historia financiera/logística)
-    if SaleDetail.query.filter_by(product_id=producto.id).first():
-        flash('Acción denegada: El producto ya está vinculado a Historial de Ventas. Sugerencia: Ajustar stock a 0.', 'warning')
-        return redirect(url_for('inventory_bp.index'))
-        
-    if Maneo.query.filter_by(product_id=producto.id).first():
-        flash('Acción denegada: El producto tiene registros históticos en Maneos (Préstamos).', 'warning')
-        return redirect(url_for('inventory_bp.index'))
-        
-    if FacturaBodegaDetalle.query.filter_by(producto_id=producto.id).first():
-        flash('Acción denegada: El producto forma parte del detalle de una Factura Asignada.', 'warning')
+    # Comprobar si el producto tiene historial que requiera preservación financiera
+    tiene_ventas = SaleDetail.query.filter_by(product_id=producto.id).first() is not None
+    tiene_maneos = Maneo.query.filter_by(product_id=producto.id).first() is not None
+    tiene_facturas = FacturaBodegaDetalle.query.filter_by(producto_id=producto.id).first() is not None
+    tiene_perdidas = Loss.query.filter_by(product_id=producto.id).first() is not None
+
+    nombre = producto.nombre
+    
+    if tiene_ventas or tiene_maneos or tiene_facturas or tiene_perdidas:
+        # Modo Desactivación / Archivado Seguro:
+        # Las ventas, recibos, reportes y detalles históricos se mantienen 100% intactos.
+        # El producto se desactiva, su stock se ajusta a 0 y se libera su SKU para poder reutilizarlo.
+        try:
+            if not producto.sku.endswith(f"_DEL_{producto.id}"):
+                producto.sku = f"{producto.sku}_DEL_{producto.id}"
+            producto.activo = False
+            producto.cantidad_stock = 0
+            for v in producto.variantes:
+                v.cantidad_stock = 0
+            db.session.commit()
+            flash(f'Producto "{nombre}" fue eliminado del inventario (todas sus ventas pasadas se mantienen intactas).', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al procesar la eliminación: {str(e)}', 'danger')
         return redirect(url_for('inventory_bp.index'))
         
     try:
-        # 2. Purgar dependencias suaves (Ajustes de Kardex)
+        # Si no tiene ventas ni registros dependientes, purgar ajustes y eliminar físicamente
         for ajuste in producto.ajustes_stock:
             db.session.delete(ajuste)
             
-        # 3. Eliminar el producto madre (las Variantes se van automáticamente por regla delete-orphan de SQLAlchemy)
-        nombre = producto.nombre
         db.session.delete(producto)
         db.session.commit()
-        flash(f'Producto "{nombre}" fue borrado permanentemente del inventario.', 'success')
+        flash(f'Producto "{nombre}" fue eliminado permanentemente del inventario.', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'Ocurrió un error bloqueante en la base de datos: {str(e)}', 'danger')
+        # Fallback de seguridad si existe alguna otra restricción FK
+        if not producto.sku.endswith(f"_DEL_{producto.id}"):
+            producto.sku = f"{producto.sku}_DEL_{producto.id}"
+        producto.activo = False
+        producto.cantidad_stock = 0
+        db.session.commit()
+        flash(f'Producto "{nombre}" fue eliminado del inventario activo.', 'success')
         
     return redirect(url_for('inventory_bp.index'))
 

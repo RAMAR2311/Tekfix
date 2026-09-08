@@ -16,9 +16,12 @@ def seed_inventory_from_csv(csv_filepath='inventario.csv'):
                 for row in reader:
                     fila_actual += 1
                     try:
+                        sku = row['sku'].strip()
+                        if Product.query.filter_by(sku=sku).first():
+                            continue
                         item = dict(
                             nombre=row['nombre'].strip(),
-                            sku=row['sku'].strip(),
+                            sku=sku,
                             cantidad_stock=int(row['cantidad_stock'].strip()),
                             precio_minimo=float(row['precio_minimo'].strip()),
                             precio_sugerido=float(row['precio_sugerido'].strip())
@@ -32,7 +35,7 @@ def seed_inventory_from_csv(csv_filepath='inventario.csv'):
                         return
 
                 if not productos_a_insertar:
-                    print("[ADVERTENCIA] El archivo CSV esta vacio.")
+                    print("[INFO] Todos los productos del CSV ya existen en la base de datos.")
                     return
 
                 try:

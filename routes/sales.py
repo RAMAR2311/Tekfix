@@ -64,6 +64,12 @@ def procesar_venta():
         precio = Decimal(str(item.get('precio_final', '0.00')))
         total_sims_monto += precio
 
+    # Comisión por pago con tarjeta (opcional 5%)
+    comision_tarjeta = Decimal(str(data.get('comision_tarjeta', '0.00')))
+    if comision_tarjeta < 0:
+        comision_tarjeta = Decimal('0.00')
+
+    total_regulares_monto += comision_tarjeta
     total_cart_monto = total_regulares_monto + total_sims_monto
 
     # Procesar pagos recibidos
@@ -110,12 +116,13 @@ def procesar_venta():
             except ValueError:
                 pass # Fallback silencioso a la hora actual si el formato falla
 
-        # Crear la venta general (su monto_total SOLO incluye los productos regulares)
+        # Crear la venta general (su monto_total incluye productos regulares y comisión tarjeta)
         nueva_venta = Sale(
             vendedor_id=current_user.id,
             monto_total=total_regulares_monto,
             metodo_pago=metodo_pago_principal,
-            fecha_venta=fecha_venta_obj
+            fecha_venta=fecha_venta_obj,
+            comision_tarjeta=comision_tarjeta
         )
         db.session.add(nueva_venta)
         db.session.flush()
@@ -275,7 +282,7 @@ def procesar_venta():
 @sales_bp.route('/api/producto/<path:sku>', methods=['GET'])
 @login_required
 def api_buscar_producto(sku):
-    producto = Product.query.filter_by(sku=sku, tipo_inventario='tienda').first()
+    producto = Product.query.filter_by(sku=sku, tipo_inventario='tienda', activo=True).first()
     
     if not producto:
         # Intentar buscar chip SIM disponible con este SKU (ICCID)
@@ -307,6 +314,52 @@ def api_buscar_producto(sku):
         'variantes': [{"id": v.id, "nombre": v.nombre_variante, "stock": v.cantidad_stock, "precio_minimo": float(v.precio_minimo or producto.precio_minimo), "precio_limite": float(v.precio_costo or producto.precio_costo) if current_user.rol == 'admin' else float(v.precio_sugerido or producto.precio_sugerido), "precio_sugerido": float(v.precio_sugerido or producto.precio_sugerido)} for v in producto.variantes]
     })
 
+def normalize_search_str(text):
+    if not text:
+        return ""
+    import unicodedata
+    nfkd = unicodedata.normalize('NFKD', str(text))
+    return "".join([c for c in nfkd if not unicodedata.combining(c)]).lower().strip()
+
+def score_product_search(q_norm, nombre, sku, variantes=None):
+    if not q_norm:
+        return 999
+    nom_norm = normalize_search_str(nombre)
+    sku_norm = normalize_search_str(sku)
+
+    # Nivel 0: Coincidencia idéntica exacta
+    if sku_norm == q_norm or nom_norm == q_norm:
+        return 0
+    # Nivel 1: Nombre empieza directamente con la letra/término buscado (Iniciales de producto)
+    if nom_norm.startswith(q_norm):
+        return 1
+    # Nivel 2: SKU empieza directamente con el término
+    if sku_norm.startswith(q_norm):
+        return 2
+    # Nivel 3: Alguna palabra del nombre empieza con el término (Iniciales de cualquier palabra)
+    words = nom_norm.split()
+    if any(w.startswith(q_norm) for w in words):
+        return 3
+    # Nivel 4: Alguna variante empieza con el término
+    if variantes:
+        for v in variantes:
+            v_name = normalize_search_str(getattr(v, 'nombre_variante', '') or (v.get('nombre', '') if isinstance(v, dict) else str(v)))
+            if v_name.startswith(q_norm) or any(w.startswith(q_norm) for w in v_name.split()):
+                return 4
+    # Nivel 5: El término está contenido en cualquier parte del SKU
+    if q_norm in sku_norm:
+        return 5
+    # Nivel 6: El término está contenido en cualquier parte del nombre
+    if q_norm in nom_norm:
+        return 6
+    # Nivel 7: El término está contenido en alguna variante
+    if variantes:
+        for v in variantes:
+            v_name = normalize_search_str(getattr(v, 'nombre_variante', '') or (v.get('nombre', '') if isinstance(v, dict) else str(v)))
+            if q_norm in v_name:
+                return 7
+    return 999
+
 @sales_bp.route('/api/productos/search', methods=['GET'])
 @login_required
 def api_search_productos():
@@ -314,22 +367,48 @@ def api_search_productos():
     if not query_str or len(query_str) < 1:
         return jsonify([])
     
+    q_norm = normalize_search_str(query_str)
     search_term = f"%{query_str}%"
-    productos = Product.query.filter_by(tipo_inventario='tienda').filter(
-        or_(
-            Product.sku.ilike(search_term),
-            Product.nombre.ilike(search_term)
-        )
-    ).limit(10).all()
+
+    # Buscar también productos cuyas variantes coincidan con el término
+    var_matches = ProductVariant.query.filter(
+        ProductVariant.nombre_variante.ilike(search_term)
+    ).limit(60).all()
+    variant_prod_ids = [v.product_id for v in var_matches]
+
+    filter_conditions = [
+        Product.sku.ilike(search_term),
+        Product.nombre.ilike(search_term)
+    ]
+    if variant_prod_ids:
+        filter_conditions.append(Product.id.in_(variant_prod_ids))
+
+    productos = Product.query.options(joinedload(Product.variantes)).filter_by(
+        tipo_inventario='tienda', activo=True
+    ).filter(or_(*filter_conditions)).limit(80).all()
     
     results = []
     for p in productos:
+        score = score_product_search(q_norm, p.nombre, p.sku, p.variantes)
+        var_list = []
+        for v in p.variantes:
+            var_list.append({
+                'id': v.id,
+                'nombre': v.nombre_variante,
+                'stock': v.cantidad_stock,
+                'precio_sugerido': float(v.precio_sugerido or p.precio_sugerido)
+            })
         results.append({
             'id': p.id,
             'nombre': p.nombre,
             'sku': p.sku,
             'stock': p.total_stock,
-            'precio_sugerido': float(p.precio_sugerido)
+            'total_stock': p.total_stock,
+            'precio_sugerido': float(p.precio_sugerido),
+            'tiene_variantes': bool(p.variantes),
+            'variantes': var_list,
+            'es_sim': False,
+            '_score': score
         })
         
     # Buscar SIMs disponibles complementariamente
@@ -340,18 +419,49 @@ def api_search_productos():
             SimCard.iccid.ilike(search_term),
             SimCard.operador.ilike(search_term)
         )
-    ).limit(10).all()
+    ).limit(30).all()
     
     for sim in sims:
+        sim_nombre = f"[SIM {sim.operador.upper()}] {sim.numero_telefono}"
+        sim_score = score_product_search(q_norm, sim_nombre, sim.iccid)
+        tel_norm = normalize_search_str(sim.numero_telefono)
+        if tel_norm.startswith(q_norm):
+            sim_score = min(sim_score, 1)
+        elif q_norm in tel_norm:
+            sim_score = min(sim_score, 5)
+
         results.append({
             'id': sim.id,
-            'nombre': f"[SIM {sim.operador.upper()}] {sim.numero_telefono}",
+            'nombre': sim_nombre,
             'sku': sim.iccid,
             'stock': 1,
+            'total_stock': 1,
             'precio_sugerido': float(sim.precio_venta),
-            'es_sim': True
+            'tiene_variantes': False,
+            'variantes': [],
+            'es_sim': True,
+            '_score': sim_score
         })
-    return jsonify(results)
+
+    # Ordenar priorizando:
+    # 1. _score (menor es mejor: 0 exacto, 1 inicio nombre, 2 inicio sku, 3 palabra, etc.)
+    # 2. stock > 0 (los que tienen stock físico primero)
+    # 3. stock total descendente
+    # 4. nombre alfabético
+    results.sort(key=lambda item: (
+        item['_score'],
+        0 if item['stock'] > 0 else 1,
+        -item['stock'],
+        normalize_search_str(item['nombre'])
+    ))
+
+    # Devolver los mejores 30 resultados sin el campo auxiliar _score
+    clean_results = []
+    for r in results[:30]:
+        r.pop('_score', None)
+        clean_results.append(r)
+
+    return jsonify(clean_results)
 
 # Ruta para la Impresión del formato Térmico (Ticket)
 @sales_bp.route('/recibo/<int:sale_id>', methods=['GET'])
@@ -376,15 +486,21 @@ def historial():
     # Optimización: eager loading (evita N+1 con joinedload)
     query = Sale.query.options(joinedload(Sale.vendedor))
     
-    # Motor de búsqueda por Rango Restricto
+    # Motor de búsqueda por Rango Restricto con validación segura
     if fecha_inicio:
-        inicio_dt = datetime.strptime(fecha_inicio, '%Y-%m-%d')
-        query = query.filter(Sale.fecha_venta >= inicio_dt)
+        try:
+            inicio_dt = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+            query = query.filter(Sale.fecha_venta >= inicio_dt)
+        except ValueError:
+            pass
         
     if fecha_fin:
-        fin_dt = datetime.strptime(fecha_fin, '%Y-%m-%d')
-        # Sumar 1 día matemáticamente para incluir los registros hasta las 23:59:59 del último día
-        query = query.filter(Sale.fecha_venta < fin_dt + timedelta(days=1))
+        try:
+            fin_dt = datetime.strptime(fecha_fin, '%Y-%m-%d')
+            # Sumar 1 día matemáticamente para incluir los registros hasta las 23:59:59 del último día
+            query = query.filter(Sale.fecha_venta < fin_dt + timedelta(days=1))
+        except ValueError:
+            pass
         
     ventas = query.order_by(Sale.fecha_venta.desc()).all()
     
@@ -429,15 +545,40 @@ def historial():
             elif v.metodo_pago == 'transferencia':
                 total_transferencia_legacy += v.monto_total
 
+    # Cálculos globales para dashboard financiero
+    total_consolidado = sum((v.monto_total for v in ventas), Decimal('0'))
+    total_operaciones = len(ventas)
+    ticket_promedio = (total_consolidado / total_operaciones) if total_operaciones > 0 else Decimal('0')
+    total_transferencias = total_nequi + total_bancolombia + total_daviplata + total_tarjeta + total_transferencia_legacy
+
+    # Porcentajes de canales de pago
+    pct_efectivo = round((float(total_efectivo) / float(total_consolidado) * 100), 1) if total_consolidado > 0 else 0
+    pct_transferencias = round((float(total_transferencias) / float(total_consolidado) * 100), 1) if total_consolidado > 0 else 0
+
+    pct_nequi = round((float(total_nequi) / float(total_transferencias) * 100), 1) if total_transferencias > 0 else 0
+    pct_bancolombia = round((float(total_bancolombia) / float(total_transferencias) * 100), 1) if total_transferencias > 0 else 0
+    pct_daviplata = round((float(total_daviplata) / float(total_transferencias) * 100), 1) if total_transferencias > 0 else 0
+    pct_tarjeta = round((float(total_tarjeta) / float(total_transferencias) * 100), 1) if total_transferencias > 0 else 0
+
     # Envío al Engine de HTML
     return render_template('sales/historial.html', 
                            ventas=ventas, 
+                           total_consolidado=total_consolidado,
+                           total_operaciones=total_operaciones,
+                           ticket_promedio=ticket_promedio,
                            total_efectivo=total_efectivo,
+                           total_transferencias=total_transferencias,
+                           pct_efectivo=pct_efectivo,
+                           pct_transferencias=pct_transferencias,
                            total_nequi=total_nequi,
                            total_bancolombia=total_bancolombia,
                            total_daviplata=total_daviplata,
                            total_tarjeta=total_tarjeta,
                            total_transferencia_legacy=total_transferencia_legacy,
+                           pct_nequi=pct_nequi,
+                           pct_bancolombia=pct_bancolombia,
+                           pct_daviplata=pct_daviplata,
+                           pct_tarjeta=pct_tarjeta,
                            total_mixto=total_mixto,
                            fecha_inicio=fecha_inicio,
                            fecha_fin=fecha_fin)
@@ -484,6 +625,117 @@ def eliminar_venta(sale_id):
         
     return redirect(url_for('sales_bp.historial'))
 
+# Endpoint para Modificar Método de Pago de una Venta (Soporta Único y Dividido)
+@sales_bp.route('/cambiar-metodo-pago/<int:sale_id>', methods=['POST'])
+@login_required
+@admin_required
+def cambiar_metodo_pago(sale_id):
+    venta = Sale.query.get_or_404(sale_id)
+    tipo_pago = request.form.get('tipo_pago', 'unico').strip().lower()
+    
+    # Preservar filtros de fecha activos
+    fecha_inicio = request.form.get('fecha_inicio', '').strip()
+    fecha_fin = request.form.get('fecha_fin', '').strip()
+    params = {}
+    if fecha_inicio:
+        params['fecha_inicio'] = fecha_inicio
+    if fecha_fin:
+        params['fecha_fin'] = fecha_fin
+
+    try:
+        if tipo_pago == 'dividido':
+            # Leer montos divididos
+            montos = {
+                'efectivo': Decimal(request.form.get('monto_efectivo', '0') or '0'),
+                'nequi': Decimal(request.form.get('monto_nequi', '0') or '0'),
+                'bancolombia': Decimal(request.form.get('monto_bancolombia', '0') or '0'),
+                'daviplata': Decimal(request.form.get('monto_daviplata', '0') or '0'),
+                'tarjeta': Decimal(request.form.get('monto_tarjeta', '0') or '0')
+            }
+            
+            # Filtrar solo montos mayores a 0
+            pagos_activos = {k: v for k, v in montos.items() if v > 0}
+            
+            if not pagos_activos:
+                flash('Debes ingresar al menos un monto mayor a cero para el pago dividido.', 'warning')
+                return redirect(url_for('sales_bp.historial', **params))
+                
+            total_ingresado = sum(pagos_activos.values())
+            
+            # Validar que la suma coincida con el total de la venta (tolerancia de 1 peso por redondeo)
+            if abs(total_ingresado - venta.monto_total) > Decimal('1'):
+                flash(f'La suma de los métodos divididos (${total_ingresado:,.0f}) no coincide con el total del ticket (${venta.monto_total:,.0f}).', 'danger')
+                return redirect(url_for('sales_bp.historial', **params))
+                
+            # Limpiar pagos previos
+            SalePayment.query.filter_by(sale_id=venta.id).delete()
+            
+            # Insertar nuevos pagos en sale_payments
+            for metodo, monto in pagos_activos.items():
+                pago = SalePayment(
+                    sale_id=venta.id,
+                    metodo_pago=metodo,
+                    monto=monto
+                )
+                db.session.add(pago)
+                
+            # Asignar método principal
+            if len(pagos_activos) > 1:
+                venta.metodo_pago = 'mixto'
+                metodo_sims = 'mixto'
+            else:
+                unico_metodo = list(pagos_activos.keys())[0]
+                venta.metodo_pago = unico_metodo
+                metodo_sims = unico_metodo
+                
+            # Sincronizar SIMs si existiesen
+            from models import SimCard
+            sims_asociadas = SimCard.query.filter_by(sale_id=sale_id).all()
+            for sim in sims_asociadas:
+                sim.metodo_pago = metodo_sims
+                
+            db.session.commit()
+            flash(f'Vía de pago del Ticket #{venta.id:05d} actualizada exitosamente a Pago Dividido.', 'success')
+
+        else:
+            # Modo Método Único
+            nuevo_metodo = request.form.get('nuevo_metodo', '').strip().lower()
+            metodos_validos = ['efectivo', 'nequi', 'bancolombia', 'daviplata', 'tarjeta']
+            if nuevo_metodo not in metodos_validos:
+                flash('Método de pago no válido.', 'danger')
+                return redirect(url_for('sales_bp.historial', **params))
+                
+            venta.metodo_pago = nuevo_metodo
+            SalePayment.query.filter_by(sale_id=venta.id).delete()
+            nuevo_pago = SalePayment(
+                sale_id=venta.id,
+                metodo_pago=nuevo_metodo,
+                monto=venta.monto_total
+            )
+            db.session.add(nuevo_pago)
+            
+            from models import SimCard
+            sims_asociadas = SimCard.query.filter_by(sale_id=sale_id).all()
+            for sim in sims_asociadas:
+                sim.metodo_pago = nuevo_metodo
+                
+            db.session.commit()
+            
+            nombres = {
+                'efectivo': 'Efectivo',
+                'nequi': 'Nequi',
+                'bancolombia': 'Bancolombia',
+                'daviplata': 'Daviplata',
+                'tarjeta': 'Bolt (Datáfono)'
+            }
+            flash(f'Método de pago del Ticket #{venta.id:05d} actualizado a {nombres.get(nuevo_metodo, nuevo_metodo)}.', 'success')
+            
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ocurrió un error al actualizar el pago: {str(e)}', 'danger')
+        
+    return redirect(url_for('sales_bp.historial', **params))
+
 # Endpoint Catálogo Estricto de solo vista para Operarios
 @sales_bp.route('/catalogo', methods=['GET'])
 @login_required 
@@ -491,17 +743,37 @@ def catalogo():
     query_str = request.args.get('q', '').strip()
     
     if query_str:
-        # Motor de similitud Case-Insensitive (Like)
+        q_norm = normalize_search_str(query_str)
         search_term = f"%{query_str}%"
-        productos = Product.query.filter_by(tipo_inventario='tienda').filter(
-            or_(
-                Product.sku.ilike(search_term), 
-                Product.nombre.ilike(search_term)
-            )
-        ).limit(50).all()
+        
+        # Buscar también coincidencias en subcategorías / variantes
+        var_matches = ProductVariant.query.filter(
+            ProductVariant.nombre_variante.ilike(search_term)
+        ).limit(60).all()
+        variant_prod_ids = [v.product_id for v in var_matches]
+
+        filter_conditions = [
+            Product.sku.ilike(search_term), 
+            Product.nombre.ilike(search_term)
+        ]
+        if variant_prod_ids:
+            filter_conditions.append(Product.id.in_(variant_prod_ids))
+
+        productos = Product.query.options(joinedload(Product.variantes)).filter_by(
+            tipo_inventario='tienda', activo=True
+        ).filter(or_(*filter_conditions)).limit(100).all()
+
+        # Priorizar iniciales y stock disponible
+        productos.sort(key=lambda p: (
+            score_product_search(q_norm, p.nombre, p.sku, p.variantes),
+            0 if p.total_stock > 0 else 1,
+            -p.total_stock,
+            normalize_search_str(p.nombre)
+        ))
+        productos = productos[:60]
     else:
         # Límite pasivo de 50 ítems para ahorrar memoria RAM de BD en carga inicial
-        productos = Product.query.filter_by(tipo_inventario='tienda').limit(50).all()
+        productos = Product.query.filter_by(tipo_inventario='tienda', activo=True).limit(50).all()
         
     return render_template('sales/catalogo.html', productos=productos, q=query_str)
 

@@ -1,0 +1,63 @@
+{
+  "name": "Tekfix - Accesorios & Tecnología",
+  "short_name": "Tekfix",
+  "description": "Sistema POS y Gestión Comercial Tekfix - Accesorios & Tecnología",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#C5A059",
+  "orientation": "any",
+  "lang": "es-CO",
+  "dir": "ltr",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/static/img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/img/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/static/img/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Caja Central",
+      "short_name": "Caja",
+      "description": "Terminal de Cobro POS",
+      "url": "/sales/nueva",
+      "icons": [{ "src": "/static/img/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Inventario",
+      "short_name": "Stock",
+      "description": "Inventario Central de Tienda",
+      "url": "/inventory",
+      "icons": [{ "src": "/static/img/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Historial de Ventas",
+      "short_name": "Ventas",
+      "description": "Auditoría e Historial de Operaciones",
+      "url": "/sales/historial",
+      "icons": [{ "src": "/static/img/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
