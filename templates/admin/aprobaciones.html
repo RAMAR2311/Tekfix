@@ -9,13 +9,31 @@
         <h2 class="fw-bold text-tekfix-main mb-0" style="font-family: 'Montserrat', sans-serif;">
             <i class="fa-solid fa-stamp text-tekfix-primary me-2"></i>Gestión y Registro de Aprobaciones de Precios
         </h2>
-        <p class="text-tekfix-sec mb-0">Control en vivo de autorizaciones y auditoría de solicitudes que terminaron en venta.</p>
+        <p class="text-tekfix-sec mb-0">
+            Control en vivo de autorizaciones y auditoría de solicitudes que terminaron en venta.
+            <span class="badge rounded-pill bg-danger ms-2 px-3 py-1 pulse-aprobacion-live" id="badge-total-header" style="display:none; font-size: 0.8rem;">0 pendientes</span>
+        </p>
     </div>
     <div class="d-flex align-items-center gap-2">
         <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: rgba(197, 160, 89, 0.15); color: #8F6B22; border: 1px solid rgba(197, 160, 89, 0.4); font-size: 0.8rem;">
             <i class="fa-solid fa-circle-notch fa-spin me-1"></i> Monitor en Vivo (4s)
         </span>
     </div>
+</div>
+
+<!-- Banner Superior de Atención Inmediata si hay Solicitudes en Espera -->
+<div id="banner-alerta-espera" class="alert border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2"
+     style="display:none; background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%); border-left: 5px solid #EF4444 !important; color: #991B1B;">
+    <div class="d-flex align-items-center gap-2">
+        <i class="fa-solid fa-bell-concierge fs-4 text-danger"></i>
+        <div>
+            <strong class="d-block">¡Tienes <span id="banner-alerta-count">0</span> solicitud(es) de precio especial en espera de tu respuesta!</strong>
+            <small class="text-secondary">El vendedor en caja POS está esperando tu autorización para facturar.</small>
+        </div>
+    </div>
+    <button type="button" class="btn btn-sm btn-danger fw-bold rounded-pill px-3 py-1 shadow-sm" onclick="document.getElementById('tab-pendientes-btn').click(); document.getElementById('tab-pendientes').scrollIntoView({behavior: 'smooth'});">
+        <i class="fa-solid fa-arrow-down me-1"></i> Ir a Solicitudes
+    </button>
 </div>
 
 <!-- ==========================================
@@ -463,9 +481,31 @@
     function render(items) {
         const cont  = document.getElementById('lista-aprobaciones');
         const badge = document.getElementById('badge-total-live');
+        const badgeHeader = document.getElementById('badge-total-header');
+        const bannerEspera = document.getElementById('banner-alerta-espera');
+        const bannerCount = document.getElementById('banner-alerta-count');
+
         if (badge) {
             badge.textContent = items.length;
             badge.className = items.length > 0 ? 'badge rounded-pill bg-danger' : 'badge rounded-pill bg-secondary';
+        }
+
+        if (badgeHeader) {
+            if (items.length > 0) {
+                badgeHeader.style.display = 'inline-block';
+                badgeHeader.textContent = `${items.length} pendiente${items.length > 1 ? 's' : ''}`;
+            } else {
+                badgeHeader.style.display = 'none';
+            }
+        }
+
+        if (bannerEspera) {
+            if (items.length > 0) {
+                bannerEspera.style.display = 'flex';
+                if (bannerCount) bannerCount.textContent = items.length;
+            } else {
+                bannerEspera.style.display = 'none';
+            }
         }
 
         if (items.length === 0) {

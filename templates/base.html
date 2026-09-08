@@ -644,13 +644,41 @@
             50% { transform: scale(1.2); }
             100% { transform: scale(1); }
         }
+
+        @keyframes pulseBadgeRed {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.12); }
+        }
+
+        @keyframes slideInRightToast {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .pulse-aprobacion-live {
+            animation: pulseBadgeRed 1.8s infinite;
+        }
+
+        @media (max-width: 576px) {
+            .navbar-brand .brand-display {
+                font-size: 1.12rem !important;
+            }
+            .navbar-brand span[style*="font-family: var(--font-subtitle)"] {
+                font-size: 0.48rem !important;
+                letter-spacing: 0.12em !important;
+            }
+            .navbar-brand img {
+                height: 32px !important;
+                width: 32px !important;
+            }
+        }
     </style>
 </head>
 <body>
 
     <!-- Navbar Tekfix -->
     <nav class="navbar navbar-custom mb-5 position-relative">
-        <div class="container-fluid px-3 px-md-4 d-flex justify-content-between align-items-center">
+        <div class="container-fluid px-2 px-md-4 d-flex justify-content-between align-items-center">
             
             {% if current_user.is_authenticated %}
             <!-- Botón Hamburguesa (Izquierda) -->
@@ -673,32 +701,48 @@
                 </a>
             </div>
 
-            <!-- Zona Derecha: Badge Zenic Servidor + Carrito Dropdown -->
-            <div class="d-flex align-items-center gap-2">
+            <!-- Zona Derecha: Notificación Aprobaciones + Badge Zenic Servidor + Carrito Dropdown -->
+            <div class="d-flex align-items-center gap-1 gap-md-2">
+
+                {% if current_user.is_authenticated and current_user.rol == 'admin' %}
+                <!-- Botón / Notificación en Vivo de Aprobaciones de Precios -->
+                <a href="{{ url_for('admin_bp.panel_aprobaciones') }}" 
+                   id="navbar-aprobaciones-btn"
+                   class="btn btn-sm d-none align-items-center gap-1 shadow-sm px-2 px-md-3 py-1 rounded-pill pulse-aprobacion-live text-decoration-none"
+                   style="background: #FEF2F2; color: #DC2626; border: 1.5px solid #EF4444; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; transition: all 0.2s;"
+                   title="Solicitudes de precio especial pendientes">
+                    <i class="fa-solid fa-bell-concierge text-danger"></i>
+                    <span class="d-none d-md-inline">Aprobaciones</span>
+                    <span id="navbar-aprobaciones-badge" class="badge rounded-pill bg-danger" style="font-size: 0.7rem;">0</span>
+                </a>
+                {% endif %}
+
                 {% if current_user.is_authenticated and current_user.rol == 'admin' and pago_servidor %}
                     {% if pago_servidor.estado in ['al_dia', 'pagado'] %}
                     <!-- Badge Superior en Navbar: Zenic Al Día -->
-                    <button type="button" class="btn btn-sm d-flex align-items-center gap-1 shadow-sm px-3 py-1 rounded-pill"
+                    <button type="button" class="btn btn-sm d-flex align-items-center gap-1 shadow-sm px-2 px-md-3 py-1 rounded-pill"
                             style="background-color: #D1FAE5; color: #065F46; border: 1.5px solid #0F172A; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; transition: all 0.2s;"
-                            data-bs-toggle="modal" data-bs-target="#modalPagoServidor" title="Estado de Mensualidad Servidor Zenic">
+                            data-bs-toggle="modal" data-bs-target="#modalPagoServidor" title="Estado de Mensualidad Servidor Zenic: Al día">
                         <i class="fa-solid fa-check"></i>
-                        <span>Zenic: Al día</span>
+                        <span class="d-none d-md-inline">Zenic: Al día</span>
                     </button>
                     {% elif pago_servidor.estado == 'preventivo' %}
-                    <!-- Badge Preventivo: Vence el 15 -->
-                    <button type="button" class="btn btn-sm d-flex align-items-center gap-1 shadow-sm px-3 py-1 rounded-pill"
+                    <!-- Badge Preventivo: Vence el 15 (Optimizado para móvil) -->
+                    <button type="button" class="btn btn-sm d-flex align-items-center gap-1 shadow-sm px-2 px-md-3 py-1 rounded-pill"
                             style="background-color: #FEF3C7; color: #92400E; border: 1.5px solid #D97706; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; transition: all 0.2s;"
-                            data-bs-toggle="modal" data-bs-target="#modalPagoServidor" title="Mensualidad Servidor Zenic: Vence el 15">
+                            data-bs-toggle="modal" data-bs-target="#modalPagoServidor" title="Mensualidad Servidor Zenic: Vence el 15 (en {{ pago_servidor.dias_restantes }} días)">
                         <i class="fa-solid fa-bell text-warning"></i>
-                        <span>Zenic: Vence el 15 (en {{ pago_servidor.dias_restantes }}d)</span>
+                        <span class="d-none d-md-inline">Zenic: Vence el 15 (en {{ pago_servidor.dias_restantes }}d)</span>
+                        <span class="d-inline d-md-none fw-bold" style="font-size: 0.72rem;">{{ pago_servidor.dias_restantes }}d</span>
                     </button>
                     {% else %}
-                    <!-- Badge de advertencia cuando requiere atención -->
-                    <button type="button" class="btn btn-sm d-flex align-items-center gap-1 shadow-sm px-3 py-1 rounded-pill"
+                    <!-- Badge de advertencia cuando requiere atención (Optimizado para móvil) -->
+                    <button type="button" class="btn btn-sm d-flex align-items-center gap-1 shadow-sm px-2 px-md-3 py-1 rounded-pill"
                             style="background-color: #FEE2E2; color: #991B1B; border: 1.5px solid #EF4444; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; transition: all 0.2s;"
                             data-bs-toggle="modal" data-bs-target="#modalPagoServidor" title="Mensualidad Servidor Pendiente">
                         <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>Zenic: Pago Pendiente</span>
+                        <span class="d-none d-md-inline">Zenic: Pago Pendiente</span>
+                        <span class="d-inline d-md-none fw-bold" style="font-size: 0.72rem;">!</span>
                     </button>
                     {% endif %}
                 {% endif %}
@@ -843,11 +887,12 @@
 
                     <!-- 7. Aprobaciones de Precios -->
                     <li>
-                        <a class="sidebar-menu-link" href="{{ url_for('admin_bp.panel_aprobaciones') }}">
+                        <a class="sidebar-menu-link d-flex align-items-center justify-content-between" href="{{ url_for('admin_bp.panel_aprobaciones') }}">
                             <div class="sidebar-link-content">
                                 <i class="fa-solid fa-gavel sidebar-menu-icon"></i>
                                 <span>Aprobaciones de Precios</span>
                             </div>
+                            <span class="badge rounded-pill bg-danger ms-auto" id="sidebar-aprobaciones-badge" style="display:none; font-size: 0.72rem; padding: 4px 8px;">0</span>
                         </a>
                     </li>
 
@@ -1371,6 +1416,133 @@
 
         // Inicializar UI
         document.addEventListener('DOMContentLoaded', updateGlobalCartUI);
+
+        {% if current_user.is_authenticated and current_user.rol == 'admin' %}
+        // --- SISTEMA GLOBAL EN TIEMPO REAL DE NOTIFICACIONES DE APROBACIONES (ADMIN) ---
+        let prevAprobacionesCount = null;
+        let audioNotificationCtx = null;
+
+        function sonarChimeAprobacion() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                if (!audioNotificationCtx) audioNotificationCtx = new AudioCtx();
+                if (audioNotificationCtx.state === 'suspended') {
+                    audioNotificationCtx.resume();
+                }
+                const osc = audioNotificationCtx.createOscillator();
+                const gain = audioNotificationCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioNotificationCtx.currentTime); // D5
+                osc.frequency.exponentialRampToValueAtTime(880, audioNotificationCtx.currentTime + 0.12); // A5
+                gain.gain.setValueAtTime(0.25, audioNotificationCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioNotificationCtx.currentTime + 0.35);
+                osc.connect(gain);
+                gain.connect(audioNotificationCtx.destination);
+                osc.start();
+                osc.stop(audioNotificationCtx.currentTime + 0.35);
+            } catch(e) {}
+        }
+
+        async function pollingAprobacionesSistema() {
+            try {
+                const r = await fetch('/admin/aprobaciones');
+                if (!r.ok) return;
+                const items = await r.json();
+                const n = items.length;
+
+                const btnNav = document.getElementById('navbar-aprobaciones-btn');
+                const badgeNav = document.getElementById('navbar-aprobaciones-badge');
+                const badgeSide = document.getElementById('sidebar-aprobaciones-badge');
+
+                // 1. Actualizar botón en el Navbar
+                if (btnNav) {
+                    if (n > 0) {
+                        btnNav.classList.remove('d-none');
+                        btnNav.classList.add('d-flex');
+                        if (badgeNav) badgeNav.textContent = n;
+                    } else {
+                        btnNav.classList.add('d-none');
+                        btnNav.classList.remove('d-flex');
+                    }
+                }
+
+                // 2. Actualizar badge en el Sidebar
+                if (badgeSide) {
+                    if (n > 0) {
+                        badgeSide.style.display = 'inline-block';
+                        badgeSide.textContent = n;
+                    } else {
+                        badgeSide.style.display = 'none';
+                    }
+                }
+
+                // 3. Si entró una nueva solicitud mientras el usuario navega
+                if (prevAprobacionesCount !== null && n > prevAprobacionesCount) {
+                    sonarChimeAprobacion();
+                    mostrarToastNuevaAprobacion(items[items.length - 1], n);
+                }
+
+                prevAprobacionesCount = n;
+            } catch(e) {}
+        }
+
+        function mostrarToastNuevaAprobacion(item, total) {
+            let container = document.getElementById('toast-aprobaciones-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-aprobaciones-container';
+                container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                container.style.zIndex = '1090';
+                document.body.appendChild(container);
+            }
+
+            const toastDiv = document.createElement('div');
+            toastDiv.className = 'toast show border-0 shadow-lg rounded-4 overflow-hidden mb-2';
+            toastDiv.setAttribute('role', 'alert');
+            toastDiv.setAttribute('aria-live', 'assertive');
+            toastDiv.setAttribute('aria-atomic', 'true');
+            toastDiv.style.background = '#FFFFFF';
+            toastDiv.style.borderLeft = '5px solid #EF4444';
+            toastDiv.style.minWidth = '310px';
+            toastDiv.style.animation = 'slideInRightToast 0.35s ease-out';
+
+            const precioFmt = '$' + Math.round(item.precio_solicitado).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            const precioOrigFmt = '$' + Math.round(item.precio_original).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+            toastDiv.innerHTML = `
+                <div class="p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="badge rounded-pill bg-danger text-white fw-bold px-2 py-1" style="font-size: 0.72rem;">
+                            <i class="fa-solid fa-bell-concierge me-1"></i>¡Nueva Solicitud de Precio!
+                        </span>
+                        <button type="button" class="btn-close" style="font-size: 0.75rem;" onclick="this.closest('.toast').remove()"></button>
+                    </div>
+                    <div class="fw-bold text-dark fs-6 lh-sm mb-1">${item.producto} ${item.variante ? `<span class="badge bg-light text-secondary border ms-1">${item.variante}</span>` : ''}</div>
+                    <div class="text-secondary small mb-2">
+                        <i class="fa-solid fa-user me-1"></i><strong>${item.vendedor}</strong> solicita: <strong class="text-primary">${precioFmt}</strong> <span class="text-decoration-line-through text-muted small">(${precioOrigFmt})</span>
+                    </div>
+                    <a href="/admin/aprobaciones/panel" class="btn btn-sm btn-danger rounded-pill fw-bold w-100 py-1 shadow-sm d-flex align-items-center justify-content-center gap-1">
+                        <i class="fa-solid fa-gavel"></i> Revisar y Aprobar
+                    </a>
+                </div>
+            `;
+
+            container.appendChild(toastDiv);
+
+            setTimeout(() => {
+                toastDiv.style.opacity = '0';
+                toastDiv.style.transform = 'translateY(-10px)';
+                toastDiv.style.transition = 'all 0.4s ease';
+                setTimeout(() => toastDiv.remove(), 400);
+            }, 8000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            pollingAprobacionesSistema();
+            setInterval(pollingAprobacionesSistema, 4000);
+        });
+        {% endif %}
     </script>
 
     {# ── MODAL INTERACTIVO DE PAGO DE MENSUALIDAD SERVIDOR ZENIC (SOLO ADMIN) ── #}
