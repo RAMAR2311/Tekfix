@@ -93,7 +93,9 @@
             <div>
                 <div class="dash-card-header">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-sack-dollar dash-card-icon text-tekfix-main"></i>
+                        <div class="dash-kpi-avatar avatar-ingresos">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </div>
                         <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
                     </div>
                     <span class="dash-badge-dark">{{ nombre_mes }} {{ anio_seleccionado }}</span>
@@ -122,7 +124,9 @@
             <div>
                 <div class="dash-card-header">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-boxes-stacked dash-card-icon text-tekfix-main"></i>
+                        <div class="dash-kpi-avatar avatar-mercancia">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
                         <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
                     </div>
                     <span class="dash-badge-dark">{{ nombre_mes }} {{ anio_seleccionado }}</span>
@@ -150,7 +154,9 @@
             <div>
                 <div class="dash-card-header">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-file-invoice-dollar dash-card-icon text-danger"></i>
+                        <div class="dash-kpi-avatar avatar-gastos">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </div>
                         <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
                     </div>
                     <span class="dash-badge-red">{{ nombre_mes }} {{ anio_seleccionado }}</span>
@@ -179,7 +185,9 @@
             <div>
                 <div class="dash-card-header">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-arrow-trend-up dash-card-icon text-success"></i>
+                        <div class="dash-kpi-avatar avatar-utilidad">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                        </div>
                         <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
                     </div>
                     <span class="dash-badge-green">{{ nombre_mes }} {{ anio_seleccionado }}</span>
@@ -213,7 +221,9 @@
             <div>
                 <div class="dash-card-header">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-triangle-exclamation dash-card-icon text-warning"></i>
+                        <div class="dash-kpi-avatar avatar-stock">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
                         <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
                     </div>
                     <span class="dash-badge-amber">Stock Crítico</span>
@@ -241,7 +251,9 @@
             <div>
                 <div class="dash-card-header">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-truck dash-card-icon text-tekfix-main"></i>
+                        <div class="dash-kpi-avatar avatar-abonos">
+                            <i class="fa-solid fa-truck"></i>
+                        </div>
                         <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
                     </div>
                     <span class="dash-badge-dark">{{ nombre_mes }} {{ anio_seleccionado }}</span>
@@ -270,7 +282,9 @@
             <div>
                 <div class="dash-card-header">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-stamp dash-card-icon text-primary"></i>
+                        <div class="dash-kpi-avatar avatar-aprobaciones">
+                            <i class="fa-solid fa-stamp"></i>
+                        </div>
                         <span class="dash-sparkle-dot"><i class="fa-solid fa-star"></i></span>
                     </div>
                     <span class="dash-badge-dark">{{ nombre_mes }} {{ anio_seleccionado }}</span>
@@ -373,10 +387,10 @@
        TARJETAS KPI TEKFIX CON DESTELLOS DORADOS & ALTA LEGIBILIDAD
        ========================================================= */
     .dash-card {
-        background: #FFFFFF;
-        border: 1.5px solid rgba(197, 160, 89, 0.32);
+        background: linear-gradient(150deg, #FFFFFF 0%, #FAF8F5 100%);
+        border: 1.5px solid rgba(197, 160, 89, 0.38) !important;
         border-radius: 20px;
-        box-shadow: 0 4px 22px rgba(197, 160, 89, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
+        box-shadow: 0 8px 24px rgba(197, 160, 89, 0.12), 0 2px 6px rgba(0, 0, 0, 0.03);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         flex-direction: column;
@@ -425,9 +439,9 @@
     }
 
     .dash-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 14px 38px rgba(197, 160, 89, 0.26), 0 0 20px rgba(223, 186, 115, 0.35);
-        border-color: var(--tekfix-primary) !important;
+        transform: translateY(-5px);
+        box-shadow: 0 16px 36px rgba(197, 160, 89, 0.28), 0 0 22px rgba(223, 186, 115, 0.35);
+        border-color: rgba(197, 160, 89, 0.8) !important;
     }
 
     .dash-card-header {
@@ -437,6 +451,58 @@
         margin-bottom: 0.85rem;
         position: relative;
         z-index: 2;
+    }
+
+    /* Cápsula / Avatar 3D de Alto Relieve para Iconos KPI */
+    .dash-kpi-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        border: 1.2px solid rgba(197, 160, 89, 0.28);
+        transition: transform 0.25s ease;
+    }
+    .dash-card:hover .dash-kpi-avatar {
+        transform: scale(1.08) rotate(3deg);
+    }
+    .avatar-ingresos {
+        background: linear-gradient(135deg, rgba(197, 160, 89, 0.2) 0%, rgba(223, 186, 115, 0.08) 100%);
+        color: #8F6B22;
+        border-color: rgba(197, 160, 89, 0.45);
+    }
+    .avatar-mercancia {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(147, 197, 253, 0.08) 100%);
+        color: #2563EB;
+        border-color: rgba(59, 130, 246, 0.38);
+    }
+    .avatar-gastos {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(254, 202, 202, 0.08) 100%);
+        color: #DC2626;
+        border-color: rgba(239, 68, 68, 0.38);
+    }
+    .avatar-utilidad {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(167, 243, 208, 0.08) 100%);
+        color: #059669;
+        border-color: rgba(16, 185, 129, 0.45);
+    }
+    .avatar-stock {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(253, 230, 138, 0.08) 100%);
+        color: #D97706;
+        border-color: rgba(245, 158, 11, 0.45);
+    }
+    .avatar-abonos {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(199, 210, 254, 0.08) 100%);
+        color: #4F46E5;
+        border-color: rgba(99, 102, 241, 0.38);
+    }
+    .avatar-aprobaciones {
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.18) 0%, rgba(186, 230, 253, 0.08) 100%);
+        color: #0284C7;
+        border-color: rgba(14, 165, 233, 0.38);
     }
 
     .dash-card-icon {

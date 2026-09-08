@@ -27,7 +27,7 @@
         <div class="card bg-white p-4 p-md-5 border rounded-4 printable-document" style="border-color: var(--tekfix-border) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.04);">
             
             <!-- Cabecera Oficial -->
-            <div class="text-center mb-5 pb-4 border-bottom d-print-block" style="border-color: var(--tekfix-border) !important;">
+            <div class="text-center mb-4 pb-4 border-bottom d-print-block" style="border-color: var(--tekfix-border) !important;">
                 <img src="{{ url_for('static', filename='img/Tekfix.jpg') }}" alt="Tekfix - Accesorios & Tecnología" style="max-height: 85px; border-radius: 12px; border: 1px solid var(--tekfix-border);" class="mb-3 shadow-sm">
                 <h3 class="brand-display fw-bold mb-1" style="color: var(--tekfix-text-main); letter-spacing: 0.08em;">TEKFIX</h3>
                 <p class="section-subtitle mb-2" style="color: var(--tekfix-primary); font-size: 0.78rem;">ACCESORIOS & TECNOLOGÍA</p>
@@ -37,6 +37,64 @@
                 <p class="mb-0 text-secondary small">
                     Período Auditado: <strong>{{ fecha_inicio }}</strong> al <strong>{{ fecha_fin }}</strong> | Generado el: <strong>{{ fecha_generacion }}</strong>
                 </p>
+            </div>
+
+            <!-- Resumen Ejecutivo Destacado (3 Tarjetas KPI) -->
+            <div class="row g-3 mb-5 d-print-none">
+                <div class="col-md-4">
+                    <div class="balance-kpi-card p-4 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.72rem; font-family: 'Montserrat', sans-serif;">
+                                <i class="fa-solid fa-arrow-up me-1"></i> INGRESOS
+                            </span>
+                            <div class="balance-avatar balance-avatar-green">
+                                <i class="fa-solid fa-sack-dollar"></i>
+                            </div>
+                        </div>
+                        <div class="text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Ventas Totales</div>
+                        <div class="fw-bolder text-dark" style="font-family: 'Montserrat', sans-serif; font-size: 1.75rem; letter-spacing: -0.5px;">
+                            ${{ (datos.total_ingresos)|cop }}
+                        </div>
+                        <small class="text-muted d-block mt-2">Efectivo + Medios Digitales</small>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="balance-kpi-card p-4 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(239, 68, 68, 0.12); color: #DC2626; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.72rem; font-family: 'Montserrat', sans-serif;">
+                                <i class="fa-solid fa-arrow-down me-1"></i> DEDUCCIONES
+                            </span>
+                            <div class="balance-avatar balance-avatar-red">
+                                <i class="fa-solid fa-arrow-trend-down"></i>
+                            </div>
+                        </div>
+                        <div class="text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Salidas y Costos</div>
+                        <div class="fw-bolder text-danger" style="font-family: 'Montserrat', sans-serif; font-size: 1.75rem; letter-spacing: -0.5px;">
+                            ${{ (datos.total_salidas)|cop }}
+                        </div>
+                        <small class="text-muted d-block mt-2">COGS + Gastos + Mermas</small>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="balance-kpi-card p-4 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            {% set balance_positivo = datos.balance_neto >= 0 %}
+                            <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: {% if balance_positivo %}rgba(16, 185, 129, 0.12){% else %}rgba(239, 68, 68, 0.12){% endif %}; color: {% if balance_positivo %}#059669{% else %}#DC2626{% endif %}; border: 1px solid {% if balance_positivo %}rgba(16, 185, 129, 0.3){% else %}rgba(239, 68, 68, 0.3){% endif %}; font-size: 0.72rem; font-family: 'Montserrat', sans-serif;">
+                                <i class="fa-solid fa-scale-balanced me-1"></i> {% if balance_positivo %}UTILIDAD NETA{% else %}PÉRDIDA{% endif %}
+                            </span>
+                            <div class="balance-avatar {% if balance_positivo %}balance-avatar-gold{% else %}balance-avatar-red{% endif %}">
+                                <i class="fa-solid fa-trophy"></i>
+                            </div>
+                        </div>
+                        <div class="text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Rendimiento Neto</div>
+                        <div class="fw-bolder {% if balance_positivo %}text-success{% else %}text-danger{% endif %}" style="font-family: 'Montserrat', sans-serif; font-size: 1.75rem; letter-spacing: -0.5px;">
+                            ${{ (datos.balance_neto)|cop }}
+                        </div>
+                        <small class="text-muted d-block mt-2">Beneficio real consolidado</small>
+                    </div>
+                </div>
             </div>
 
             <!-- Sección 1: Ingresos -->
@@ -110,14 +168,18 @@
                 <span class="section-subtitle text-tekfix-main" style="font-size: 0.82rem;">3. RENDIMIENTO NETO DEL EJERCICIO</span>
             </div>
             {% set balance_positivo = datos.balance_neto >= 0 %}
-            <div class="card p-4 text-center border-0 rounded-4" style="background: {% if balance_positivo %}rgba(5, 150, 105, 0.06){% else %}rgba(220, 38, 38, 0.06){% endif %}; border: 1.5px solid {% if balance_positivo %}#059669{% else %}#DC2626{% endif %} !important;">
-                <span class="section-subtitle mb-1 {% if balance_positivo %}text-success{% else %}text-danger{% endif %}">
-                    {% if balance_positivo %}Ganancia Neta / Utilidad del Período{% else %}Pérdida Neta Registrada{% endif %}
-                </span>
-                <h1 class="fw-bolder mb-0 {% if balance_positivo %}text-success{% else %}text-danger{% endif %}" style="font-family: var(--font-heading); font-size: 3rem; letter-spacing: -1px;">
+            <div class="balance-hero-card p-4 p-md-5 text-center">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background: {% if balance_positivo %}rgba(16, 185, 129, 0.1){% else %}rgba(239, 68, 68, 0.1){% endif %}; border: 1px solid {% if balance_positivo %}rgba(16, 185, 129, 0.25){% else %}rgba(239, 68, 68, 0.25){% endif %};">
+                    <span class="fw-bold text-uppercase {% if balance_positivo %}text-success{% else %}text-danger{% endif %}" style="font-family: 'Montserrat', sans-serif; font-size: 0.78rem; letter-spacing: 0.08em;">
+                        {% if balance_positivo %}✨ Ganancia Neta / Utilidad del Período{% else %}⚠️ Pérdida Neta Registrada{% endif %}
+                    </span>
+                </div>
+                <h1 class="fw-bolder mb-2 {% if balance_positivo %}text-success{% else %}text-danger{% endif %}" style="font-family: 'Montserrat', sans-serif; font-size: 3.2rem; letter-spacing: -1.5px; text-shadow: 0 4px 20px {% if balance_positivo %}rgba(16, 185, 129, 0.18){% else %}rgba(239, 68, 68, 0.18){% endif %};">
                     ${{ (datos.balance_neto)|cop }}
                 </h1>
-                <small class="text-secondary mt-1">Cálculo de ingresos netos tras deducción de mercancía y costos operativos.</small>
+                <p class="text-secondary mb-0 mx-auto" style="max-width: 500px; font-size: 0.88rem;">
+                    Cálculo de ingresos netos tras deducción de mercancía vendida (COGS), costos operativos fijos y mermas del período auditado.
+                </p>
             </div>
 
             <!-- Firmas Contables -->
@@ -135,6 +197,75 @@
 </div>
 
 <style>
+/* ====== Tarjetas de Balance con Relieve y Oro Tekfix ====== */
+.balance-kpi-card {
+    background: linear-gradient(150deg, #FFFFFF 0%, #FAF8F5 100%);
+    border: 1.5px solid rgba(197, 160, 89, 0.38) !important;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(197, 160, 89, 0.12), 0 2px 6px rgba(0, 0, 0, 0.03);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.balance-kpi-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3.5px;
+    background: linear-gradient(90deg, #A8833B 0%, #DFBA73 35%, #FFFFFF 50%, #DFBA73 65%, #C5A059 100%);
+    border-radius: 18px 18px 0 0;
+}
+.balance-kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 34px rgba(197, 160, 89, 0.24);
+    border-color: rgba(197, 160, 89, 0.75) !important;
+}
+.balance-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border: 1.2px solid rgba(197, 160, 89, 0.3);
+}
+.balance-avatar-green {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(167, 243, 208, 0.08) 100%);
+    color: #059669;
+    border-color: rgba(16, 185, 129, 0.4);
+}
+.balance-avatar-red {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(254, 202, 202, 0.08) 100%);
+    color: #DC2626;
+    border-color: rgba(239, 68, 68, 0.4);
+}
+.balance-avatar-gold {
+    background: linear-gradient(135deg, rgba(197, 160, 89, 0.2) 0%, rgba(223, 186, 115, 0.08) 100%);
+    color: #8F6B22;
+    border-color: rgba(197, 160, 89, 0.45);
+}
+.balance-hero-card {
+    background: linear-gradient(150deg, #FFFFFF 0%, #FAF8F5 100%);
+    border: 2px solid rgba(197, 160, 89, 0.45) !important;
+    border-radius: 22px;
+    box-shadow: 0 12px 32px rgba(197, 160, 89, 0.16), 0 3px 8px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+.balance-hero-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4.5px;
+    background: linear-gradient(90deg, #A8833B 0%, #DFBA73 30%, #FFFFFF 50%, #DFBA73 70%, #C5A059 100%);
+}
+
 /* ====== Estilos Exclusivos para PDF/Impresión del Reporte Financiero ====== */
 @media print {
     @page { margin: 1.2cm; }

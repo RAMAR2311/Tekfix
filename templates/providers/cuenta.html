@@ -13,34 +13,173 @@
     </div>
 </div>
 
+<!-- ========== ESTILOS DE IMPACTO PARA TARJETAS DE PROVEEDOR ========== -->
+<style>
+    .prov-kpi-card {
+        background: linear-gradient(150deg, #FFFFFF 0%, #FAF8F5 100%);
+        border: 1.5px solid rgba(197, 160, 89, 0.38) !important;
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(197, 160, 89, 0.12), 0 2px 6px rgba(0, 0, 0, 0.03);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .prov-kpi-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #A8833B 0%, #DFBA73 30%, #FFFDF5 50%, #DFBA73 70%, #C5A059 100%);
+        opacity: 0.95;
+    }
+
+    .prov-kpi-card-green::after {
+        background: linear-gradient(90deg, #059669 0%, #34D399 50%, #10B981 100%);
+    }
+
+    .prov-kpi-card-danger::after {
+        background: linear-gradient(90deg, #DC2626 0%, #F87171 50%, #EF4444 100%);
+    }
+
+    .prov-kpi-card::before {
+        content: '';
+        position: absolute;
+        top: -60%;
+        left: -120%;
+        width: 120%;
+        height: 220%;
+        background: linear-gradient(
+            115deg,
+            transparent 25%,
+            rgba(223, 186, 115, 0.12) 42%,
+            rgba(255, 255, 255, 0.7) 50%,
+            rgba(197, 160, 89, 0.2) 58%,
+            transparent 75%
+        );
+        transform: rotate(18deg);
+        transition: left 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .prov-kpi-card:hover::before {
+        left: 140%;
+    }
+
+    .prov-kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 36px rgba(197, 160, 89, 0.24), 0 0 20px rgba(223, 186, 115, 0.28);
+        border-color: var(--tekfix-primary) !important;
+    }
+
+    .prov-kpi-value {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 2.15rem;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+
+    .prov-kpi-value .curr-sym {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-right: 2px;
+        vertical-align: 0.05em;
+    }
+
+    .prov-kpi-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+    }
+
+    .prov-kpi-card:hover .prov-kpi-avatar {
+        transform: scale(1.08) rotate(3deg);
+    }
+</style>
+
 <!-- Tarjetas Financieras (KPIs de la Cuenta) -->
 {% set deuda_activa = (saldo_pendiente > 0) %}
 <div class="row g-3 mb-5">
+    <!-- 1. Total Facturado -->
     <div class="col-md-4">
-        <div class="card card-custom h-100 p-4 border-0">
-            <h5 class="text-tekfix-main fw-bold">Total Facturado</h5>
-            <h2 class="fw-bolder text-tekfix-sec">${{ (total_facturado)|cop }}</h2>
-            <small class="text-tekfix-sec">Sumatoria de todas las facturas cargadas.</small>
+        <div class="prov-kpi-card h-100 p-4 d-flex flex-column justify-content-between">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: rgba(15, 23, 42, 0.08); color: #0F172A; font-size: 0.7rem; letter-spacing: 0.06em; border: 1px solid rgba(15, 23, 42, 0.2);">
+                        <i class="fa-solid fa-file-invoice me-1"></i> TOTAL FACTURADO
+                    </span>
+                    <div class="prov-kpi-value text-dark">
+                        <span class="curr-sym" style="color: var(--tekfix-primary);">$</span>{{ (total_facturado)|cop }}
+                    </div>
+                </div>
+                <div class="prov-kpi-avatar" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: #DFBA73; border: 1.5px solid rgba(221, 184, 86, 0.5); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);">
+                    <i class="fa-solid fa-file-invoice-dollar fs-5"></i>
+                </div>
+            </div>
+            <div class="pt-3 border-top" style="border-color: rgba(197, 160, 89, 0.2) !important;">
+                <small class="text-secondary fw-semibold" style="font-size: 0.78rem;">
+                    <i class="fa-solid fa-receipt me-1" style="color: var(--tekfix-primary);"></i> Sumatoria de todas las facturas cargadas
+                </small>
+            </div>
         </div>
     </div>
+
+    <!-- 2. Total Abonos -->
     <div class="col-md-4">
-        <div class="card card-custom h-100 p-4 border-0">
-            <h5 class="text-tekfix-main fw-bold">Total Abonos</h5>
-            <h2 class="fw-bolder text-success">${{ (total_abonos)|cop }}</h2>
-            <small class="text-tekfix-sec">Dinero pagado efectivamente.</small>
+        <div class="prov-kpi-card prov-kpi-card-green h-100 p-4 d-flex flex-column justify-content-between">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 0.7rem; letter-spacing: 0.06em; border: 1px solid rgba(16, 185, 129, 0.3);">
+                        <i class="fa-solid fa-hand-holding-dollar me-1"></i> TOTAL ABONOS
+                    </span>
+                    <div class="prov-kpi-value text-success">
+                        <span class="curr-sym" style="color: #059669;">$</span>{{ (total_abonos)|cop }}
+                    </div>
+                </div>
+                <div class="prov-kpi-avatar" style="background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%); color: #059669; border: 1.5px solid rgba(16, 185, 129, 0.4); box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);">
+                    <i class="fa-solid fa-money-bill-check fs-5"></i>
+                </div>
+            </div>
+            <div class="pt-3 border-top" style="border-color: rgba(16, 185, 129, 0.2) !important;">
+                <small class="text-secondary fw-semibold" style="font-size: 0.78rem;">
+                    <i class="fa-solid fa-circle-check me-1 text-success"></i> Dinero pagado efectivamente
+                </small>
+            </div>
         </div>
     </div>
+
+    <!-- 3. Saldo Pendiente -->
     <div class="col-md-4">
-        <div class="card card-custom h-100 p-4 border text-center {% if deuda_activa %}bg-danger bg-opacity-10 border-danger{% else %}bg-success bg-opacity-10 border-success{% endif %}">
-            <h5 class="fw-bold {% if deuda_activa %}text-danger{% else %}text-success{% endif %}">Saldo Pendiente</h5>
-            <h2 class="fw-bolder {% if deuda_activa %}text-danger{% else %}text-success{% endif %}" style="font-size: 2.5rem; letter-spacing: -1px;">
-                ${{ (saldo_pendiente)|cop }}
-            </h2>
-            {% if deuda_activa %}
-                <small class="text-danger fw-bold"><i class="fa-solid fa-circle-exclamation me-1"></i>Tienes deuda activa (por pagar)</small>
-            {% else %}
-                <small class="text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i>Paz y Salvo</small>
-            {% endif %}
+        <div class="prov-kpi-card {% if deuda_activa %}prov-kpi-card-danger{% else %}prov-kpi-card-green{% endif %} h-100 p-4 d-flex flex-column justify-content-between" style="border-color: {% if deuda_activa %}rgba(239, 68, 68, 0.5){% else %}rgba(16, 185, 129, 0.5){% endif %} !important;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: {% if deuda_activa %}rgba(239, 68, 68, 0.12){% else %}rgba(16, 185, 129, 0.12){% endif %}; color: {% if deuda_activa %}#DC2626{% else %}#059669{% endif %}; font-size: 0.7rem; letter-spacing: 0.06em; border: 1px solid {% if deuda_activa %}rgba(239, 68, 68, 0.3){% else %}rgba(16, 185, 129, 0.3){% endif %};">
+                        <i class="fa-solid fa-scale-balanced me-1"></i> SALDO PENDIENTE
+                    </span>
+                    <div class="prov-kpi-value {% if deuda_activa %}text-danger{% else %}text-success{% endif %}">
+                        <span class="curr-sym" style="color: {% if deuda_activa %}#DC2626{% else %}#059669{% endif %};">$</span>{{ (saldo_pendiente)|cop }}
+                    </div>
+                </div>
+                <div class="prov-kpi-avatar" style="background: {% if deuda_activa %}linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%){% else %}linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%){% endif %}; color: {% if deuda_activa %}#DC2626{% else %}#059669{% endif %}; border: 1.5px solid {% if deuda_activa %}rgba(239, 68, 68, 0.4){% else %}rgba(16, 185, 129, 0.4){% endif %}; box-shadow: 0 4px 14px {% if deuda_activa %}rgba(239, 68, 68, 0.2){% else %}rgba(16, 185, 129, 0.2){% endif %};">
+                    <i class="fa-solid {% if deuda_activa %}fa-triangle-exclamation{% else %}fa-circle-check{% endif %} fs-5"></i>
+                </div>
+            </div>
+            <div class="pt-3 border-top" style="border-color: {% if deuda_activa %}rgba(239, 68, 68, 0.2){% else %}rgba(16, 185, 129, 0.2){% endif %} !important;">
+                {% if deuda_activa %}
+                    <small class="text-danger fw-bold" style="font-size: 0.78rem;"><i class="fa-solid fa-circle-exclamation me-1"></i>Tienes deuda activa por pagar</small>
+                {% else %}
+                    <small class="text-success fw-bold" style="font-size: 0.78rem;"><i class="fa-solid fa-circle-check me-1"></i>Cuenta completamente en paz y salvo</small>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>

@@ -684,6 +684,14 @@
                         <i class="fa-solid fa-check"></i>
                         <span>Zenic: Al día</span>
                     </button>
+                    {% elif pago_servidor.estado == 'preventivo' %}
+                    <!-- Badge Preventivo: Vence el 15 -->
+                    <button type="button" class="btn btn-sm d-flex align-items-center gap-1 shadow-sm px-3 py-1 rounded-pill"
+                            style="background-color: #FEF3C7; color: #92400E; border: 1.5px solid #D97706; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; transition: all 0.2s;"
+                            data-bs-toggle="modal" data-bs-target="#modalPagoServidor" title="Mensualidad Servidor Zenic: Vence el 15">
+                        <i class="fa-solid fa-bell text-warning"></i>
+                        <span>Zenic: Vence el 15 (en {{ pago_servidor.dias_restantes }}d)</span>
+                    </button>
                     {% else %}
                     <!-- Badge de advertencia cuando requiere atención -->
                     <button type="button" class="btn btn-sm d-flex align-items-center gap-1 shadow-sm px-3 py-1 rounded-pill"

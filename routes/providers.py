@@ -21,7 +21,16 @@ def allowed_file(filename):
 @admin_required
 def index():
     proveedores = Provider.query.order_by(Provider.nombre).all()
-    return render_template('providers/index.html', proveedores=proveedores)
+    total_proveedores = len(proveedores)
+    total_facturado = sum(sum(float(f.monto_total or 0) for f in p.facturas) for p in proveedores)
+    total_abonos = sum(sum(float(a.monto_abonado or 0) for a in p.abonos) for p in proveedores)
+    saldo_pendiente = total_facturado - total_abonos
+    return render_template('providers/index.html', 
+                           proveedores=proveedores,
+                           total_proveedores=total_proveedores,
+                           total_facturado=total_facturado,
+                           total_abonos=total_abonos,
+                           saldo_pendiente=saldo_pendiente)
 
 @providers_bp.route('/crear', methods=['POST'])
 @login_required

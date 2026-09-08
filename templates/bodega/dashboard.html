@@ -7,10 +7,14 @@
 
 <div class="row g-4 mb-4">
     <div class="col-md-6 col-lg-4">
-        <div class="card card-custom h-100 border-0 p-4 text-center">
-            <h5 class="text-tekfix-sec fw-bold">Total Clientes</h5>
-            <h1 class="display-4 fw-bolder text-tekfix-main" style="color: var(--tekfix-primary) !important;">{{ clientes_count }}</h1>
-            <a href="{{ url_for('bodega_bp.nuevo_cliente') }}" class="btn btn-tekfix-secondary rounded-pill mt-3"><i class="fa-solid fa-plus me-1"></i> Nuevo Cliente</a>
+        <div class="card card-custom h-100 p-4 text-center position-relative overflow-hidden" style="background: linear-gradient(150deg, #FFFFFF 0%, #FAF8F5 100%); border: 1.5px solid rgba(197, 160, 89, 0.38) !important; border-radius: 18px; box-shadow: 0 8px 24px rgba(197, 160, 89, 0.12);">
+            <div style="position: absolute; top:0; left:0; right:0; height: 3.5px; background: linear-gradient(90deg, #A8833B 0%, #DFBA73 35%, #FFFFFF 50%, #DFBA73 65%, #C5A059 100%);"></div>
+            <div class="mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, rgba(197, 160, 89, 0.2) 0%, rgba(223, 186, 115, 0.08) 100%); color: #8F6B22; border: 1.2px solid rgba(197, 160, 89, 0.4); box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+                <i class="fa-solid fa-users fs-5"></i>
+            </div>
+            <h6 class="text-secondary fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Total Clientes</h6>
+            <h1 class="fw-bolder text-dark mb-2" style="font-family: 'Montserrat', sans-serif; font-size: 2.4rem; letter-spacing: -0.5px;">{{ clientes_count }}</h1>
+            <a href="{{ url_for('bodega_bp.nuevo_cliente') }}" class="btn btn-tekfix fw-bold rounded-pill px-4 mt-2 shadow-sm"><i class="fa-solid fa-plus me-1"></i> Nuevo Cliente</a>
         </div>
     </div>
     

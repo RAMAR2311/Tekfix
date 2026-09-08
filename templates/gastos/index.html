@@ -19,26 +19,154 @@
     </div>
 </div>
 
+<!-- ========== ESTILOS DE IMPACTO PARA TARJETAS DE GASTOS ========== -->
+<style>
+    .gastos-kpi-card {
+        background: linear-gradient(150deg, #FFFFFF 0%, #FAF8F5 100%);
+        border: 1.5px solid rgba(197, 160, 89, 0.38) !important;
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(197, 160, 89, 0.12), 0 2px 6px rgba(0, 0, 0, 0.03);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .gastos-kpi-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #A8833B 0%, #DFBA73 30%, #FFFDF5 50%, #DFBA73 70%, #C5A059 100%);
+        opacity: 0.95;
+    }
+
+    .gastos-kpi-card::before {
+        content: '';
+        position: absolute;
+        top: -60%;
+        left: -120%;
+        width: 120%;
+        height: 220%;
+        background: linear-gradient(
+            115deg,
+            transparent 25%,
+            rgba(223, 186, 115, 0.12) 42%,
+            rgba(255, 255, 255, 0.7) 50%,
+            rgba(197, 160, 89, 0.2) 58%,
+            transparent 75%
+        );
+        transform: rotate(18deg);
+        transition: left 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .gastos-kpi-card:hover::before {
+        left: 140%;
+    }
+
+    .gastos-kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 36px rgba(197, 160, 89, 0.24), 0 0 20px rgba(223, 186, 115, 0.28);
+        border-color: var(--tekfix-primary) !important;
+    }
+
+    .gastos-kpi-value {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 2.2rem;
+        line-height: 1.1;
+        color: #0F172A;
+        letter-spacing: -0.02em;
+    }
+
+    .gastos-kpi-value .curr-sym {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--tekfix-primary);
+        margin-right: 2px;
+        vertical-align: 0.05em;
+    }
+
+    .gastos-kpi-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+    }
+
+    .gastos-kpi-card:hover .gastos-kpi-avatar {
+        transform: scale(1.08) rotate(3deg);
+    }
+
+    .avatar-diarios {
+        background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+        border: 1.5px solid rgba(221, 184, 86, 0.45);
+        color: #B45309;
+        box-shadow: 0 4px 14px rgba(221, 184, 86, 0.25);
+    }
+
+    .avatar-indirectos {
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+        border: 1.5px solid rgba(221, 184, 86, 0.5);
+        color: #DFBA73;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    }
+</style>
+
 <!-- Tarjetas de Resumen Financiero -->
 <div class="row g-4 mb-4">
+    <!-- 1. Gastos Diarios -->
     <div class="col-md-6">
-        <div class="card card-custom h-100 p-4 border-0 shadow-sm" style="border-left: 5px solid var(--tekfix-primary) !important;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="text-tekfix-main fw-bold mb-0">Total Gastos Diarios ({{ nombre_mes }})</h5>
-                <i class="fa-solid fa-cart-shopping fs-2" style="color: var(--tekfix-primary);"></i>
+        <div class="gastos-kpi-card h-100 p-4 d-flex flex-column justify-content-between">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: rgba(221, 184, 86, 0.16); color: #8A6B29; font-size: 0.72rem; letter-spacing: 0.06em; border: 1px solid rgba(221, 184, 86, 0.35);">
+                        <i class="fa-solid fa-cart-shopping me-1"></i> GASTOS DIARIOS ({{ nombre_mes }})
+                    </span>
+                    <div class="gastos-kpi-value">
+                        <span class="curr-sym">$</span>{{ (total_diarios)|cop }}
+                    </div>
+                </div>
+                <div class="gastos-kpi-avatar avatar-diarios">
+                    <i class="fa-solid fa-cart-shopping fs-5"></i>
+                </div>
             </div>
-            <h2 class="fw-bolder m-0">${{ (total_diarios)|cop }}</h2>
-            <p class="text-tekfix-sec small mt-2 m-0">Operativos: comida, transportes, aseo.</p>
+            <div class="pt-3 border-top" style="border-color: rgba(197, 160, 89, 0.2) !important;">
+                <small class="text-secondary fw-semibold" style="font-size: 0.78rem;">
+                    <i class="fa-solid fa-utensils me-1" style="color: var(--tekfix-primary);"></i> Operativos: comida, transportes, aseo y caja menor.
+                </small>
+            </div>
         </div>
     </div>
+
+    <!-- 2. Costos Indirectos -->
     <div class="col-md-6">
-        <div class="card card-custom h-100 p-4 border-0 shadow-sm" style="border-left: 5px solid var(--tekfix-hover) !important;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="text-tekfix-main fw-bold mb-0">Total Costos Indirectos ({{ nombre_mes }})</h5>
-                <i class="fa-solid fa-building-columns fs-2" style="color: var(--tekfix-hover);"></i>
+        <div class="gastos-kpi-card h-100 p-4 d-flex flex-column justify-content-between">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: rgba(15, 23, 42, 0.08); color: #0F172A; font-size: 0.72rem; letter-spacing: 0.06em; border: 1px solid rgba(15, 23, 42, 0.2);">
+                        <i class="fa-solid fa-building-columns me-1"></i> COSTOS INDIRECTOS ({{ nombre_mes }})
+                    </span>
+                    <div class="gastos-kpi-value">
+                        <span class="curr-sym">$</span>{{ (total_indirectos)|cop }}
+                    </div>
+                </div>
+                <div class="gastos-kpi-avatar avatar-indirectos">
+                    <i class="fa-solid fa-building-columns fs-5"></i>
+                </div>
             </div>
-            <h2 class="fw-bolder m-0">${{ (total_indirectos)|cop }}</h2>
-            <p class="text-tekfix-sec small mt-2 m-0">Fijos: arriendo, nómina, servicios.</p>
+            <div class="pt-3 border-top" style="border-color: rgba(197, 160, 89, 0.2) !important;">
+                <small class="text-secondary fw-semibold" style="font-size: 0.78rem;">
+                    <i class="fa-solid fa-file-invoice-dollar me-1" style="color: var(--tekfix-primary);"></i> Fijos: arriendo, nómina, servicios públicos e internet.
+                </small>
+            </div>
         </div>
     </div>
 </div>

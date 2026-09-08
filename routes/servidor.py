@@ -34,7 +34,7 @@ def calcular_info_pago_servidor(app):
     dia_actual = hoy.day
 
     mes_nombre = MESES_ES[mes_actual] if 1 <= mes_actual <= 12 else str(mes_actual)
-    monto_mensual = os.environ.get('VALOR_MENSUALIDAD_SERVIDOR', '100.000')
+    monto_mensual = os.environ.get('VALOR_MENSUALIDAD_SERVIDOR', '50.000')
 
     # Verificar si ya existe registro pagado para el año y mes actual
     try:

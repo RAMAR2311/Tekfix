@@ -8,7 +8,48 @@ from decorators import admin_required, admin_or_bodega_required
 import pandas as pd
 from io import BytesIO
 
+from datetime import datetime, timedelta
+from routes.servidor import obtener_hora_bogota
+
 inventory_bp = Blueprint('inventory_bp', __name__)
+
+def limpiar_numero_int(val, default=0):
+    if val is None:
+        return default
+    if isinstance(val, int):
+        return val
+    s = str(val).strip().replace('$', '').replace(' ', '').replace('.', '').replace(',', '')
+    if not s:
+        return default
+    try:
+        return int(float(s))
+    except Exception:
+        return default
+
+def limpiar_numero_float(val, default=0.0):
+    if val is None:
+        return default
+    if isinstance(val, (int, float)):
+        return float(val)
+    s = str(val).strip().replace('$', '').replace(' ', '')
+    if not s:
+        return default
+    if '.' in s and ',' in s:
+        s = s.replace('.', '').replace(',', '.')
+    elif '.' in s:
+        partes = s.split('.')
+        if len(partes[-1]) == 3:
+            s = s.replace('.', '')
+    elif ',' in s:
+        partes = s.split(',')
+        if len(partes[-1]) == 3:
+            s = s.replace(',', '')
+        else:
+            s = s.replace(',', '.')
+    try:
+        return float(s)
+    except Exception:
+        return default
 
 @inventory_bp.route('/', methods=['GET'])
 @login_required
@@ -17,17 +58,43 @@ def index():
     from models import Sale
     from sqlalchemy.sql import func as sql_func
     tipo = 'bodega' if current_user.rol == 'bodega' else 'tienda'
+    q = request.args.get('q', '').strip()
 
-    # --- Paginación ---
-    PER_PAGE = 15
-    page = request.args.get('page', 1, type=int)
-    paginacion = Product.query.filter_by(tipo_inventario=tipo, activo=True).order_by(Product.nombre).paginate(
-        page=page, per_page=PER_PAGE, error_out=False
-    )
-    productos = paginacion.items
+    # Límite de 2 días (48 horas) para productos agregados recientemente
+    try:
+        ahora = obtener_hora_bogota()
+    except Exception:
+        ahora = datetime.now()
+    limite_reciente = ahora - timedelta(days=2)
+
+    # Consultar todos los productos activos del inventario
+    todos = Product.query.filter_by(tipo_inventario=tipo, activo=True).all()
+
+    # Ordenamiento Inteligente:
+    # 1. Nuevos productos agregados en los últimos 2 días al inicio (el más nuevo primero)
+    # 2. Los demás productos organizados alfabéticamente por nombre
+    recientes = [p for p in todos if p.fecha_creacion and p.fecha_creacion >= limite_reciente]
+    recientes.sort(key=lambda x: x.fecha_creacion, reverse=True)
+
+    antiguos = [p for p in todos if not p.fecha_creacion or p.fecha_creacion < limite_reciente]
+    antiguos.sort(key=lambda x: (x.nombre or '').lower())
+
+    productos_ordenados = recientes + antiguos
+
+    # Si se recibe búsqueda por query param
+    if q:
+        q_norm = q.lower()
+        productos = []
+        for p in productos_ordenados:
+            match_sku = q_norm in (p.sku or '').lower()
+            match_nombre = q_norm in (p.nombre or '').lower()
+            match_var = any(q_norm in (v.nombre_variante or '').lower() for v in (p.variantes or []))
+            if match_sku or match_nombre or match_var:
+                productos.append(p)
+    else:
+        productos = productos_ordenados
 
     # --- KPIs: Valor total a costo, sugerido y total de unidades físicas ---
-    todos = Product.query.filter_by(tipo_inventario=tipo, activo=True).all()
     valor_costo = 0.0
     valor_sugerido = 0.0
     total_stock_unidades = 0
@@ -49,7 +116,8 @@ def index():
     return render_template(
         'inventory/index.html',
         productos=productos,
-        paginacion=paginacion,
+        limite_reciente=limite_reciente,
+        busqueda_actual=q,
         valor_costo=valor_costo,
         valor_sugerido=valor_sugerido,
         total_ventas=total_ventas,
@@ -62,25 +130,45 @@ def index():
 @admin_or_bodega_required
 def nuevo():
     if request.method == 'POST':
-        # --- Manejo de Imagen ---
+        sku = (request.form.get('sku') or '').strip().upper()
+        nombre = (request.form.get('nombre') or '').strip()
+
+        if not sku or not nombre:
+            flash('El SKU y el Nombre del producto son obligatorios.', 'danger')
+            return render_template('inventory/form.html')
+
+        # Verificar si el SKU ya existe para evitar fallas silenciosas en la BD
+        existente = Product.query.filter_by(sku=sku).first()
+        if existente:
+            flash(f'Ya existe un producto con el código SKU "{sku}" ({existente.nombre}). Por favor utiliza otro código.', 'danger')
+            return render_template('inventory/form.html')
+
+        # --- Manejo de Imagen con verificación de directorio ---
         imagen_filename = None
         if 'imagen' in request.files:
             file = request.files['imagen']
             if file and file.filename != '':
+                upload_folder = current_app.config.get('UPLOAD_FOLDER', 'static/uploads')
+                os.makedirs(upload_folder, exist_ok=True)
                 filename = secure_filename(file.filename)
-                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                file.save(os.path.join(upload_folder, filename))
                 imagen_filename = filename
 
-        # La instanciación agrupa todos los parámetros del nuevo producto
+        # Sanitización de números compatible con teclados móviles y símbolos
+        cantidad_stock = limpiar_numero_int(request.form.get('cantidad_stock'), default=0)
+        precio_costo = limpiar_numero_float(request.form.get('precio_costo'), default=0.0)
+        precio_minimo = limpiar_numero_float(request.form.get('precio_minimo'), default=0.0)
+        precio_sugerido = limpiar_numero_float(request.form.get('precio_sugerido'), default=0.0)
+
         tipo = 'bodega' if current_user.rol == 'bodega' else 'tienda'
         nuevo_prod = Product(
-            sku=request.form.get('sku').strip(),
-            nombre=request.form.get('nombre').strip(),
+            sku=sku,
+            nombre=nombre,
             tipo_inventario=tipo,
-            cantidad_stock=int(request.form.get('cantidad_stock', 0)),
-            precio_costo=float(request.form.get('precio_costo', 0.0)),
-            precio_minimo=float(request.form.get('precio_minimo', 0.0)),
-            precio_sugerido=float(request.form.get('precio_sugerido', 0.0)),
+            cantidad_stock=cantidad_stock,
+            precio_costo=precio_costo,
+            precio_minimo=precio_minimo,
+            precio_sugerido=precio_sugerido,
             imagen=imagen_filename,
             observacion=request.form.get('observacion')
         )
@@ -99,10 +187,11 @@ def nuevo():
             db.session.add(ajuste_inicial)
             db.session.commit()
 
-            flash('Producto creado exitosamente.', 'success')
+            flash(f'Producto «{nuevo_prod.nombre}» creado exitosamente.', 'success')
             return redirect(url_for('inventory_bp.index'))
         except Exception as e:
             db.session.rollback()
+            current_app.logger.error(f"Error al crear producto: {e}")
             flash('Error al intentar guardar el producto en la base de datos.', 'danger')
             
     return render_template('inventory/form.html')
@@ -111,31 +200,44 @@ def nuevo():
 @login_required
 @admin_or_bodega_required
 def editar_producto(id):
-    # get_or_404 protege la ruta en caso de que se envíe un ID inexistente en la URL
     producto = Product.query.get_or_404(id)
     tipo = 'bodega' if current_user.rol == 'bodega' else 'tienda'
     if producto.tipo_inventario != tipo:
         abort(403)
     
     if request.method == 'POST':
+        sku = (request.form.get('sku') or '').strip().upper()
+        nombre = (request.form.get('nombre') or '').strip()
+
+        if not sku or not nombre:
+            flash('El SKU y el Nombre del producto son obligatorios.', 'danger')
+            return render_template('inventory/form.html', producto=producto)
+
+        # Verificar si el SKU modificado pertenece a otro producto
+        existente = Product.query.filter(Product.sku == sku, Product.id != producto.id).first()
+        if existente:
+            flash(f'El código SKU "{sku}" ya pertenece al producto "{existente.nombre}".', 'danger')
+            return render_template('inventory/form.html', producto=producto)
+
         stock_anterior = producto.cantidad_stock
-        cantidad_stock_nueva = int(request.form.get('cantidad_stock', 0))
+        cantidad_stock_nueva = limpiar_numero_int(request.form.get('cantidad_stock'), default=0)
         
         # Actualizar Imagen si se sube una nueva
         if 'imagen' in request.files:
             file = request.files['imagen']
             if file and file.filename != '':
+                upload_folder = current_app.config.get('UPLOAD_FOLDER', 'static/uploads')
+                os.makedirs(upload_folder, exist_ok=True)
                 filename = secure_filename(file.filename)
-                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                file.save(os.path.join(upload_folder, filename))
                 producto.imagen = filename
                 
-        # Se actualizan directamente las propiedades del objeto SQLAlchemy trackeado
-        producto.sku = request.form.get('sku').strip()
-        producto.nombre = request.form.get('nombre').strip()
+        producto.sku = sku
+        producto.nombre = nombre
         producto.cantidad_stock = cantidad_stock_nueva
-        producto.precio_costo = float(request.form.get('precio_costo', 0.0))
-        producto.precio_minimo = float(request.form.get('precio_minimo', 0.0))
-        producto.precio_sugerido = float(request.form.get('precio_sugerido', 0.0))
+        producto.precio_costo = limpiar_numero_float(request.form.get('precio_costo'), default=0.0)
+        producto.precio_minimo = limpiar_numero_float(request.form.get('precio_minimo'), default=0.0)
+        producto.precio_sugerido = limpiar_numero_float(request.form.get('precio_sugerido'), default=0.0)
         producto.observacion = request.form.get('observacion')
         
         try:
@@ -154,9 +256,9 @@ def editar_producto(id):
             return redirect(url_for('inventory_bp.index'))
         except Exception as e:
             db.session.rollback()
+            current_app.logger.error(f"Error al actualizar producto: {e}")
             flash('Error en la base de datos al actualizar el producto.', 'danger')
 
-    # El objeto producto se pasa a Jinja para auto-poblar (pre-llenar) el formulario en modo edición
     return render_template('inventory/form.html', producto=producto)
 
 @inventory_bp.route('/historial-ajustes')

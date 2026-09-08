@@ -13,6 +13,66 @@
     </div>
 </div>
 
+<!-- Tarjetas Métricas de Proveedores (Estilo Oro y Relieve 3D) -->
+<div class="row g-3 mb-4">
+    <!-- Total Proveedores -->
+    <div class="col-md-4">
+        <div class="prov-kpi-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(197, 160, 89, 0.12); color: #8F6B22; border: 1px solid rgba(197, 160, 89, 0.35); font-size: 0.72rem; font-family: 'Montserrat', sans-serif;">
+                    DIRECTORIO ACTIVO
+                </span>
+                <div class="prov-avatar prov-avatar-gold">
+                    <i class="fa-solid fa-address-book"></i>
+                </div>
+            </div>
+            <div class="text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Proveedores Aliados</div>
+            <div class="fw-bolder text-dark" style="font-family: 'Montserrat', sans-serif; font-size: 1.85rem; letter-spacing: -0.5px;">
+                {{ total_proveedores }} <span class="fs-6 fw-normal text-muted">registrados</span>
+            </div>
+            <small class="text-muted d-block mt-2">Cuentas comerciales registradas</small>
+        </div>
+    </div>
+
+    <!-- Saldo Total Pendiente -->
+    <div class="col-md-4">
+        <div class="prov-kpi-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: {% if saldo_pendiente > 0 %}rgba(239, 68, 68, 0.12){% else %}rgba(16, 185, 129, 0.12){% endif %}; color: {% if saldo_pendiente > 0 %}#DC2626{% else %}#059669{% endif %}; border: 1px solid {% if saldo_pendiente > 0 %}rgba(239, 68, 68, 0.3){% else %}rgba(16, 185, 129, 0.3){% endif %}; font-size: 0.72rem; font-family: 'Montserrat', sans-serif;">
+                    {% if saldo_pendiente > 0 %}CUENTAS POR PAGAR{% else %}AL DÍA{% endif %}
+                </span>
+                <div class="prov-avatar {% if saldo_pendiente > 0 %}prov-avatar-red{% else %}prov-avatar-green{% endif %}">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                </div>
+            </div>
+            <div class="text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Saldo Pendiente Global</div>
+            <div class="fw-bolder {% if saldo_pendiente > 0 %}text-danger{% else %}text-success{% endif %}" style="font-family: 'Montserrat', sans-serif; font-size: 1.85rem; letter-spacing: -0.5px;">
+                ${{ (saldo_pendiente)|cop }}
+            </div>
+            <small class="text-muted d-block mt-2">Deuda total acumulada en facturas</small>
+        </div>
+    </div>
+
+    <!-- Total Abonos Realizados -->
+    <div class="col-md-4">
+        <div class="prov-kpi-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.72rem; font-family: 'Montserrat', sans-serif;">
+                    PAGOS REALIZADOS
+                </span>
+                <div class="prov-avatar prov-avatar-green">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                </div>
+            </div>
+            <div class="text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Total Abonos Históricos</div>
+            <div class="fw-bolder text-success" style="font-family: 'Montserrat', sans-serif; font-size: 1.85rem; letter-spacing: -0.5px;">
+                ${{ (total_abonos)|cop }}
+            </div>
+            <small class="text-muted d-block mt-2">Total de capital abonado a facturas</small>
+        </div>
+    </div>
+</div>
+
 <div class="card card-custom overflow-hidden border-0 shadow-sm p-0">
     <div class="table-responsive p-0">
         <table class="table table-hover table-custom align-middle m-0">
@@ -97,4 +157,58 @@
         </div>
     </div>
 </div>
+
+<style>
+/* ====== Tarjetas KPI de Directorio Proveedores Tekfix ====== */
+.prov-kpi-card {
+    background: linear-gradient(150deg, #FFFFFF 0%, #FAF8F5 100%);
+    border: 1.5px solid rgba(197, 160, 89, 0.38) !important;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(197, 160, 89, 0.12), 0 2px 6px rgba(0, 0, 0, 0.03);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.prov-kpi-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3.5px;
+    background: linear-gradient(90deg, #A8833B 0%, #DFBA73 35%, #FFFFFF 50%, #DFBA73 65%, #C5A059 100%);
+    border-radius: 18px 18px 0 0;
+}
+.prov-kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 34px rgba(197, 160, 89, 0.24);
+    border-color: rgba(197, 160, 89, 0.75) !important;
+}
+.prov-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border: 1.2px solid rgba(197, 160, 89, 0.3);
+}
+.prov-avatar-gold {
+    background: linear-gradient(135deg, rgba(197, 160, 89, 0.2) 0%, rgba(223, 186, 115, 0.08) 100%);
+    color: #8F6B22;
+    border-color: rgba(197, 160, 89, 0.45);
+}
+.prov-avatar-red {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(254, 202, 202, 0.08) 100%);
+    color: #DC2626;
+    border-color: rgba(239, 68, 68, 0.4);
+}
+.prov-avatar-green {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(167, 243, 208, 0.08) 100%);
+    color: #059669;
+    border-color: rgba(16, 185, 129, 0.4);
+}
+</style>
 {% endblock %}

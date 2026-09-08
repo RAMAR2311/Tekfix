@@ -61,30 +61,186 @@
     </div>
 </div>
 
+<!-- ========== ESTILOS DE IMPACTO PARA TARJETAS KPI DE OPERACIONES ========== -->
+<style>
+    .hist-kpi-card {
+        background: linear-gradient(150deg, #FFFFFF 0%, #FAF8F5 100%);
+        border: 1.5px solid rgba(197, 160, 89, 0.38) !important;
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(197, 160, 89, 0.12), 0 2px 6px rgba(0, 0, 0, 0.03);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hist-kpi-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #A8833B 0%, #DFBA73 30%, #FFFDF5 50%, #DFBA73 70%, #C5A059 100%);
+        opacity: 0.95;
+    }
+
+    .hist-kpi-card-red::after {
+        background: linear-gradient(90deg, #DC2626 0%, #F87171 40%, #FFF5F5 50%, #F87171 60%, #DC2626 100%);
+    }
+
+    .hist-kpi-card-green::after {
+        background: linear-gradient(90deg, #059669 0%, #34D399 40%, #ECFDF5 50%, #34D399 60%, #059669 100%);
+    }
+
+    .hist-kpi-card::before {
+        content: '';
+        position: absolute;
+        top: -60%;
+        left: -120%;
+        width: 120%;
+        height: 220%;
+        background: linear-gradient(
+            115deg,
+            transparent 25%,
+            rgba(223, 186, 115, 0.12) 42%,
+            rgba(255, 255, 255, 0.7) 50%,
+            rgba(197, 160, 89, 0.2) 58%,
+            transparent 75%
+        );
+        transform: rotate(18deg);
+        transition: left 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .hist-kpi-card:hover::before {
+        left: 140%;
+    }
+
+    .hist-kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 36px rgba(197, 160, 89, 0.24), 0 0 20px rgba(223, 186, 115, 0.28);
+        border-color: var(--tekfix-primary) !important;
+    }
+
+    .hist-kpi-value {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 2.15rem;
+        line-height: 1.1;
+        color: #0F172A;
+        letter-spacing: -0.02em;
+        position: relative;
+        z-index: 2;
+    }
+
+    .hist-kpi-value .curr-sym {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-right: 2px;
+        vertical-align: 0.05em;
+    }
+
+    /* Avatares 3D con relieve */
+    .hist-kpi-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 2;
+        transition: transform 0.3s ease;
+    }
+
+    .hist-kpi-card:hover .hist-kpi-avatar {
+        transform: scale(1.08) rotate(3deg);
+    }
+
+    .hist-avatar-red {
+        background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+        border: 1.5px solid rgba(239, 68, 68, 0.4);
+        color: #DC2626;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2);
+    }
+
+    .hist-avatar-green {
+        background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+        border: 1.5px solid rgba(16, 185, 129, 0.4);
+        color: #059669;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+    }
+
+    .hist-avatar-gold {
+        background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+        border: 1.5px solid rgba(221, 184, 86, 0.45);
+        color: #B45309;
+        box-shadow: 0 4px 14px rgba(221, 184, 86, 0.25);
+    }
+
+    /* Tarjetas de Métodos de Pago Fila 2 */
+    .hist-method-card {
+        background: linear-gradient(150deg, #FFFFFF 0%, #FAFAF7 100%);
+        border: 1.5px solid rgba(197, 160, 89, 0.32);
+        border-radius: 18px;
+        box-shadow: 0 6px 18px rgba(197, 160, 89, 0.08), 0 2px 4px rgba(0, 0, 0, 0.02);
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hist-method-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(197, 160, 89, 0.22), 0 0 15px rgba(223, 186, 115, 0.2);
+        border-color: var(--tekfix-primary) !important;
+    }
+
+    .hist-method-value {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 1.65rem;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+
+    .hist-method-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+</style>
+
 <!-- ========== FILA 1: 3 TARJETAS KPI PRINCIPALES ========== -->
 <div class="row g-3 mb-3">
 
     <!-- 1. Consolidado Total -->
     <div class="col-12 col-md-4">
-        <div class="card bg-white rounded-4 border p-4 shadow-sm h-100 d-flex flex-column justify-content-between" style="border-color: var(--tekfix-border) !important; border-top: 3px solid #EF4444 !important;">
+        <div class="hist-kpi-card hist-kpi-card-red p-4 h-100 d-flex flex-column justify-content-between">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
-                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: rgba(239, 68, 68, 0.1); color: #DC2626; font-size: 0.68rem; letter-spacing: 0.06em;">
+                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: rgba(239, 68, 68, 0.12); color: #DC2626; font-size: 0.7rem; letter-spacing: 0.06em; border: 1px solid rgba(239, 68, 68, 0.25);">
                         <i class="fa-solid fa-gem me-1"></i> CONSOLIDADO TOTAL
                     </span>
-                    <h2 class="fw-bold mb-0 text-tekfix-main" style="font-family: var(--font-heading); font-size: 2.1rem; line-height: 1.1;">
-                        ${{ (total_consolidado)|cop }}
-                    </h2>
+                    <div class="hist-kpi-value">
+                        <span class="curr-sym" style="color: #DC2626;">$</span>{{ (total_consolidado)|cop }}
+                    </div>
                 </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(239, 68, 68, 0.12); color: #DC2626;">
+                <div class="hist-kpi-avatar hist-avatar-red">
                     <i class="fa-solid fa-sack-dollar fs-5"></i>
                 </div>
             </div>
-            <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color: #F1F1F1 !important;">
-                <small class="text-secondary fw-semibold" style="font-size: 0.75rem;">
-                    <i class="fa-solid fa-cash-register me-1"></i> {{ total_operaciones }} ventas
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top" style="border-color: rgba(239, 68, 68, 0.15) !important;">
+                <small class="text-secondary fw-semibold" style="font-size: 0.78rem;">
+                    <i class="fa-solid fa-cash-register me-1 text-danger"></i> <strong class="text-dark">{{ total_operaciones }}</strong> ventas
                 </small>
-                <span class="fw-bold" style="color: #DC2626; font-size: 0.75rem;">
+                <span class="fw-bold" style="color: #DC2626; font-size: 0.78rem;">
                     Prom. ${{ (ticket_promedio)|cop }}
                 </span>
             </div>
@@ -93,25 +249,25 @@
 
     <!-- 2. Efectivo en Caja -->
     <div class="col-12 col-md-4">
-        <div class="card bg-white rounded-4 border p-4 shadow-sm h-100 d-flex flex-column justify-content-between" style="border-color: var(--tekfix-border) !important; border-top: 3px solid #10B981 !important;">
+        <div class="hist-kpi-card hist-kpi-card-green p-4 h-100 d-flex flex-column justify-content-between">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
-                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: rgba(16, 185, 129, 0.1); color: #059669; font-size: 0.68rem; letter-spacing: 0.06em;">
+                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 0.7rem; letter-spacing: 0.06em; border: 1px solid rgba(16, 185, 129, 0.25);">
                         <i class="fa-solid fa-money-bill-wave me-1"></i> EFECTIVO EN CAJA
                     </span>
-                    <h2 class="fw-bold mb-0 text-tekfix-main" style="font-family: var(--font-heading); font-size: 2.1rem; line-height: 1.1;">
-                        ${{ (total_efectivo)|cop }}
-                    </h2>
+                    <div class="hist-kpi-value">
+                        <span class="curr-sym" style="color: #059669;">$</span>{{ (total_efectivo)|cop }}
+                    </div>
                 </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(16, 185, 129, 0.12); color: #059669;">
+                <div class="hist-kpi-avatar hist-avatar-green">
                     <i class="fa-solid fa-coins fs-5"></i>
                 </div>
             </div>
-            <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color: #F1F1F1 !important;">
-                <small class="text-secondary fw-semibold" style="font-size: 0.75rem;">
-                    Disponibilidad Inmediata
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top" style="border-color: rgba(16, 185, 129, 0.15) !important;">
+                <small class="text-secondary fw-semibold" style="font-size: 0.78rem;">
+                    <i class="fa-solid fa-bolt me-1 text-success"></i> Disponibilidad Inmediata
                 </small>
-                <span class="badge border rounded-pill px-3 py-1 fw-semibold text-secondary" style="background: #FAFAFA; font-size: 0.68rem;">
+                <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 0.7rem; border: 1px solid rgba(16, 185, 129, 0.3);">
                     {{ pct_efectivo }}% del Total
                 </span>
             </div>
@@ -120,25 +276,25 @@
 
     <!-- 3. Transferencias / Bancos (Dorado Tekfix) -->
     <div class="col-12 col-md-4">
-        <div class="card bg-white rounded-4 border p-4 shadow-sm h-100 d-flex flex-column justify-content-between" style="border-color: var(--tekfix-border) !important; border-top: 3px solid var(--tekfix-primary) !important;">
+        <div class="hist-kpi-card p-4 h-100 d-flex flex-column justify-content-between" style="border-color: rgba(197, 160, 89, 0.55) !important;">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
-                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: rgba(197, 160, 89, 0.15); color: var(--tekfix-primary); font-size: 0.68rem; letter-spacing: 0.06em;">
+                    <span class="badge rounded-pill px-3 py-1 fw-bold text-uppercase d-inline-block mb-2" style="background: rgba(197, 160, 89, 0.18); color: #9A7B38; font-size: 0.7rem; letter-spacing: 0.06em; border: 1px solid rgba(197, 160, 89, 0.4);">
                         <i class="fa-solid fa-building-columns me-1"></i> TRANSFERENCIAS / BANCOS
                     </span>
-                    <h2 class="fw-bold mb-0 text-tekfix-main" style="font-family: var(--font-heading); font-size: 2.1rem; line-height: 1.1;">
-                        ${{ (total_transferencias)|cop }}
-                    </h2>
+                    <div class="hist-kpi-value">
+                        <span class="curr-sym" style="color: var(--tekfix-primary);">$</span>{{ (total_transferencias)|cop }}
+                    </div>
                 </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197, 160, 89, 0.16); color: var(--tekfix-primary);">
+                <div class="hist-kpi-avatar hist-avatar-gold">
                     <i class="fa-solid fa-network-wired fs-5"></i>
                 </div>
             </div>
-            <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color: #F1F1F1 !important;">
-                <small class="text-secondary fw-semibold" style="font-size: 0.75rem;">
-                    Canales Electrónicos
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top" style="border-color: rgba(197, 160, 89, 0.2) !important;">
+                <small class="text-secondary fw-semibold" style="font-size: 0.78rem;">
+                    <i class="fa-solid fa-signal me-1" style="color: var(--tekfix-primary);"></i> Canales Electrónicos
                 </small>
-                <span class="badge border rounded-pill px-3 py-1 fw-semibold text-secondary" style="background: #FAFAFA; font-size: 0.68rem;">
+                <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(197, 160, 89, 0.12); color: var(--tekfix-primary); font-size: 0.7rem; border: 1px solid rgba(197, 160, 89, 0.35);">
                     {{ pct_transferencias }}% del Total
                 </span>
             </div>
@@ -152,16 +308,16 @@
 
     <!-- 1. NEQUI -->
     <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card bg-white rounded-4 p-3 shadow-sm h-100 border" style="border-color: var(--tekfix-border) !important; border-left: 5px solid #8B5CF6 !important;">
+        <div class="hist-method-card p-3 h-100" style="border-left: 5px solid #8B5CF6 !important;">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">NEQUI</span>
-                    <h3 class="fw-bold mb-1" style="color: #7C3AED; font-family: var(--font-heading); font-size: 1.6rem; line-height: 1.1;">
-                        ${{ (total_nequi)|cop }}
-                    </h3>
+                    <div class="hist-method-value" style="color: #7C3AED;">
+                        <span style="font-size: 1.25rem; font-weight: 700; color: #8B5CF6; margin-right: 2px;">$</span>{{ (total_nequi)|cop }}
+                    </div>
                     <small class="text-secondary fw-semibold" style="font-size: 0.72rem;">Digital: {{ pct_nequi }}%</small>
                 </div>
-                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(139, 92, 246, 0.12); color: #7C3AED;">
+                <div class="hist-method-avatar" style="background: rgba(139, 92, 246, 0.15); color: #7C3AED; border: 1px solid rgba(139, 92, 246, 0.3);">
                     <i class="fa-solid fa-mobile-screen fs-5"></i>
                 </div>
             </div>
@@ -170,16 +326,16 @@
 
     <!-- 2. BANCOLOMBIA -->
     <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card bg-white rounded-4 p-3 shadow-sm h-100 border" style="border-color: var(--tekfix-border) !important; border-left: 5px solid #F59E0B !important;">
+        <div class="hist-method-card p-3 h-100" style="border-left: 5px solid #F59E0B !important;">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">BANCOLOMBIA</span>
-                    <h3 class="fw-bold mb-1" style="color: #D97706; font-family: var(--font-heading); font-size: 1.6rem; line-height: 1.1;">
-                        ${{ (total_bancolombia)|cop }}
-                    </h3>
+                    <div class="hist-method-value" style="color: #D97706;">
+                        <span style="font-size: 1.25rem; font-weight: 700; color: #F59E0B; margin-right: 2px;">$</span>{{ (total_bancolombia)|cop }}
+                    </div>
                     <small class="text-secondary fw-semibold" style="font-size: 0.72rem;">Digital: {{ pct_bancolombia }}%</small>
                 </div>
-                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(245, 158, 11, 0.12); color: #D97706;">
+                <div class="hist-method-avatar" style="background: rgba(245, 158, 11, 0.15); color: #D97706; border: 1px solid rgba(245, 158, 11, 0.3);">
                     <i class="fa-solid fa-building-columns fs-5"></i>
                 </div>
             </div>
@@ -188,16 +344,16 @@
 
     <!-- 3. DAVIPLATA -->
     <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card bg-white rounded-4 p-3 shadow-sm h-100 border" style="border-color: var(--tekfix-border) !important; border-left: 5px solid #EF4444 !important;">
+        <div class="hist-method-card p-3 h-100" style="border-left: 5px solid #EF4444 !important;">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">DAVIPLATA</span>
-                    <h3 class="fw-bold mb-1" style="color: #DC2626; font-family: var(--font-heading); font-size: 1.6rem; line-height: 1.1;">
-                        ${{ (total_daviplata)|cop }}
-                    </h3>
+                    <div class="hist-method-value" style="color: #DC2626;">
+                        <span style="font-size: 1.25rem; font-weight: 700; color: #EF4444; margin-right: 2px;">$</span>{{ (total_daviplata)|cop }}
+                    </div>
                     <small class="text-secondary fw-semibold" style="font-size: 0.72rem;">Digital: {{ pct_daviplata }}%</small>
                 </div>
-                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(239, 68, 68, 0.12); color: #DC2626;">
+                <div class="hist-method-avatar" style="background: rgba(239, 68, 68, 0.15); color: #DC2626; border: 1px solid rgba(239, 68, 68, 0.3);">
                     <i class="fa-solid fa-mobile fs-5"></i>
                 </div>
             </div>
@@ -206,16 +362,16 @@
 
     <!-- 4. BOLT (DATÁFONO) -->
     <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card bg-white rounded-4 p-3 shadow-sm h-100 border" style="border-color: var(--tekfix-border) !important; border-left: 5px solid var(--tekfix-primary) !important;">
+        <div class="hist-method-card p-3 h-100" style="border-left: 5px solid var(--tekfix-primary) !important;">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">BOLT (DATÁFONO)</span>
-                    <h3 class="fw-bold mb-1" style="color: var(--tekfix-primary); font-family: var(--font-heading); font-size: 1.6rem; line-height: 1.1;">
-                        ${{ (total_tarjeta)|cop }}
-                    </h3>
+                    <div class="hist-method-value" style="color: var(--tekfix-primary);">
+                        <span style="font-size: 1.25rem; font-weight: 700; color: var(--tekfix-hover); margin-right: 2px;">$</span>{{ (total_tarjeta)|cop }}
+                    </div>
                     <small class="text-secondary fw-semibold" style="font-size: 0.72rem;">Digital: {{ pct_tarjeta }}%</small>
                 </div>
-                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(197, 160, 89, 0.16); color: var(--tekfix-primary);">
+                <div class="hist-method-avatar" style="background: rgba(197, 160, 89, 0.18); color: var(--tekfix-primary); border: 1px solid rgba(197, 160, 89, 0.4);">
                     <i class="fa-solid fa-bolt fs-5"></i>
                 </div>
             </div>

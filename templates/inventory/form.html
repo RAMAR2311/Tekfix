@@ -24,27 +24,27 @@
                     
                     <div class="col-md-3 mt-4">
                         <label class="form-label fw-bold text-tekfix-main text-truncate">Existencias</label>
-                        <input type="number" class="form-control bg-tekfix-card border-0" name="cantidad_stock" required min="0" value="{{ producto.cantidad_stock if producto else '' }}">
+                        <input type="number" inputmode="numeric" class="form-control bg-tekfix-card border-0" name="cantidad_stock" required min="0" value="{{ producto.cantidad_stock if producto else '' }}">
                     </div>
                     <div class="col-md-3 mt-4">
                         <label class="form-label fw-bold text-tekfix-main text-truncate">Costo Compra</label>
                         <div class="input-group">
                             <span class="input-group-text bg-tekfix-card border-0">$</span>
-                            <input type="number" step="1" class="form-control bg-tekfix-card border-0" name="precio_costo" required value="{{ producto.precio_costo if producto else '' }}">
+                            <input type="number" step="any" inputmode="numeric" class="form-control bg-tekfix-card border-0" name="precio_costo" required value="{{ producto.precio_costo if producto else '' }}">
                         </div>
                     </div>
                     <div class="col-md-3 mt-4">
                         <label class="form-label fw-bold text-tekfix-main text-truncate">Precio Mínimo</label>
                         <div class="input-group">
                             <span class="input-group-text bg-tekfix-card border-0">$</span>
-                            <input type="number" step="1" class="form-control bg-tekfix-card border-0" name="precio_minimo" required value="{{ producto.precio_minimo if producto else '' }}">
+                            <input type="number" step="any" inputmode="numeric" class="form-control bg-tekfix-card border-0" name="precio_minimo" required value="{{ producto.precio_minimo if producto else '' }}">
                         </div>
                     </div>
                     <div class="col-md-3 mt-4">
                         <label class="form-label fw-bold text-tekfix-main text-truncate">Precio Sugerido</label>
                         <div class="input-group">
                             <span class="input-group-text bg-tekfix-card border-0">$</span>
-                            <input type="number" step="1" class="form-control bg-tekfix-card border-0" name="precio_sugerido" required value="{{ producto.precio_sugerido if producto else '' }}">
+                            <input type="number" step="any" inputmode="numeric" class="form-control bg-tekfix-card border-0" name="precio_sugerido" required value="{{ producto.precio_sugerido if producto else '' }}">
                         </div>
                     </div>
                     
