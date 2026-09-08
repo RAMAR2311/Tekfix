@@ -256,6 +256,11 @@ def dashboard():
         PriceApproval.fecha_solicitud >= inicio_mes, PriceApproval.fecha_solicitud < fin_mes,
         PriceApproval.estado == 'aprobado'
     ).count()
+    aprobaciones_vendidas_mes = PriceApproval.query.filter(
+        PriceApproval.fecha_solicitud >= inicio_mes, PriceApproval.fecha_solicitud < fin_mes,
+        PriceApproval.estado == 'aprobado',
+        PriceApproval.fue_vendido == True
+    ).count()
     aprobaciones_pendientes = PriceApproval.query.filter_by(estado='pendiente').count()
 
     # --- OTRAS MÉTRICAS OPERATIVAS ---
@@ -294,6 +299,7 @@ def dashboard():
                            total_proveedores=total_proveedores,
                            aprobaciones_totales_mes=aprobaciones_totales_mes,
                            aprobaciones_autorizadas_mes=aprobaciones_autorizadas_mes,
+                           aprobaciones_vendidas_mes=aprobaciones_vendidas_mes,
                            aprobaciones_pendientes=aprobaciones_pendientes,
                            total_perdidas=perdidas_valor,
                            porcentaje_perdidas=porcentaje_perdidas,
@@ -315,8 +321,28 @@ def perdidas():
 @login_required
 @admin_required
 def panel_aprobaciones():
-    """Pagina dedicada para gestionar las solicitudes de precio especial."""
-    return render_template('admin/aprobaciones.html')
+    """Página dedicada para gestionar solicitudes en vivo y auditar el historial de aprobaciones que terminaron en venta."""
+    from models import PriceApproval
+    
+    solicitudes_historial = PriceApproval.query.filter(
+        PriceApproval.estado.in_(['aprobado', 'rechazado'])
+    ).order_by(PriceApproval.fecha_resolucion.desc()).all()
+
+    total_aprobadas = PriceApproval.query.filter_by(estado='aprobado').count()
+    aprobadas_vendidas = PriceApproval.query.filter_by(estado='aprobado', fue_vendido=True).count()
+    aprobadas_sin_vender = total_aprobadas - aprobadas_vendidas
+    total_rechazadas = PriceApproval.query.filter_by(estado='rechazado').count()
+    tasa_conversion = round((aprobadas_vendidas / total_aprobadas * 100), 1) if total_aprobadas > 0 else 0.0
+
+    return render_template(
+        'admin/aprobaciones.html',
+        historial=solicitudes_historial,
+        total_aprobadas=total_aprobadas,
+        aprobadas_vendidas=aprobadas_vendidas,
+        aprobadas_sin_vender=aprobadas_sin_vender,
+        total_rechazadas=total_rechazadas,
+        tasa_conversion=tasa_conversion
+    )
 
 @admin_bp.route('/api/product/<sku>')
 @login_required

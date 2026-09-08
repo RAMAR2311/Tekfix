@@ -201,19 +201,31 @@ def procesar_venta():
                     precio_limite_autorizado = producto.precio_costo if current_user.rol == 'admin' else producto.precio_sugerido
 
                 if precio_venta_final < precio_limite_autorizado:
-                    # Sistema nuevo: buscar aprobación remota aprobada
+                    # Sistema nuevo: buscar aprobación remota aprobada y aún no consumida
                     from models import PriceApproval
-                    aprobacion = PriceApproval.query.filter_by(
-                        vendedor_id=current_user.id,
-                        product_id=producto.id,
-                        variant_id=variant_id,
-                        estado='aprobado'
-                    ).order_by(PriceApproval.fecha_resolucion.desc()).first()
+                    aprobacion = None
+                    if item.get('aprobacion_id'):
+                        aprobacion = PriceApproval.query.filter_by(
+                            id=item.get('aprobacion_id'),
+                            vendedor_id=current_user.id,
+                            estado='aprobado'
+                        ).first()
+                    
+                    if not aprobacion:
+                        aprobacion = PriceApproval.query.filter_by(
+                            vendedor_id=current_user.id,
+                            product_id=producto.id,
+                            variant_id=variant_id,
+                            estado='aprobado',
+                            fue_vendido=False
+                        ).order_by(PriceApproval.fecha_resolucion.desc()).first()
 
                     # Validar si existe aprobación y si el precio coincide o es superior al aprobado
                     if aprobacion and precio_venta_final >= float(aprobacion.precio_aprobado):
-                        # Todo bien, se permite la venta con este precio
-                        pass
+                        # Se permite la venta con el precio y se vincula la aprobación a la venta
+                        aprobacion.venta_id = nueva_venta.id
+                        aprobacion.fue_vendido = True
+                        aprobacion.fecha_venta = obtener_hora_bogota()
                     else:
                         # Fallback al sistema viejo (códigos) para compatibilidad o error directo
                         auth = item.get('autorizacion')

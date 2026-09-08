@@ -381,11 +381,17 @@ class PriceApproval(db.Model):
     fecha_solicitud  = db.Column(db.DateTime, default=obtener_hora_bogota)
     fecha_resolucion = db.Column(db.DateTime, nullable=True)
 
+    # Venta asociada (cuando la aprobación concluye exitosamente en venta)
+    venta_id         = db.Column(db.Integer, db.ForeignKey('sales.id'), nullable=True)
+    fue_vendido      = db.Column(db.Boolean, default=False, index=True)
+    fecha_venta      = db.Column(db.DateTime, nullable=True)
+
     # Relaciones
     vendedor = db.relationship('User',           foreign_keys=[vendedor_id], backref='solicitudes_precio', lazy=True)
     admin    = db.relationship('User',           foreign_keys=[admin_id],    backref='aprobaciones_precio', lazy=True)
     producto = db.relationship('Product',        foreign_keys=[product_id],  backref='solicitudes_precio', lazy=True)
     variante = db.relationship('ProductVariant', foreign_keys=[variant_id],  backref='solicitudes_precio', lazy=True)
+    venta    = db.relationship('Sale',           foreign_keys=[venta_id],    backref='aprobaciones_precio', lazy=True)
 # =====================================================
 
 

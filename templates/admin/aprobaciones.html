@@ -1,27 +1,436 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-5">
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
     <div>
-        <a href="{{ url_for('admin_bp.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill mb-2">
-            <i class="fa-solid fa-arrow-left me-1"></i> Dashboard
+        <a href="{{ url_for('admin_bp.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-2" style="border-color: var(--tekfix-border); color: var(--tekfix-text-main);">
+            <i class="fa-solid fa-arrow-left me-1"></i> Volver al Dashboard
         </a>
-        <h2 class="fw-bold text-tekfix-main mb-0">
-            <i class="fa-solid fa-bell-concierge me-2" style="color: var(--tekfix-primary);"></i>Aprobaciones de Precio
+        <h2 class="fw-bold text-tekfix-main mb-0" style="font-family: 'Montserrat', sans-serif;">
+            <i class="fa-solid fa-stamp text-tekfix-primary me-2"></i>Gestión y Registro de Aprobaciones de Precios
         </h2>
-        <p class="text-tekfix-sec">Solicitudes pendientes de autorizacion del vendedor
-            <span class="badge rounded-pill ms-1" style="background:var(--tekfix-primary); color:var(--tekfix-bg); font-size:.75rem;" id="badge-total">...</span>
-            <span class="badge rounded-pill" style="background:rgba(221,184,86,.15); color:var(--tekfix-primary); border:1px solid var(--tekfix-primary); font-size:.7rem;">
-                <i class="fa-solid fa-circle-notch fa-spin me-1"></i>En vivo cada 4 s
-            </span>
-        </p>
+        <p class="text-tekfix-sec mb-0">Control en vivo de autorizaciones y auditoría de solicitudes que terminaron en venta.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: rgba(197, 160, 89, 0.15); color: #8F6B22; border: 1px solid rgba(197, 160, 89, 0.4); font-size: 0.8rem;">
+            <i class="fa-solid fa-circle-notch fa-spin me-1"></i> Monitor en Vivo (4s)
+        </span>
     </div>
 </div>
 
-<!-- Contenedor principal de solicitudes -->
-<div id="lista-aprobaciones"></div>
+<!-- ==========================================
+     FILA DE MÉTRICAS KPI (ESTILO ORO & RELIEVE 3D)
+     ========================================== -->
+<div class="row g-3 mb-4">
+    <!-- 1. Total Autorizadas -->
+    <div class="col-xl-3 col-md-6 col-12">
+        <div class="aprob-kpi-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge rounded-pill px-3 py-1 fw-bold badge-kpi-blue">
+                    HISTÓRICO AUTORIZADO
+                </span>
+                <div class="aprob-avatar avatar-blue">
+                    <i class="fa-solid fa-stamp"></i>
+                </div>
+            </div>
+            <div class="text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Total Aprobadas</div>
+            <div class="fw-bolder text-dark" style="font-family: 'Montserrat', sans-serif; font-size: 1.85rem; letter-spacing: -0.5px;">
+                {{ total_aprobadas }} <span class="fs-6 fw-normal text-muted">solicitudes</span>
+            </div>
+            <small class="text-muted d-block mt-2">Precios especiales concedidos</small>
+        </div>
+    </div>
 
+    <!-- 2. CONCLUIDAS EN VENTA (DESTACADA) -->
+    <div class="col-xl-3 col-md-6 col-12">
+        <div class="aprob-kpi-card p-4 h-100 border-kpi-highlight">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge rounded-pill px-3 py-1 fw-bold badge-kpi-green">
+                    <i class="fa-solid fa-circle-check me-1"></i> EFECTIVIDAD: {{ tasa_conversion }}%
+                </span>
+                <div class="aprob-avatar avatar-green">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                </div>
+            </div>
+            <div class="text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Terminaron en Venta</div>
+            <div class="fw-bolder text-success" style="font-family: 'Montserrat', sans-serif; font-size: 1.85rem; letter-spacing: -0.5px;">
+                {{ aprobadas_vendidas }} <span class="fs-6 fw-normal text-muted">facturadas</span>
+            </div>
+            <small class="text-success fw-semibold d-block mt-2">
+                <i class="fa-solid fa-arrow-trend-up me-1"></i> Ventas cerradas con éxito
+            </small>
+        </div>
+    </div>
+
+    <!-- 3. Aprobadas Sin Concretar -->
+    <div class="col-xl-3 col-md-6 col-12">
+        <div class="aprob-kpi-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge rounded-pill px-3 py-1 fw-bold badge-kpi-amber">
+                    SIN VENTA AÚN
+                </span>
+                <div class="aprob-avatar avatar-amber">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+            </div>
+            <div class="text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Aprobadas Sin Venta</div>
+            <div class="fw-bolder" style="color: #D97706; font-family: 'Montserrat', sans-serif; font-size: 1.85rem; letter-spacing: -0.5px;">
+                {{ aprobadas_sin_vender }} <span class="fs-6 fw-normal text-muted">pendientes</span>
+            </div>
+            <small class="text-muted d-block mt-2">Autorizadas pero no facturadas</small>
+        </div>
+    </div>
+
+    <!-- 4. Solicitudes Rechazadas -->
+    <div class="col-xl-3 col-md-6 col-12">
+        <div class="aprob-kpi-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge rounded-pill px-3 py-1 fw-bold badge-kpi-red">
+                    DENEGADAS
+                </span>
+                <div class="aprob-avatar avatar-red">
+                    <i class="fa-solid fa-ban"></i>
+                </div>
+            </div>
+            <div class="text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Solicitudes Rechazadas</div>
+            <div class="fw-bolder text-danger" style="font-family: 'Montserrat', sans-serif; font-size: 1.85rem; letter-spacing: -0.5px;">
+                {{ total_rechazadas }} <span class="fs-6 fw-normal text-muted">rechazos</span>
+            </div>
+            <small class="text-muted d-block mt-2">No autorizadas por políticas</small>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     PESTAÑAS DE NAVEGACIÓN
+     ========================================== -->
+<ul class="nav nav-pills mb-4 gap-2 border-bottom pb-3" id="aprobacionesTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2" 
+                id="tab-pendientes-btn" data-bs-toggle="pill" data-bs-target="#tab-pendientes" type="button" role="tab">
+            <i class="fa-solid fa-bell-concierge"></i>
+            <span>Solicitudes en Espera</span>
+            <span class="badge rounded-pill bg-danger" id="badge-total-live">0</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2" 
+                id="tab-registro-btn" data-bs-toggle="pill" data-bs-target="#tab-registro" type="button" role="tab">
+            <i class="fa-solid fa-table-list"></i>
+            <span>Registro de Aprobaciones y Ventas</span>
+            <span class="badge rounded-pill bg-secondary">{{ historial|length }}</span>
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="aprobacionesTabContent">
+
+    <!-- ==========================================
+         PESTAÑA 1: SOLICITUDES EN VIVO (EN ESPERA)
+         ========================================== -->
+    <div class="tab-pane fade show active" id="tab-pendientes" role="tabpanel">
+        <div id="lista-aprobaciones"></div>
+    </div>
+
+    <!-- ==========================================
+         PESTAÑA 2: REGISTRO HISTÓRICO Y VENTAS
+         ========================================== -->
+    <div class="tab-pane fade" id="tab-registro" role="tabpanel">
+        
+        <!-- Filtros Rápidos y Buscador -->
+        <div class="card card-custom border-0 shadow-sm p-3 mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-lg-5 col-12">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0" style="border-color: var(--tekfix-border);">
+                            <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                        </span>
+                        <input type="text" id="filtro-busqueda" class="form-control border-start-0" 
+                               placeholder="Buscar por vendedor, producto o ticket de venta..." 
+                               style="border-color: var(--tekfix-border);" onkeyup="filtrarTabla()">
+                    </div>
+                </div>
+                <div class="col-lg-7 col-12 d-flex flex-wrap gap-2 justify-content-lg-end">
+                    <button type="button" class="btn btn-sm btn-filter rounded-pill px-3 active" onclick="setFiltroEstado('todos', this)">
+                        Todos ({{ historial|length }})
+                    </button>
+                    <button type="button" class="btn btn-sm btn-filter rounded-pill px-3" onclick="setFiltroEstado('vendido', this)">
+                        <i class="fa-solid fa-circle-check text-success me-1"></i>Terminaron en Venta ({{ aprobadas_vendidas }})
+                    </button>
+                    <button type="button" class="btn btn-sm btn-filter rounded-pill px-3" onclick="setFiltroEstado('no-vendido', this)">
+                        <i class="fa-solid fa-clock text-warning me-1"></i>Sin Venta Concretada ({{ aprobadas_sin_vender }})
+                    </button>
+                    <button type="button" class="btn btn-sm btn-filter rounded-pill px-3" onclick="setFiltroEstado('rechazado', this)">
+                        <i class="fa-solid fa-ban text-danger me-1"></i>Rechazadas ({{ total_rechazadas }})
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla Registro de Aprobaciones -->
+        <div class="card card-custom overflow-hidden border-0 shadow-sm p-0">
+            <div class="table-responsive p-0">
+                <table class="table table-hover table-custom align-middle m-0" id="tabla-registro">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">FECHA / HORA</th>
+                            <th>VENDEDOR & ADMIN</th>
+                            <th>PRODUCTO & VARIANTE</th>
+                            <th>PRECIOS (SUG / SOL / AUT)</th>
+                            <th class="text-center pe-4">ESTADO Y RESULTADO DE VENTA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reg in historial %}
+                        <tr class="fila-registro" 
+                            data-estado="{% if reg.estado == 'rechazado' %}rechazado{% elif reg.fue_vendido %}vendido{% else %}no-vendido{% endif %}"
+                            data-search="{{ reg.vendedor.nombre|lower }} {{ reg.producto.nombre|lower }} {% if reg.variante %}{{ reg.variante.nombre_variante|lower }}{% endif %} {% if reg.venta_id %}ticket #{{ reg.venta_id }}{% endif %}">
+                            
+                            <!-- Fecha / Hora -->
+                            <td class="ps-4 py-3">
+                                <span class="fw-bold text-dark d-block">
+                                    {{ reg.fecha_resolucion.strftime('%d/%m/%Y') if reg.fecha_resolucion else reg.fecha_solicitud.strftime('%d/%m/%Y') }}
+                                </span>
+                                <small class="text-secondary">
+                                    <i class="fa-regular fa-clock me-1"></i>
+                                    {{ reg.fecha_resolucion.strftime('%H:%M') if reg.fecha_resolucion else reg.fecha_solicitud.strftime('%H:%M') }}
+                                </small>
+                            </td>
+
+                            <!-- Vendedor y Admin -->
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-user-sm">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold text-tekfix-main d-block">{{ reg.vendedor.nombre }}</span>
+                                        <small class="text-muted">
+                                            {% if reg.admin %}
+                                                <i class="fa-solid fa-user-shield me-1 text-primary"></i>Por: {{ reg.admin.nombre }}
+                                            {% else %}
+                                                <i class="fa-solid fa-user-shield me-1"></i>Sistema
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Producto y Variante -->
+                            <td>
+                                <span class="fw-bold text-dark">{{ reg.producto.nombre }}</span>
+                                {% if reg.variante %}
+                                    <span class="badge bg-light text-dark border ms-1">{{ reg.variante.nombre_variante }}</span>
+                                {% endif %}
+                                <small class="d-block text-secondary">SKU: {{ reg.producto.sku }}</small>
+                            </td>
+
+                            <!-- Precios -->
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div>
+                                        <small class="text-secondary text-uppercase d-block" style="font-size: 0.65rem;">Sugerido</small>
+                                        <span class="text-decoration-line-through text-muted fw-semibold">${{ (reg.precio_original)|cop }}</span>
+                                    </div>
+                                    <div class="vr"></div>
+                                    <div>
+                                        <small class="text-secondary text-uppercase d-block" style="font-size: 0.65rem;">Solicitado</small>
+                                        <span class="text-secondary fw-semibold">${{ (reg.precio_solicitado)|cop }}</span>
+                                    </div>
+                                    <div class="vr"></div>
+                                    <div>
+                                        <small class="text-secondary text-uppercase d-block fw-bold" style="font-size: 0.65rem; color: var(--tekfix-primary);">Autorizado</small>
+                                        {% if reg.precio_aprobado %}
+                                            <span class="fw-bolder fs-6 text-dark" style="font-family: 'Montserrat', sans-serif;">${{ (reg.precio_aprobado)|cop }}</span>
+                                        {% else %}
+                                            <span class="text-muted">--</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Estado y Resultado de Venta -->
+                            <td class="text-center pe-4">
+                                {% if reg.estado == 'rechazado' %}
+                                    <div class="d-inline-block text-start">
+                                        <span class="badge rounded-pill px-3 py-1 fw-bold bg-danger-subtle text-danger border border-danger">
+                                            <i class="fa-solid fa-ban me-1"></i> RECHAZADA
+                                        </span>
+                                        {% if reg.motivo_rechazo %}
+                                            <small class="d-block text-danger mt-1 opacity-75" style="max-width: 220px; font-size: 0.72rem;">
+                                                {{ reg.motivo_rechazo }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+
+                                {% elif reg.fue_vendido %}
+                                    <!-- TERMINÓ EN VENTA -->
+                                    <div class="d-inline-block text-start">
+                                        <span class="badge rounded-pill px-3 py-1 fw-bold bg-success-subtle text-success border border-success">
+                                            <i class="fa-solid fa-bag-shopping me-1"></i> TERMINÓ EN VENTA
+                                        </span>
+                                        <div class="mt-1">
+                                            <a href="{{ url_for('sales_bp.historial') }}" class="fw-bold text-success text-decoration-none" style="font-size: 0.8rem;">
+                                                <i class="fa-solid fa-receipt me-1"></i>Ticket Venta #{{ reg.venta_id }}
+                                            </a>
+                                            {% if reg.fecha_venta %}
+                                                <small class="d-block text-muted" style="font-size: 0.7rem;">
+                                                    Facturado: {{ reg.fecha_venta.strftime('%d/%m/%Y %H:%M') }}
+                                                </small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                {% else %}
+                                    <!-- APROBADA SIN VENTA CONCRETADA -->
+                                    <div class="d-inline-block text-start">
+                                        <span class="badge rounded-pill px-3 py-1 fw-bold bg-warning-subtle text-warning-emphasis border border-warning">
+                                            <i class="fa-solid fa-clock me-1"></i> AUTORIZADO - SIN VENTA
+                                        </span>
+                                        <small class="d-block text-muted mt-1" style="font-size: 0.72rem;">
+                                            No se facturó en el POS
+                                        </small>
+                                    </div>
+                                {% endif %}
+                            </td>
+
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-secondary">
+                                <i class="fa-solid fa-folder-open fs-1 mb-2 opacity-50"></i>
+                                <p class="mb-0">Aún no se han registrado aprobaciones en el historial.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ==========================================
+     ESTILOS PREMIUM (DESTELLOS DORADOS & RELIEVE)
+     ========================================== -->
 <style>
+.aprob-kpi-card {
+    background: linear-gradient(150deg, #FFFFFF 0%, #FAF8F5 100%);
+    border: 1.5px solid rgba(197, 160, 89, 0.38) !important;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(197, 160, 89, 0.12), 0 2px 6px rgba(0, 0, 0, 0.03);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.aprob-kpi-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3.5px;
+    background: linear-gradient(90deg, #A8833B 0%, #DFBA73 35%, #FFFFFF 50%, #DFBA73 65%, #C5A059 100%);
+    border-radius: 18px 18px 0 0;
+}
+.aprob-kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 34px rgba(197, 160, 89, 0.24);
+    border-color: rgba(197, 160, 89, 0.75) !important;
+}
+
+.border-kpi-highlight {
+    border: 2px solid #059669 !important;
+    box-shadow: 0 10px 30px rgba(5, 150, 105, 0.15), 0 2px 6px rgba(0,0,0,0.03);
+}
+
+.aprob-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+.avatar-blue {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(147, 197, 253, 0.08) 100%);
+    color: #2563EB;
+    border: 1.2px solid rgba(59, 130, 246, 0.38);
+}
+.avatar-green {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(167, 243, 208, 0.08) 100%);
+    color: #059669;
+    border: 1.2px solid rgba(16, 185, 129, 0.45);
+}
+.avatar-amber {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(253, 230, 138, 0.08) 100%);
+    color: #D97706;
+    border: 1.2px solid rgba(245, 158, 11, 0.45);
+}
+.avatar-red {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(254, 202, 202, 0.08) 100%);
+    color: #DC2626;
+    border: 1.2px solid rgba(239, 68, 68, 0.38);
+}
+
+.badge-kpi-blue {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563EB;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    font-size: 0.7rem;
+    font-family: 'Montserrat', sans-serif;
+}
+.badge-kpi-green {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    font-size: 0.7rem;
+    font-family: 'Montserrat', sans-serif;
+}
+.badge-kpi-amber {
+    background: rgba(245, 158, 11, 0.12);
+    color: #D97706;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    font-size: 0.7rem;
+    font-family: 'Montserrat', sans-serif;
+}
+.badge-kpi-red {
+    background: rgba(239, 68, 68, 0.12);
+    color: #DC2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    font-size: 0.7rem;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.avatar-user-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(197, 160, 89, 0.15);
+    color: #8F6B22;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+}
+
+.btn-filter {
+    background: #FFFFFF;
+    border: 1px solid var(--tekfix-border);
+    color: var(--tekfix-text-main);
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+.btn-filter:hover, .btn-filter.active {
+    background: var(--tekfix-primary) !important;
+    color: #FFFFFF !important;
+    border-color: var(--tekfix-primary) !important;
+}
+
 .aprov-card {
     animation: slideIn .3s ease-out;
     transition: opacity .3s, transform .3s;
@@ -32,6 +441,9 @@
 }
 </style>
 
+<!-- ==========================================
+     SCRIPT EN VIVO Y FILTROS DEL HISTORIAL
+     ========================================== -->
 <script>
 (function() {
     'use strict';
@@ -50,36 +462,39 @@
 
     function render(items) {
         const cont  = document.getElementById('lista-aprobaciones');
-        const badge = document.getElementById('badge-total');
-        if (badge) badge.textContent = items.length;
+        const badge = document.getElementById('badge-total-live');
+        if (badge) {
+            badge.textContent = items.length;
+            badge.className = items.length > 0 ? 'badge rounded-pill bg-danger' : 'badge rounded-pill bg-secondary';
+        }
 
         if (items.length === 0) {
             cont.innerHTML = `
             <div class="card card-custom p-5 text-center">
-                <i class="fa-solid fa-circle-check fa-3x mb-3 d-block" style="color:var(--tekfix-primary); opacity:.5;"></i>
-                <h5 class="fw-bold text-tekfix-main mb-1">Sin solicitudes pendientes</h5>
-                <p class="text-tekfix-sec mb-0">Cuando un vendedor solicite un precio especial, apareceran aqui automaticamente.</p>
+                <i class="fa-solid fa-circle-check fa-3x mb-3 d-block" style="color: #059669; opacity:.7;"></i>
+                <h5 class="fw-bold text-tekfix-main mb-1">Sin solicitudes pendientes en este momento</h5>
+                <p class="text-tekfix-sec mb-0">Cuando un vendedor solicite un precio especial desde la caja POS, aparecerá aquí de inmediato.</p>
             </div>`;
             return;
         }
 
         cont.innerHTML = items.map(s => {
             const varLabel = s.variante
-                ? `<span class="badge bg-tekfix-card text-tekfix-sec border ms-2">${s.variante}</span>`
+                ? `<span class="badge bg-light text-dark border ms-2">${s.variante}</span>`
                 : '';
             return `
-            <div class="card card-custom aprov-card mb-3 p-4" id="aprov-${s.id}">
+            <div class="card card-custom aprov-card mb-3 p-4 border" style="border-color: rgba(197, 160, 89, 0.4) !important;" id="aprov-${s.id}">
                 <div class="row align-items-center g-4">
 
                     <!-- Info producto y vendedor -->
                     <div class="col-lg-5">
                         <div class="d-flex align-items-center gap-3 mb-2">
-                            <div style="background:var(--tekfix-primary); border-radius:10px; padding:10px 13px; flex-shrink:0;">
-                                <i class="fa-solid fa-tag fa-lg" style="color:var(--tekfix-bg);"></i>
+                            <div style="background: linear-gradient(135deg, rgba(197, 160, 89, 0.2), rgba(223, 186, 115, 0.08)); border: 1.2px solid rgba(197, 160, 89, 0.4); border-radius:12px; padding:10px 14px; flex-shrink:0;">
+                                <i class="fa-solid fa-tag fa-lg" style="color:#8F6B22;"></i>
                             </div>
                             <div>
-                                <div class="fw-bold text-tekfix-main fs-6">${s.producto} ${varLabel}</div>
-                                <small class="text-tekfix-sec">
+                                <div class="fw-bold text-dark fs-6">${s.producto} ${varLabel}</div>
+                                <small class="text-secondary">
                                     <i class="fa-solid fa-user me-1"></i>${s.vendedor}
                                     &nbsp;&bull;&nbsp;
                                     <span class="badge bg-warning text-dark rounded-pill" style="font-size:.65rem;">${s.hace}</span>
@@ -88,17 +503,17 @@
                         </div>
                         <div class="d-flex gap-4 mt-3">
                             <div class="text-center">
-                                <div class="text-tekfix-sec mb-1" style="font-size:.6rem; letter-spacing:.5px; text-transform:uppercase;">Precio Sugerido</div>
-                                <div class="fw-bolder text-danger fs-5">${fmt(s.precio_original)}</div>
+                                <div class="text-secondary mb-1" style="font-size:.6rem; letter-spacing:.5px; text-transform:uppercase;">Precio Sugerido</div>
+                                <div class="fw-bolder text-muted fs-5 text-decoration-line-through">${fmt(s.precio_original)}</div>
                             </div>
                             <div class="vr"></div>
                             <div class="text-center">
-                                <div class="text-tekfix-sec mb-1" style="font-size:.6rem; letter-spacing:.5px; text-transform:uppercase;">Precio solicitado</div>
-                                <div class="fw-bolder fs-5" style="color:var(--tekfix-primary);">${fmt(s.precio_solicitado)}</div>
+                                <div class="text-secondary mb-1" style="font-size:.6rem; letter-spacing:.5px; text-transform:uppercase;">Precio Solicitado</div>
+                                <div class="fw-bolder fs-5 text-primary">${fmt(s.precio_solicitado)}</div>
                             </div>
                             <div class="vr"></div>
                             <div class="text-center">
-                                <div class="text-tekfix-sec mb-1" style="font-size:.6rem; letter-spacing:.5px; text-transform:uppercase;">Diferencia</div>
+                                <div class="text-secondary mb-1" style="font-size:.6rem; letter-spacing:.5px; text-transform:uppercase;">Diferencia</div>
                                 <div class="fw-bolder text-danger fs-5">-${fmt(s.precio_original - s.precio_solicitado)}</div>
                             </div>
                         </div>
@@ -106,20 +521,20 @@
 
                     <!-- Precio a autorizar (editable) -->
                     <div class="col-lg-3">
-                        <label class="form-label small fw-bold text-tekfix-main mb-1">
+                        <label class="form-label small fw-bold text-dark mb-1">
                             <i class="fa-solid fa-pen-to-square me-1" style="color:var(--tekfix-primary);"></i>Precio a Autorizar
                         </label>
                         <div class="input-group">
-                            <span class="input-group-text fw-bold border-0 bg-tekfix-card" style="color:var(--tekfix-primary);">$</span>
+                            <span class="input-group-text fw-bold border bg-light text-dark">$</span>
                             <input type="number" step="1"
-                                   class="form-control border-0 text-end fw-bold fs-5 shadow-sm"
+                                   class="form-control text-end fw-bold fs-5 shadow-sm"
                                    id="precio-aprob-${s.id}"
                                    value="${Math.round(s.precio_solicitado)}">
                         </div>
-                        <small class="text-tekfix-sec" style="font-size:.7rem;">Puedes ajustar el monto antes de aprobar</small>
+                        <small class="text-muted" style="font-size:.7rem;">Puedes ajustar el monto antes de aprobar</small>
                     </div>
 
-                    <!-- Botones accion -->
+                    <!-- Botones de Acción -->
                     <div class="col-lg-4 d-flex flex-column gap-2">
                         <button class="btn btn-success rounded-pill fw-bold py-2 shadow-sm"
                                 onclick="aprobar(${s.id})">
@@ -160,7 +575,7 @@
     };
 
     window.rechazar = async function(id) {
-        const motivo = prompt('Motivo del rechazo (opcional, sera visible al vendedor):') || 'Sin motivo especificado.';
+        const motivo = prompt('Motivo del rechazo (opcional, será visible al vendedor):') || 'Sin motivo especificado.';
         try {
             const r = await fetch(`/admin/aprobaciones/${id}/rechazar`, {
                 method: 'POST',
@@ -179,5 +594,36 @@
     cargar();
     setInterval(cargar, 4000);
 })();
+
+// ==========================================
+// FILTRADO DINÁMICO DEL REGISTRO DE VENTAS
+// ==========================================
+let estadoActual = 'todos';
+
+function setFiltroEstado(estado, btn) {
+    estadoActual = estado;
+    document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filtrarTabla();
+}
+
+function filtrarTabla() {
+    const q = (document.getElementById('filtro-busqueda')?.value || '').toLowerCase().trim();
+    const filas = document.querySelectorAll('.fila-registro');
+
+    filas.forEach(fila => {
+        const estadoFila = fila.getAttribute('data-estado');
+        const textoFila  = fila.getAttribute('data-search') || '';
+
+        const coincideEstado = (estadoActual === 'todos') || (estadoFila === estadoActual);
+        const coincideTexto  = (q === '') || textoFila.includes(q);
+
+        if (coincideEstado && coincideTexto) {
+            fila.style.display = '';
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+}
 </script>
 {% endblock %}
