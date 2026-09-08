@@ -8,9 +8,11 @@
         </div>
         <div>
             <h2 class="fw-bolder text-tekfix-main m-0" style="font-family: var(--font-heading); font-size: 2.1rem; letter-spacing: -0.02em;">
-                Historial de Operaciones
+                {% if current_user.rol == 'vendedor' %}Ventas del Día{% else %}Historial de Operaciones{% endif %}
             </h2>
-            <p class="text-secondary m-0" style="font-size: 0.88rem;">Consolidado de ventas y trazabilidad financiera</p>
+            <p class="text-secondary m-0" style="font-size: 0.88rem;">
+                {% if current_user.rol == 'vendedor' %}Consolidado de ventas de la jornada actual{% else %}Consolidado de ventas y trazabilidad financiera{% endif %}
+            </p>
         </div>
     </div>
     
@@ -18,8 +20,8 @@
         <button onclick="window.print()" class="btn rounded-pill px-4 py-2 fw-bold text-white shadow-sm d-flex align-items-center gap-2" style="background: linear-gradient(135deg, #1A1A1A 0%, #2A2A2A 100%); border: 1px solid #1A1A1A; font-size: 0.85rem; letter-spacing: 0.03em;">
             <i class="fa-solid fa-print" style="color: var(--tekfix-hover);"></i> Imprimir a PDF
         </button>
-        <a href="/admin/dashboard" class="btn bg-white border rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 text-tekfix-main" style="border-color: var(--tekfix-border) !important; font-size: 0.85rem;">
-            <i class="fa-solid fa-arrow-left text-secondary"></i> Panel
+        <a href="{{ url_for('admin_bp.dashboard') if current_user.rol == 'admin' else url_for('sales_bp.procesar_venta') }}" class="btn bg-white border rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 text-tekfix-main" style="border-color: var(--tekfix-border) !important; font-size: 0.85rem;">
+            <i class="fa-solid fa-arrow-left text-secondary"></i> {{ 'Panel' if current_user.rol == 'admin' else 'Caja' }}
         </a>
     </div>
 </div>
@@ -27,9 +29,9 @@
 <!-- Encabezado exclusivo de Impresión / PDF -->
 <div class="d-none d-print-block text-center mb-4 pb-3 border-bottom">
     <h2 class="fw-bold text-tekfix-main mb-1">TEKFIX - ACCESORIOS & TECNOLOGÍA</h2>
-    <h4 class="text-secondary fw-semibold mb-2">REPORTE CONSOLIDADO DE OPERACIONES</h4>
+    <h4 class="text-secondary fw-semibold mb-2">{% if current_user.rol == 'vendedor' %}REPORTE DE VENTAS DEL DÍA{% else %}REPORTE CONSOLIDADO DE OPERACIONES{% endif %}</h4>
     <p class="mb-1 text-secondary" style="font-size: 0.95rem;">
-        Período Analizado: <strong>{{ fecha_inicio if fecha_inicio else 'Inicios' }}</strong> hasta <strong>{{ fecha_fin if fecha_fin else 'Hoy' }}</strong>
+        Período: <strong>{{ fecha_inicio if fecha_inicio else 'Hoy' }}</strong>{% if current_user.rol != 'vendedor' and fecha_inicio != fecha_fin %} hasta <strong>{{ fecha_fin if fecha_fin else 'Hoy' }}</strong>{% endif %}
     </p>
     <small class="text-muted">Generado por: {{ current_user.nombre }} ({{ current_user.rol|capitalize }}) | Total Operaciones: {{ total_operaciones }} | Total Recaudado: ${{ (total_consolidado)|cop }}</small>
 </div>
@@ -39,26 +41,32 @@
     <div class="d-flex align-items-center gap-2 flex-wrap">
         <span class="badge bg-white text-secondary border rounded-pill px-3 py-2 fw-semibold shadow-sm d-inline-flex align-items-center gap-2" style="font-size: 0.82rem; font-family: var(--font-mono); border-color: var(--tekfix-border) !important;">
             <i class="fa-regular fa-calendar-days" style="color: var(--tekfix-primary);"></i>
-            <span translate="no">{{ fecha_inicio if fecha_inicio else 'Inicios' }}</span>
-            <i class="fa-solid fa-arrow-right fs-xs opacity-50"></i>
-            <span translate="no">{{ fecha_fin if fecha_fin else 'Hoy' }}</span>
+            {% if current_user.rol == 'vendedor' %}
+                <span translate="no">Hoy: {{ fecha_inicio }}</span>
+            {% else %}
+                <span translate="no">{{ fecha_inicio if fecha_inicio else 'Inicios' }}</span>
+                <i class="fa-solid fa-arrow-right fs-xs opacity-50"></i>
+                <span translate="no">{{ fecha_fin if fecha_fin else 'Hoy' }}</span>
+            {% endif %}
         </span>
         <span class="badge bg-white text-secondary border rounded-pill px-3 py-2 fw-semibold shadow-sm d-inline-flex align-items-center gap-2" style="font-size: 0.82rem; border-color: var(--tekfix-border) !important;">
             <i class="fa-solid fa-receipt" style="color: var(--tekfix-primary);"></i>
             {{ total_operaciones }} Operaciones
         </span>
-        {% if request.args.get('fecha_inicio') or request.args.get('fecha_fin') %}
+        {% if current_user.rol == 'admin' and (request.args.get('fecha_inicio') or request.args.get('fecha_fin')) %}
         <a href="{{ url_for('sales_bp.historial') }}" class="btn btn-sm btn-link text-decoration-none text-secondary p-0 ms-1" style="font-size: 0.8rem;" title="Restablecer a Hoy">
             <i class="fa-solid fa-rotate-left me-1"></i> Restablecer
         </a>
         {% endif %}
     </div>
 
+    {% if current_user.rol == 'admin' %}
     <div>
         <button class="btn bg-white border rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2 text-tekfix-main" type="button" data-bs-toggle="modal" data-bs-target="#filtroFechasModal" style="border-color: var(--tekfix-border) !important; font-size: 0.82rem;">
             <i class="fa-solid fa-filter" style="color: var(--tekfix-primary);"></i> Filtrar Rango de Fechas
         </button>
     </div>
+    {% endif %}
 </div>
 
 <!-- ========== ESTILOS DE IMPACTO PARA TARJETAS KPI DE OPERACIONES ========== -->
@@ -781,7 +789,8 @@
 {% endfor %}
 {% endif %}
 
-<!-- ========== MODAL: FILTRAR RANGO DE FECHAS ========== -->
+<!-- ========== MODAL: FILTRAR RANGO DE FECHAS (SOLO ADMIN) ========== -->
+{% if current_user.rol == 'admin' %}
 <div class="modal fade" id="filtroFechasModal" tabindex="-1" aria-labelledby="filtroFechasModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
@@ -857,6 +866,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <style>
 /* ====== Estilos de Impresión / Guardar PDF ====== */

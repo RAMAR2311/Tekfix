@@ -483,17 +483,24 @@ def imprimir_ticket(sale_id):
     venta = Sale.query.get_or_404(sale_id)
     return render_template('sales/ticket.html', venta=venta)
 
-# Endpoint Historial de Ventas (Administradores)
+# Endpoint Historial de Ventas / Ventas del Día
 @sales_bp.route('/historial', methods=['GET'])
 @login_required
-@admin_required
 def historial():
+    if current_user.rol not in ['admin', 'vendedor']:
+        abort(403)
+
     # Calcular el valor exacto de 'HOY' en Bogotá
     hoy_bogota = obtener_hora_bogota().strftime('%Y-%m-%d')
     
-    # Si existen los args, los usa, de lo contrario colapsa a HOY por defecto
-    fecha_inicio = request.args.get('fecha_inicio', hoy_bogota)
-    fecha_fin = request.args.get('fecha_fin', hoy_bogota)
+    # Si el usuario es vendedor: acceso estrictamente limitado a las ventas del DÍA ACTUAL
+    if current_user.rol == 'vendedor':
+        fecha_inicio = hoy_bogota
+        fecha_fin = hoy_bogota
+    else:
+        # Administrador: permite consultar cualquier rango de fechas o colapsa a HOY por defecto
+        fecha_inicio = request.args.get('fecha_inicio', hoy_bogota)
+        fecha_fin = request.args.get('fecha_fin', hoy_bogota)
     
     # Optimización: eager loading (evita N+1 con joinedload)
     query = Sale.query.options(joinedload(Sale.vendedor))
