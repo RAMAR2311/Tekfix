@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Pago Servidor — Zenic / Tekfix</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --tekfix-bg: #F4F6F9;
+            --tekfix-card: #FFFFFF;
+            --tekfix-primary: #DDB856;
+            --tekfix-primary-dark: #C59B27;
+            --tekfix-main: #0F172A;
+            --tekfix-sec: #64748B;
+            --tekfix-border: rgba(221, 184, 86, 0.4);
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--tekfix-main);
+        }
+        .confirm-card {
+            background: #FFFFFF;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35), 0 0 25px rgba(221, 184, 86, 0.2);
+            border: 2px solid var(--tekfix-primary);
+            max-width: 480px;
+            width: 100%;
+            overflow: hidden;
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .header-brand {
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            padding: 30px 24px 24px;
+            text-align: center;
+            border-bottom: 2px solid var(--tekfix-primary);
+        }
+        .pin-input {
+            letter-spacing: 0.4em;
+            font-size: 1.6rem;
+            text-align: center;
+            font-weight: 800;
+            border: 2px solid rgba(221, 184, 86, 0.6);
+            border-radius: 14px;
+            padding: 12px;
+            color: #0F172A;
+            background: #F8FAFC;
+            transition: all 0.2s ease;
+        }
+        .pin-input:focus {
+            border-color: var(--tekfix-primary-dark);
+            box-shadow: 0 0 0 4px rgba(221, 184, 86, 0.25);
+            background: #FFFFFF;
+            outline: none;
+        }
+        .btn-confirm {
+            background: linear-gradient(135deg, #DDB856 0%, #C59B27 100%);
+            color: #0F172A;
+            font-weight: 800;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 1rem;
+            letter-spacing: 0.03em;
+            box-shadow: 0 6px 18px rgba(221, 184, 86, 0.4);
+            transition: all 0.25s ease;
+        }
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(221, 184, 86, 0.6);
+            color: #000000;
+        }
+        .icon-circle {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="confirm-card">
+    <!-- Cabecera de Marca -->
+    <div class="header-brand">
+        <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+            <i class="fa-solid fa-server" style="color: var(--tekfix-primary); font-size: 1.8rem;"></i>
+            <h3 class="fw-bold mb-0 text-white" style="font-family: var(--font-heading); letter-spacing: 0.05em;">
+                Zenic <span style="color: var(--tekfix-primary);">Servidor</span>
+            </h3>
+        </div>
+        <p class="text-white-50 mb-0 small">
+            Portal Oficial de Confirmación de Mensualidad y Licencia
+        </p>
+    </div>
+
+    <div class="p-4 p-md-5 text-center">
+
+        {# CASO 1: ERROR GENERAL (TOKEN INVÁLIDO O EXPIRADO) #}
+        {% if error %}
+            <div class="icon-circle" style="background: rgba(239, 68, 68, 0.12); color: #EF4444; border: 2px solid rgba(239, 68, 68, 0.3);">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h4 class="fw-bold text-danger mb-2" style="font-family: var(--font-heading);">Enlace No Válido</h4>
+            <p class="text-secondary mb-4" style="font-size: 0.92rem; line-height: 1.5;">
+                {{ error }}
+            </p>
+            <a href="/" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">
+                <i class="fa-solid fa-house me-1"></i> Ir al Inicio
+            </a>
+
+        {# CASO 2: PAGO CONFIRMADO EXITOSAMENTE AHORA #}
+        {% elif exito %}
+            <div class="icon-circle" style="background: rgba(16, 185, 129, 0.12); color: #10B981; border: 2px solid rgba(16, 185, 129, 0.4);">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h4 class="fw-bold mb-2 text-success" style="font-family: var(--font-heading);">¡Pago Confirmado! ✅</h4>
+            <div class="badge rounded-pill px-3 py-2 fw-bold mb-3" style="background: rgba(221, 184, 86, 0.15); color: #9A7B1C; border: 1px solid rgba(221, 184, 86, 0.4); font-size: 0.85rem;">
+                Periodo: {{ mes_nombre }} {{ anio }}
+            </div>
+            <p class="text-dark fw-medium mb-3" style="font-size: 0.95rem; line-height: 1.5;">
+                La mensualidad del servidor ha sido registrada y autorizada en el sistema.
+            </p>
+            <div class="p-3 rounded-3 mb-4 text-start small border" style="background: #F8FAFC; border-color: rgba(16, 185, 129, 0.3) !important;">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-secondary">Fecha de Registro:</span>
+                    <strong class="text-dark">{{ fecha_pago.strftime('%Y-%m-%d %H:%M') if fecha_pago else 'Hoy' }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-secondary">Estado en App:</span>
+                    <strong class="text-success"><i class="fa-solid fa-check me-1"></i>Al Día</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-secondary">Alertas:</span>
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Desactivadas automáticamente</span>
+                </div>
+            </div>
+            <a href="/" class="btn btn-confirm w-100">
+                <i class="fa-solid fa-arrow-right me-1"></i> Ir al Sistema
+            </a>
+
+        {# CASO 3: YA ESTABA CONFIRMADO PREVIAMENTE #}
+        {% elif ya_confirmado %}
+            <div class="icon-circle" style="background: rgba(2, 132, 199, 0.12); color: #0284C7; border: 2px solid rgba(2, 132, 199, 0.35);">
+                <i class="fa-solid fa-certificate"></i>
+            </div>
+            <h4 class="fw-bold mb-2 text-dark" style="font-family: var(--font-heading);">¡Pago Ya Confirmado!</h4>
+            <div class="badge rounded-pill px-3 py-2 fw-bold mb-3" style="background: rgba(221, 184, 86, 0.15); color: #9A7B1C; border: 1px solid rgba(221, 184, 86, 0.4); font-size: 0.85rem;">
+                Periodo: {{ mes_nombre }} {{ anio }}
+            </div>
+            <p class="text-secondary mb-4" style="font-size: 0.92rem; line-height: 1.5;">
+                Este mes de mensualidad ya se encuentra registrado como <strong>pagado</strong> en el sistema. Las alertas se encuentran desactivadas.
+            </p>
+            <a href="/" class="btn btn-confirm w-100">
+                <i class="fa-solid fa-house me-1"></i> Ir al Sistema
+            </a>
+
+        {# CASO 4: FORMULARIO DE INGRESO DE PIN DEL PROVEEDOR #}
+        {% elif formulario_pin %}
+            <div class="icon-circle" style="background: rgba(221, 184, 86, 0.15); color: var(--tekfix-primary-dark); border: 2px solid rgba(221, 184, 86, 0.45);">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <h4 class="fw-bold mb-1 text-dark" style="font-family: var(--font-heading);">Autorizar Pago</h4>
+            <p class="text-secondary mb-3" style="font-size: 0.88rem;">
+                Mes a confirmar: <strong>{{ mes_nombre }} {{ anio }}</strong>
+            </p>
+
+            {% if pin_error %}
+            <div class="alert alert-danger py-2 px-3 mb-3 rounded-3 text-start small border-danger">
+                <i class="fa-solid fa-circle-exclamation me-1"></i>
+                <strong>Error:</strong> PIN de confirmación incorrecto. Inténtalo nuevamente.
+            </div>
+            {% endif %}
+
+            <form method="POST" action="/servidor/confirmar-pago">
+                <input type="hidden" name="token" value="{{ token }}">
+
+                <div class="mb-3 text-start">
+                    <label for="pin" class="form-label fw-bold small text-secondary mb-1">
+                        PIN Secreto del Proveedor:
+                    </label>
+                    <input type="password" id="pin" name="pin" class="form-control pin-input"
+                           maxlength="8" placeholder="••••" autofocus required autocomplete="off">
+                    <div class="form-text text-center text-muted" style="font-size: 0.75rem;">
+                        Ingresa el código PIN asignado para autorizar el desbloqueo.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-confirm w-100">
+                    <i class="fa-solid fa-circle-check me-2"></i> Confirmar Pago en Sistema
+                </button>
+            </form>
+
+        {% endif %}
+
+    </div>
+</div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -673,34 +673,57 @@
                 </a>
             </div>
 
-            <!-- Carrito Dropdown (Derecha) -->
-            <div id="global-cart-container" class="dropdown d-none">
-                <button class="btn btn-link position-relative p-2 text-decoration-none border-0 shadow-none" type="button" id="cartDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                    <i class="fa-solid fa-cart-shopping fs-3 text-tekfix-primary"></i>
-                    <span id="global-cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem;">0</span>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end cart-dropdown-menu shadow-lg border-0" aria-labelledby="cartDropdown">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="m-0 fw-bold text-tekfix-main"><i class="fa-solid fa-shopping-basket me-2 text-tekfix-primary"></i>Carrito Pendiente</h6>
-                        <button class="btn btn-sm text-danger p-0" onclick="clearGlobalCart()" title="Limpiar todo"><i class="fa-solid fa-trash-can"></i></button>
-                    </div>
-                    <div id="global-cart-items-list" class="mb-3 overflow-auto" style="max-height: 300px;">
-                        <!-- Dinámico -->
-                    </div>
-                    <div class="border-top pt-3">
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-tekfix-sec small">Total Estimado:</span>
-                            <span id="global-cart-total" class="fw-bold text-tekfix-primary fs-5">$0</span>
+            <!-- Zona Derecha: Badge Zenic Servidor + Carrito Dropdown -->
+            <div class="d-flex align-items-center gap-2">
+                {% if current_user.is_authenticated and current_user.rol == 'admin' and pago_servidor %}
+                    {% if pago_servidor.estado in ['al_dia', 'pagado'] %}
+                    <!-- Badge Superior en Navbar: Zenic Al Día -->
+                    <button type="button" class="btn btn-sm d-flex align-items-center gap-1 shadow-sm px-3 py-1 rounded-pill"
+                            style="background-color: #D1FAE5; color: #065F46; border: 1.5px solid #0F172A; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; transition: all 0.2s;"
+                            data-bs-toggle="modal" data-bs-target="#modalPagoServidor" title="Estado de Mensualidad Servidor Zenic">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Zenic: Al día</span>
+                    </button>
+                    {% else %}
+                    <!-- Badge de advertencia cuando requiere atención -->
+                    <button type="button" class="btn btn-sm d-flex align-items-center gap-1 shadow-sm px-3 py-1 rounded-pill"
+                            style="background-color: #FEE2E2; color: #991B1B; border: 1.5px solid #EF4444; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.78rem; transition: all 0.2s;"
+                            data-bs-toggle="modal" data-bs-target="#modalPagoServidor" title="Mensualidad Servidor Pendiente">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Zenic: Pago Pendiente</span>
+                    </button>
+                    {% endif %}
+                {% endif %}
+
+                <!-- Carrito Dropdown (Derecha) -->
+                <div id="global-cart-container" class="dropdown d-none">
+                    <button class="btn btn-link position-relative p-2 text-decoration-none border-0 shadow-none" type="button" id="cartDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                        <i class="fa-solid fa-cart-shopping fs-3 text-tekfix-primary"></i>
+                        <span id="global-cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem;">0</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end cart-dropdown-menu shadow-lg border-0" aria-labelledby="cartDropdown">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="m-0 fw-bold text-tekfix-main"><i class="fa-solid fa-shopping-basket me-2 text-tekfix-primary"></i>Carrito Pendiente</h6>
+                            <button class="btn btn-sm text-danger p-0" onclick="clearGlobalCart()" title="Limpiar todo"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
-                        <button class="btn btn-tekfix w-100 rounded-pill fw-bold py-2 shadow-sm" onclick="confirmGlobalCart()">
-                            <i class="fa-solid fa-cash-register me-2"></i> CONFIRMAR Y VENDER
-                        </button>
+                        <div id="global-cart-items-list" class="mb-3 overflow-auto" style="max-height: 300px;">
+                            <!-- Dinámico -->
+                        </div>
+                        <div class="border-top pt-3">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-tekfix-sec small">Total Estimado:</span>
+                                <span id="global-cart-total" class="fw-bold text-tekfix-primary fs-5">$0</span>
+                            </div>
+                            <button class="btn btn-tekfix w-100 rounded-pill fw-bold py-2 shadow-sm" onclick="confirmGlobalCart()">
+                                <i class="fa-solid fa-cash-register me-2"></i> CONFIRMAR Y VENDER
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Placeholder if cart is hidden -->
-            <div id="cart-placeholder" class="d-none" style="width: 40px;"></div>
+                <!-- Placeholder if cart is hidden -->
+                <div id="cart-placeholder" class="d-none" style="width: 40px;"></div>
+            </div>
         </div>
     </nav>
 
@@ -996,6 +1019,77 @@
 
     <!-- App Container -->
     <main class="container mb-5">
+
+        {# ── BANNERS INTELIGENTES DE MENSUALIDAD SERVIDOR ZENIC (SOLO ADMIN) ── #}
+        {% if current_user.is_authenticated and current_user.rol == 'admin' and pago_servidor and pago_servidor.estado not in ['al_dia', 'pagado'] %}
+            {% if pago_servidor.estado == 'preventivo' %}
+            <div class="alert alert-warning border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2"
+                 style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border-left: 5px solid #D97706 !important; color: #92400E;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-bell fs-4 text-warning"></i>
+                    <div>
+                        <strong class="d-block text-dark">Mensualidad Servidor Zenic: Vence el 15 de {{ pago_servidor.mes_nombre }} (faltan {{ pago_servidor.dias_restantes }} días)</strong>
+                        <small class="text-secondary">Evita interrupciones realizando tu pago oportunamente.</small>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm fw-bold rounded-pill px-4 shadow-sm"
+                        style="background: #D97706; color: white;"
+                        data-bs-toggle="modal" data-bs-target="#modalPagoServidor">
+                    <i class="fa-solid fa-wallet me-1"></i> Ver Pago
+                </button>
+            </div>
+
+            {% elif pago_servidor.estado == 'hoy' %}
+            <div class="alert alert-danger border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2"
+                 style="background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%); border-left: 5px solid #DC2626 !important; color: #991B1B;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-calendar-day fs-3 text-danger"></i>
+                    <div>
+                        <strong class="d-block" style="font-size: 1.02rem;">¡Hoy 15 de {{ pago_servidor.mes_nombre }} vence la mensualidad de tu Servidor Zenic!</strong>
+                        <small>El servicio expira al cierre del día. Transfiere y reporta tu comprobante.</small>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-danger fw-bold rounded-pill px-4 shadow-sm"
+                        data-bs-toggle="modal" data-bs-target="#modalPagoServidor">
+                    <i class="fa-solid fa-bolt me-1"></i> Pagar Hoy
+                </button>
+            </div>
+
+            {% elif pago_servidor.estado == 'gabela' %}
+            <div class="alert alert-warning border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2"
+                 style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border-left: 5px solid #F59E0B !important; color: #B45309;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-hourglass-half fs-3 text-warning"></i>
+                    <div>
+                        <strong class="d-block" style="font-size: 1.02rem;">⏳ Periodo de gracia Servidor Zenic (quedan {{ pago_servidor.dias_gabela }} días de gabela). Venció el 15 de {{ pago_servidor.mes_nombre }}.</strong>
+                        <small>El sistema entrará en suspensión automática si no se confirma el pago.</small>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm fw-bold rounded-pill px-4 shadow-sm text-white"
+                        style="background: #D97706;"
+                        data-bs-toggle="modal" data-bs-target="#modalPagoServidor">
+                    <i class="fa-brands fa-whatsapp me-1"></i> Reportar Pago
+                </button>
+            </div>
+
+            {% elif pago_servidor.estado == 'vencido' %}
+            <div class="alert alert-danger border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2"
+                 style="background: linear-gradient(135deg, #7F1D1D 0%, #991B1B 100%); border: 2px solid #EF4444 !important; color: #FFFFFF;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation fs-3 text-warning"></i>
+                    <div>
+                        <strong class="d-block" style="font-size: 1.05rem;">🚨 Mensualidad Servidor Zenic vencida (Gabela de 5 días agotada). Venció el 15 de {{ pago_servidor.mes_nombre }}.</strong>
+                        <small class="text-white-50">Por favor realiza y confirma la transferencia de inmediato para evitar el bloqueo del servicio.</small>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-light fw-bold rounded-pill px-4 shadow-sm text-danger"
+                        data-bs-toggle="modal" data-bs-target="#modalPagoServidor">
+                    <i class="fa-brands fa-whatsapp me-1"></i> Reportar Pago
+                </button>
+            </div>
+            {% endif %}
+        {% endif %}
+
         <!-- Renderizado de Flash Messages de Flask -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -1264,8 +1358,104 @@
             }
         }
 
+        // Copiar texto al portapapeles con feedback visual
+        function copiarAlPortapapeles(texto, btn) {
+            navigator.clipboard.writeText(texto).then(() => {
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check me-1 text-success"></i> ¡Copiado!';
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                }, 2000);
+            }).catch(err => {
+                console.error('Error al copiar al portapapeles:', err);
+            });
+        }
+
         // Inicializar UI
         document.addEventListener('DOMContentLoaded', updateGlobalCartUI);
     </script>
+
+    {# ── MODAL INTERACTIVO DE PAGO DE MENSUALIDAD SERVIDOR ZENIC (SOLO ADMIN) ── #}
+    {% if current_user.is_authenticated and current_user.rol == 'admin' and pago_servidor %}
+    <div class="modal fade" id="modalPagoServidor" tabindex="-1" aria-labelledby="modalPagoServidorLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="border: 2px solid var(--tekfix-primary) !important;">
+                <div class="modal-header text-white" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border-bottom: 2px solid var(--tekfix-primary);">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-server fs-4" style="color: var(--tekfix-primary);"></i>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-0 text-white" id="modalPagoServidorLabel">Pago Mensualidad Servidor Zenic</h5>
+                            <span class="badge rounded-pill mt-1" style="background: rgba(221, 184, 86, 0.2); color: #F3E5AB; border: 1px solid rgba(221, 184, 86, 0.4); font-size: 0.72rem;">
+                                Vence: {{ pago_servidor.fecha_vencimiento_str }}
+                            </span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body p-4 text-center">
+                    <!-- Tarjeta Destacada Monto Mensual -->
+                    <div class="p-3 rounded-4 mb-4" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border: 1.5px solid rgba(221, 184, 86, 0.5); box-shadow: 0 4px 18px rgba(0,0,0,0.2);">
+                        <span class="text-uppercase fw-bold text-white-50 small d-block mb-1" style="letter-spacing: 0.06em;">VALOR MENSUALIDAD</span>
+                        <h2 class="fw-bolder mb-1 text-white" style="font-family: var(--font-heading); font-size: 2.3rem;">
+                            ${{ pago_servidor.monto }} <span style="font-size: 1.1rem; color: var(--tekfix-primary);">COP</span>
+                        </h2>
+                        <small class="text-white-50">Periodo: {{ pago_servidor.mes_nombre }} {{ pago_servidor.anio }}</small>
+                    </div>
+
+                    <h6 class="fw-bold text-uppercase text-secondary mb-3 small" style="letter-spacing: 0.05em;">
+                        Cuentas de Transferencia Autorizadas
+                    </h6>
+
+                    <div class="row g-3 mb-4 text-start">
+                        <!-- Tarjeta Nu -->
+                        <div class="col-12 col-sm-6">
+                            <div class="p-3 rounded-3 h-100 border position-relative" style="background: #FAF5FF; border-color: #D8B4FE !important;">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div class="d-flex align-items-center gap-1" style="color: #7E22CE; font-weight: 800; font-size: 0.9rem;">
+                                        <i class="fa-solid fa-credit-card"></i> Nu (Llave)
+                                    </div>
+                                    <span class="badge rounded-pill text-white" style="background: #7E22CE; font-size: 0.65rem;">Transfiya</span>
+                                </div>
+                                <div class="fw-bolder fs-5 text-dark font-monospace mb-2" id="txt-nu-llave">{{ pago_servidor.nu_llave }}</div>
+                                <button type="button" class="btn btn-sm btn-outline-dark w-100 rounded-pill fw-bold" style="font-size: 0.78rem;" onclick="copiarAlPortapapeles('{{ pago_servidor.nu_llave }}', this)">
+                                    <i class="fa-regular fa-copy me-1"></i> Copiar Llave
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tarjeta Nequi -->
+                        <div class="col-12 col-sm-6">
+                            <div class="p-3 rounded-3 h-100 border position-relative" style="background: #FDF2F8; border-color: #F472B6 !important;">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div class="d-flex align-items-center gap-1" style="color: #BE185D; font-weight: 800; font-size: 0.9rem;">
+                                        <i class="fa-solid fa-mobile-screen"></i> Nequi
+                                    </div>
+                                    <span class="badge rounded-pill text-white" style="background: #BE185D; font-size: 0.65rem;">Celular</span>
+                                </div>
+                                <div class="fw-bolder fs-5 text-dark font-monospace mb-2" id="txt-nequi-num">{{ pago_servidor.nequi_num }}</div>
+                                <button type="button" class="btn btn-sm btn-outline-dark w-100 rounded-pill fw-bold" style="font-size: 0.78rem;" onclick="copiarAlPortapapeles('{{ pago_servidor.nequi_num }}', this)">
+                                    <i class="fa-regular fa-copy me-1"></i> Copiar Número
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón Enviar WhatsApp con Token -->
+                    <a href="{{ pago_servidor.whatsapp_url }}" target="_blank" rel="noopener noreferrer"
+                       class="btn btn-success btn-lg w-100 rounded-4 py-3 fw-bold shadow d-flex align-items-center justify-content-center gap-2"
+                       style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; font-size: 1.05rem;">
+                        <i class="fa-brands fa-whatsapp fs-4"></i>
+                        <span>Enviar Comprobante por WhatsApp</span>
+                    </a>
+                    <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">
+                        <i class="fa-solid fa-lock me-1"></i>Incluye enlace de confirmación automática en 1 solo clic para el proveedor.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
 </body>
 </html>

@@ -39,7 +39,7 @@ def create_app():
     # Inicializar Extensiones
     db.init_app(app)
     Migrate(app, db)
-    CSRFProtect(app)
+    csrf = CSRFProtect(app)
     
     login_manager = LoginManager()
     login_manager.login_view = 'auth_bp.login'
@@ -58,6 +58,7 @@ def create_app():
     from routes.providers import providers_bp
     from routes.warranties import warranties_bp
     from routes.sims import sims_bp
+    from routes.servidor import servidor_bp, calcular_info_pago_servidor
     
     app.register_blueprint(sales_bp, url_prefix='/sales')
     app.register_blueprint(inventory_bp, url_prefix='/inventory')
@@ -67,6 +68,13 @@ def create_app():
     app.register_blueprint(providers_bp, url_prefix='/providers')
     app.register_blueprint(warranties_bp, url_prefix='/garantias')
     app.register_blueprint(sims_bp, url_prefix='/sims')
+    app.register_blueprint(servidor_bp, url_prefix='/servidor')
+    csrf.exempt(servidor_bp)
+
+    # Inyector de Contexto Global: Pago de Mensualidad del Servidor Zenic
+    @app.context_processor
+    def inject_pago_servidor():
+        return {'pago_servidor': calcular_info_pago_servidor(app)}
     
     # Registro de Blueprint Admin
     from routes.admin import admin_bp
