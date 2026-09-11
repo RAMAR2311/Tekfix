@@ -386,14 +386,15 @@
         </div>
     </div>
 
-    <!-- 5. BANCOLOMBIA (HISTÓRICO) -->
+    <!-- 5. BANCOLOMBIA (HISTÓRICO - solo visible si hubo ventas con este método) -->
+    {% if total_bancolombia and total_bancolombia > 0 %}
     <div class="col-12 col-sm-6 col-md-4 col-xl">
         <div class="hist-method-card p-3 h-100" style="border-left: 5px solid #2563EB !important;">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">
                         BANCOLOMBIA 
-                        {% if total_bancolombia > 0 %}<span class="badge bg-warning bg-opacity-25 text-dark" style="font-size:0.58rem;">Histórico</span>{% endif %}
+                        <span class="badge bg-warning bg-opacity-25 text-dark" style="font-size:0.58rem;">Histórico</span>
                     </span>
                     <div class="hist-method-value" style="color: #2563EB;">
                         <span style="font-size: 1.25rem; font-weight: 700; color: #2563EB; margin-right: 2px;">$</span>{{ (total_bancolombia)|cop }}
@@ -406,6 +407,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
 </div>
 

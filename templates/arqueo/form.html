@@ -280,18 +280,18 @@
                     <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.daviplata|cop }}</div>
                 </div>
             </div>
-            <!-- Bancolombia (Histórico) -->
+            <!-- Bancolombia (Histórico - solo visible si hubo recaudos) -->
+            {% if desglose_digital.bancolombia and desglose_digital.bancolombia > 0 %}
             <div class="col-6 col-sm-4 col-md-3 col-xl">
                 <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
                     <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #2563EB; font-size: 0.8rem; font-weight: 700;">
                         <i class="fa-solid fa-building-columns"></i> Bancolombia
-                        {% if desglose_digital.bancolombia > 0 %}
-                            <span class="badge bg-warning bg-opacity-25 text-dark rounded-pill px-1" style="font-size: 0.58rem;">Histórico</span>
-                        {% endif %}
+                        <span class="badge bg-warning bg-opacity-25 text-dark rounded-pill px-1" style="font-size: 0.58rem;">Histórico</span>
                     </div>
                     <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.bancolombia|cop }}</div>
                 </div>
             </div>
+            {% endif %}
             <!-- Crédito -->
             <div class="col-6 col-sm-4 col-md-3 col-xl">
                 <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">

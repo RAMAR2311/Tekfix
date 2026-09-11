@@ -1417,8 +1417,10 @@
 
         // Inicializar UI
         document.addEventListener('DOMContentLoaded', updateGlobalCartUI);
+    </script>
 
-        {% if current_user.is_authenticated and current_user.rol == 'admin' %}
+    {% if current_user.is_authenticated and current_user.rol == 'admin' %}
+    <script>
         // --- SISTEMA GLOBAL EN TIEMPO REAL: OVERLAY SOBREPUESTO DE APROBACIONES (ADMIN) ---
         let prevAprobacionesCount = null;
         let audioNotificationCtx = null;
@@ -1707,8 +1709,8 @@
             pollingAprobacionesSistema();
             setInterval(() => pollingAprobacionesSistema(false), 4000);
         });
-        {% endif %}
     </script>
+    {% endif %}
 
     {# ── MODAL INTERACTIVO DE PAGO DE MENSUALIDAD SERVIDOR ZENIC (SOLO ADMIN) ── #}
     {% if current_user.is_authenticated and current_user.rol == 'admin' and pago_servidor %}
