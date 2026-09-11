@@ -520,7 +520,7 @@
                             </button>
 
                             <!-- Anular venta -->
-                            <form action="{{ url_for('sales_bp.eliminar_venta', sale_id=venta.id) }}" method="POST" onsubmit="return confirm('¿Anular venta #{{ "%05d"|format(venta.id) }}? Se retornará el stock y esta acción no se puede deshacer.');" class="d-inline m-0 p-0">
+                            <form action="{{ url_for('sales_bp.eliminar_venta', sale_id=venta.id) }}" method="POST" onsubmit="return confirm('¿Anular esta venta? Se retornará el stock y esta acción no se puede deshacer.');" class="d-inline m-0 p-0">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-sm p-1 text-danger shadow-none" title="Anular venta">
                                     <i class="fa-regular fa-trash-can fs-6"></i>
@@ -605,16 +605,16 @@
                     <!-- Píldoras de Selección de Modalidad -->
                     <ul class="nav nav-pills nav-fill mb-3 p-1 rounded-pill bg-light border" id="pagoTabs{{ venta.id }}" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill py-2 fw-bold pago-pill-btn {% if venta.pagos|length <= 1 %}active{% endif %}" 
+                            <button class="nav-link rounded-pill py-2 fw-bold pago-pill-btn btn-tab-unico {% if venta.pagos|length <= 1 %}active{% endif %}" 
                                     id="tab-unico-{{ venta.id }}" data-bs-toggle="pill" data-bs-target="#pane-unico-{{ venta.id }}" 
-                                    type="button" role="tab" onclick="document.getElementById('tipoPago{{ venta.id }}').value='unico';">
+                                    type="button" role="tab" data-sale-id="{{ venta.id }}">
                                 <i class="fa-solid fa-credit-card me-1"></i> Método Único
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill py-2 fw-bold pago-pill-btn {% if venta.pagos|length > 1 %}active{% endif %}" 
+                            <button class="nav-link rounded-pill py-2 fw-bold pago-pill-btn btn-tab-dividido {% if venta.pagos|length > 1 %}active{% endif %}" 
                                     id="tab-dividido-{{ venta.id }}" data-bs-toggle="pill" data-bs-target="#pane-dividido-{{ venta.id }}" 
-                                    type="button" role="tab" onclick="document.getElementById('tipoPago{{ venta.id }}').value='dividido'; recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                    type="button" role="tab" data-sale-id="{{ venta.id }}" data-total-venta="{{ "%.0f"|format(venta.monto_total) }}">
                                 <i class="fa-solid fa-arrows-split-up-and-left me-1"></i> Pago Dividido (Mixto)
                             </button>
                         </li>
@@ -738,9 +738,10 @@
                                         <input type="number" step="1" min="0" name="monto_efectivo" id="in_efectivo_{{ venta.id }}" 
                                                class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
                                                value="{{ "%.0f"|format(p_efectivo.val) if p_efectivo.val > 0 else "0" }}" 
-                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                               data-sale-id="{{ venta.id }}" data-total-venta="{{ "%.0f"|format(venta.monto_total) }}">
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_efectivo_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary btn-asignar-restante" style="font-size: 0.72rem;" 
+                                            data-target="in_efectivo_{{ venta.id }}" data-sale-id="{{ venta.id }}" data-total-venta="{{ "%.0f"|format(venta.monto_total) }}" title="Asignar restante">
                                         Restante
                                     </button>
                                 </div>
@@ -756,9 +757,10 @@
                                         <input type="number" step="1" min="0" name="monto_nequi" id="in_nequi_{{ venta.id }}" 
                                                class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
                                                value="{{ "%.0f"|format(p_nequi.val) if p_nequi.val > 0 else "0" }}" 
-                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                               data-sale-id="{{ venta.id }}" data-total-venta="{{ "%.0f"|format(venta.monto_total) }}">
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_nequi_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary btn-asignar-restante" style="font-size: 0.72rem;" 
+                                            data-target="in_nequi_{{ venta.id }}" data-sale-id="{{ venta.id }}" data-total-venta="{{ "%.0f"|format(venta.monto_total) }}" title="Asignar restante">
                                         Restante
                                     </button>
                                 </div>
@@ -774,9 +776,10 @@
                                         <input type="number" step="1" min="0" name="monto_bolt_qr" id="in_bolt_qr_{{ venta.id }}" 
                                                class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
                                                value="{{ "%.0f"|format(p_bolt_qr.val) if p_bolt_qr.val > 0 else "0" }}" 
-                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                               data-sale-id="{{ venta.id }}" data-total-venta="{{ "%.0f"|format(venta.monto_total) }}">
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_bolt_qr_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary btn-asignar-restante" style="font-size: 0.72rem;" 
+                                            data-target="in_bolt_qr_{{ venta.id }}" data-sale-id="{{ venta.id }}" data-total-venta="{{ "%.0f"|format(venta.monto_total) }}" title="Asignar restante">
                                         Restante
                                     </button>
                                 </div>
@@ -792,9 +795,10 @@
                                         <input type="number" step="1" min="0" name="monto_bolt_datafono" id="in_bolt_datafono_{{ venta.id }}" 
                                                class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
                                                value="{{ "%.0f"|format(p_bolt_datafono.val) if p_bolt_datafono.val > 0 else "0" }}" 
-                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                               data-sale-id="{{ venta.id }}" data-total-venta="{{ "%.0f"|format(venta.monto_total) }}">
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_bolt_datafono_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary btn-asignar-restante" style="font-size: 0.72rem;" 
+                                            data-target="in_bolt_datafono_{{ venta.id }}" data-sale-id="{{ venta.id }}" data-total-venta="{{ "%.0f"|format(venta.monto_total) }}" title="Asignar restante">
                                         Restante
                                     </button>
                                 </div>
@@ -810,9 +814,10 @@
                                         <input type="number" step="1" min="0" name="monto_bancolombia" id="in_bancolombia_{{ venta.id }}" 
                                                class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
                                                value="{{ "%.0f"|format(p_bancolombia.val) if p_bancolombia.val > 0 else "0" }}" 
-                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                               data-sale-id="{{ venta.id }}" data-total-venta="{{ "%.0f"|format(venta.monto_total) }}">
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_bancolombia_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary btn-asignar-restante" style="font-size: 0.72rem;" 
+                                            data-target="in_bancolombia_{{ venta.id }}" data-sale-id="{{ venta.id }}" data-total-venta="{{ "%.0f"|format(venta.monto_total) }}" title="Asignar restante">
                                         Restante
                                     </button>
                                 </div>
@@ -828,9 +833,10 @@
                                         <input type="number" step="1" min="0" name="monto_daviplata" id="in_daviplata_{{ venta.id }}" 
                                                class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
                                                value="{{ "%.0f"|format(p_daviplata.val) if p_daviplata.val > 0 else "0" }}" 
-                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                               data-sale-id="{{ venta.id }}" data-total-venta="{{ "%.0f"|format(venta.monto_total) }}">
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_daviplata_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary btn-asignar-restante" style="font-size: 0.72rem;" 
+                                            data-target="in_daviplata_{{ venta.id }}" data-sale-id="{{ venta.id }}" data-total-venta="{{ "%.0f"|format(venta.monto_total) }}" title="Asignar restante">
                                         Restante
                                     </button>
                                 </div>
@@ -1125,6 +1131,44 @@ document.addEventListener('DOMContentLoaded', function () {
                 const totalNum = parseFloat(totalText) || 0;
                 recalcularDividido(saleId, totalNum);
             }
+        });
+    });
+
+    // Control de pestañas modalidad de pago (Único / Dividido)
+    document.querySelectorAll('.btn-tab-unico').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const saleId = this.getAttribute('data-sale-id');
+            const hiddenInput = document.getElementById('tipoPago' + saleId);
+            if (hiddenInput) hiddenInput.value = 'unico';
+        });
+    });
+
+    document.querySelectorAll('.btn-tab-dividido').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const saleId = this.getAttribute('data-sale-id');
+            const totalVenta = parseFloat(this.getAttribute('data-total-venta')) || 0;
+            const hiddenInput = document.getElementById('tipoPago' + saleId);
+            if (hiddenInput) hiddenInput.value = 'dividido';
+            recalcularDividido(saleId, totalVenta);
+        });
+    });
+
+    // Recálculo dinámico en inputs de pago dividido
+    document.querySelectorAll('input[class*="split-input-"]').forEach(function(inp) {
+        inp.addEventListener('input', function() {
+            const saleId = this.getAttribute('data-sale-id');
+            const totalVenta = parseFloat(this.getAttribute('data-total-venta')) || 0;
+            if (saleId) recalcularDividido(saleId, totalVenta);
+        });
+    });
+
+    // Asignación de saldo restante
+    document.querySelectorAll('.btn-asignar-restante').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const saleId = this.getAttribute('data-sale-id');
+            const totalVenta = parseFloat(this.getAttribute('data-total-venta')) || 0;
+            if (targetId && saleId) llenarRestante(targetId, saleId, totalVenta);
         });
     });
 });
