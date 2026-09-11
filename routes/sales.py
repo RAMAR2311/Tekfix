@@ -527,6 +527,8 @@ def historial():
     # Sistema híbrido: usa SalePayment si existe, caso contrario cae al metodo_pago legacy
     total_efectivo = Decimal('0')
     total_nequi = Decimal('0')
+    total_bolt_qr = Decimal('0')
+    total_bolt_datafono = Decimal('0')
     total_bancolombia = Decimal('0')
     total_daviplata = Decimal('0')
     total_tarjeta = Decimal('0')
@@ -536,48 +538,58 @@ def historial():
     for v in ventas:
         if v.pagos:  # Pagos nuevos con tabla sale_payments
             for pago in v.pagos:
-                if pago.metodo_pago == 'efectivo':
+                m = (pago.metodo_pago or '').lower()
+                if m == 'efectivo':
                     total_efectivo += pago.monto
-                elif pago.metodo_pago == 'nequi':
+                elif m == 'nequi':
                     total_nequi += pago.monto
-                elif pago.metodo_pago == 'bancolombia':
-                    total_bancolombia += pago.monto
-                elif pago.metodo_pago == 'daviplata':
-                    total_daviplata += pago.monto
-                elif pago.metodo_pago == 'tarjeta':
+                elif m == 'bolt_qr':
+                    total_bolt_qr += pago.monto
+                elif m in ['bolt_datafono', 'tarjeta', 'bolt', 'datafono', 'datáfono']:
+                    total_bolt_datafono += pago.monto
                     total_tarjeta += pago.monto
-                elif pago.metodo_pago == 'transferencia':
+                elif m == 'bancolombia':
+                    total_bancolombia += pago.monto
+                elif m == 'daviplata':
+                    total_daviplata += pago.monto
+                elif m == 'transferencia':
                     total_transferencia_legacy += pago.monto
             if len(v.pagos) > 1:
                 total_mixto += 1
         else:  # Retrocompatibilidad con ventas antiguas sin SalePayment
-            if v.metodo_pago == 'efectivo':
+            m = (v.metodo_pago or '').lower()
+            if m == 'efectivo':
                 total_efectivo += v.monto_total
-            elif v.metodo_pago == 'nequi':
+            elif m == 'nequi':
                 total_nequi += v.monto_total
-            elif v.metodo_pago == 'bancolombia':
-                total_bancolombia += v.monto_total
-            elif v.metodo_pago == 'daviplata':
-                total_daviplata += v.monto_total
-            elif v.metodo_pago == 'tarjeta':
+            elif m == 'bolt_qr':
+                total_bolt_qr += v.monto_total
+            elif m in ['bolt_datafono', 'tarjeta', 'bolt', 'datafono', 'datáfono']:
+                total_bolt_datafono += v.monto_total
                 total_tarjeta += v.monto_total
-            elif v.metodo_pago == 'transferencia':
+            elif m == 'bancolombia':
+                total_bancolombia += v.monto_total
+            elif m == 'daviplata':
+                total_daviplata += v.monto_total
+            elif m == 'transferencia':
                 total_transferencia_legacy += v.monto_total
 
     # Cálculos globales para dashboard financiero
     total_consolidado = sum((v.monto_total for v in ventas), Decimal('0'))
     total_operaciones = len(ventas)
     ticket_promedio = (total_consolidado / total_operaciones) if total_operaciones > 0 else Decimal('0')
-    total_transferencias = total_nequi + total_bancolombia + total_daviplata + total_tarjeta + total_transferencia_legacy
+    total_transferencias = total_nequi + total_bolt_qr + total_bolt_datafono + total_bancolombia + total_daviplata + total_transferencia_legacy
 
     # Porcentajes de canales de pago
     pct_efectivo = round((float(total_efectivo) / float(total_consolidado) * 100), 1) if total_consolidado > 0 else 0
     pct_transferencias = round((float(total_transferencias) / float(total_consolidado) * 100), 1) if total_consolidado > 0 else 0
 
     pct_nequi = round((float(total_nequi) / float(total_transferencias) * 100), 1) if total_transferencias > 0 else 0
+    pct_bolt_qr = round((float(total_bolt_qr) / float(total_transferencias) * 100), 1) if total_transferencias > 0 else 0
+    pct_bolt_datafono = round((float(total_bolt_datafono) / float(total_transferencias) * 100), 1) if total_transferencias > 0 else 0
     pct_bancolombia = round((float(total_bancolombia) / float(total_transferencias) * 100), 1) if total_transferencias > 0 else 0
     pct_daviplata = round((float(total_daviplata) / float(total_transferencias) * 100), 1) if total_transferencias > 0 else 0
-    pct_tarjeta = round((float(total_tarjeta) / float(total_transferencias) * 100), 1) if total_transferencias > 0 else 0
+    pct_tarjeta = pct_bolt_datafono
 
     # Envío al Engine de HTML
     return render_template('sales/historial.html', 
@@ -590,11 +602,15 @@ def historial():
                            pct_efectivo=pct_efectivo,
                            pct_transferencias=pct_transferencias,
                            total_nequi=total_nequi,
+                           total_bolt_qr=total_bolt_qr,
+                           total_bolt_datafono=total_bolt_datafono,
                            total_bancolombia=total_bancolombia,
                            total_daviplata=total_daviplata,
                            total_tarjeta=total_tarjeta,
                            total_transferencia_legacy=total_transferencia_legacy,
                            pct_nequi=pct_nequi,
+                           pct_bolt_qr=pct_bolt_qr,
+                           pct_bolt_datafono=pct_bolt_datafono,
                            pct_bancolombia=pct_bancolombia,
                            pct_daviplata=pct_daviplata,
                            pct_tarjeta=pct_tarjeta,
@@ -667,9 +683,10 @@ def cambiar_metodo_pago(sale_id):
             montos = {
                 'efectivo': Decimal(request.form.get('monto_efectivo', '0') or '0'),
                 'nequi': Decimal(request.form.get('monto_nequi', '0') or '0'),
+                'bolt_qr': Decimal(request.form.get('monto_bolt_qr', '0') or '0'),
+                'bolt_datafono': Decimal(request.form.get('monto_bolt_datafono', request.form.get('monto_tarjeta', '0')) or '0'),
                 'bancolombia': Decimal(request.form.get('monto_bancolombia', '0') or '0'),
-                'daviplata': Decimal(request.form.get('monto_daviplata', '0') or '0'),
-                'tarjeta': Decimal(request.form.get('monto_tarjeta', '0') or '0')
+                'daviplata': Decimal(request.form.get('monto_daviplata', '0') or '0')
             }
             
             # Filtrar solo montos mayores a 0
@@ -719,7 +736,7 @@ def cambiar_metodo_pago(sale_id):
         else:
             # Modo Método Único
             nuevo_metodo = request.form.get('nuevo_metodo', '').strip().lower()
-            metodos_validos = ['efectivo', 'nequi', 'bancolombia', 'daviplata', 'tarjeta']
+            metodos_validos = ['efectivo', 'nequi', 'bolt_qr', 'bolt_datafono', 'bancolombia', 'daviplata', 'tarjeta']
             if nuevo_metodo not in metodos_validos:
                 flash('Método de pago no válido.', 'danger')
                 return redirect(url_for('sales_bp.historial', **params))
@@ -743,6 +760,8 @@ def cambiar_metodo_pago(sale_id):
             nombres = {
                 'efectivo': 'Efectivo',
                 'nequi': 'Nequi',
+                'bolt_qr': 'Bolt QR',
+                'bolt_datafono': 'Bolt (Datáfono)',
                 'bancolombia': 'Bancolombia',
                 'daviplata': 'Daviplata',
                 'tarjeta': 'Bolt (Datáfono)'

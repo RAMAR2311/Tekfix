@@ -18,6 +18,8 @@ def calcular_totales_y_desglose(ventas_del_dia, sims_del_dia):
     total_transferencia = Decimal('0')
     desglose_digital = {
         'nequi': Decimal('0'),
+        'bolt_qr': Decimal('0'),
+        'bolt_datafono': Decimal('0'),
         'bancolombia': Decimal('0'),
         'daviplata': Decimal('0'),
         'tarjeta': Decimal('0'),
@@ -35,12 +37,15 @@ def calcular_totales_y_desglose(ventas_del_dia, sims_del_dia):
             total_transferencia += monto
             if 'nequi' in m:
                 desglose_digital['nequi'] += monto
+            elif 'bolt_qr' in m or (('bolt' in m or 'qr' in m) and 'datafono' not in m and 'datáfono' not in m and 'tarjeta' not in m and 'qr' in m):
+                desglose_digital['bolt_qr'] += monto
+            elif any(k in m for k in ['bolt_datafono', 'tarjeta', 'datafono', 'datáfono']) or ('bolt' in m and 'qr' not in m):
+                desglose_digital['bolt_datafono'] += monto
+                desglose_digital['tarjeta'] += monto
             elif 'bancolombia' in m:
                 desglose_digital['bancolombia'] += monto
             elif 'daviplata' in m:
                 desglose_digital['daviplata'] += monto
-            elif any(k in m for k in ['tarjeta', 'datafono', 'datáfono', 'bolt']):
-                desglose_digital['tarjeta'] += monto
             elif 'credito' in m or 'crédito' in m:
                 desglose_digital['credito'] += monto
             else:

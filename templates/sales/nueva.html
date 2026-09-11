@@ -120,9 +120,9 @@
                 <select id="metodo-pago" class="d-none">
                     <option value="efectivo" selected>efectivo</option>
                     <option value="nequi">nequi</option>
-                    <option value="bancolombia">bancolombia</option>
+                    <option value="bolt_qr">bolt_qr</option>
                     <option value="daviplata">daviplata</option>
-                    <option value="tarjeta">tarjeta</option>
+                    <option value="bolt_datafono">bolt_datafono</option>
                 </select>
 
                 <!-- 5 Botones Segmentados idénticos a la imagen -->
@@ -135,17 +135,17 @@
                         <i class="fa-solid fa-qrcode fs-5" style="color: #7c3aed;"></i>
                         <span>Nequi</span>
                     </button>
-                    <button type="button" class="pay-method-btn" data-method="bancolombia" onclick="seleccionarMetodo('bancolombia')">
-                        <i class="fa-solid fa-building-columns fs-5" style="color: #2563eb;"></i>
-                        <span>Bancolombia</span>
+                    <button type="button" class="pay-method-btn" data-method="bolt_qr" onclick="seleccionarMetodo('bolt_qr')">
+                        <i class="fa-solid fa-qrcode fs-5" style="color: #0284c7;"></i>
+                        <span>Bolt QR</span>
                     </button>
                     <button type="button" class="pay-method-btn" data-method="daviplata" onclick="seleccionarMetodo('daviplata')">
                         <i class="fa-solid fa-mobile-screen fs-5" style="color: #dc2626;"></i>
                         <span>Daviplata</span>
                     </button>
-                    <button type="button" class="pay-method-btn" data-method="tarjeta" onclick="seleccionarMetodo('tarjeta')">
+                    <button type="button" class="pay-method-btn" data-method="bolt_datafono" onclick="seleccionarMetodo('bolt_datafono')">
                         <i class="fa-solid fa-bolt fs-5" style="color: #f59e0b;"></i>
-                        <span>Bolt</span>
+                        <span>Bolt Datafono</span>
                     </button>
                 </div>
             </div>
@@ -258,16 +258,27 @@
         border-right: 1px solid #cbd5e1;
         background: #ffffff;
         color: #334155;
-        padding: 9px 3px;
-        font-size: 0.76rem;
+        padding: 7px 2px;
+        font-size: 0.70rem;
         font-weight: 700;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 3px;
         cursor: pointer;
         transition: all 0.15s ease-in-out;
+        min-height: 52px;
+        line-height: 1.15;
+        text-align: center;
+    }
+    .pay-method-btn span {
+        display: block;
+        letter-spacing: -0.2px;
+        word-break: break-word;
+    }
+    .pay-method-btn i {
+        font-size: 1.15rem;
     }
     .pay-method-btn:last-child {
         border-right: none;
@@ -676,9 +687,10 @@
     const METODOS_DISPONIBLES = [
         { value: 'efectivo', label: '💵 Efectivo' },
         { value: 'nequi', label: '📱 Nequi' },
-        { value: 'bancolombia', label: '🏦 Bancolombia' },
+        { value: 'bolt_qr', label: '📲 Bolt QR' },
         { value: 'daviplata', label: '📱 Daviplata' },
-        { value: 'tarjeta', label: '⚡ Bolt (Tarjeta)' }
+        { value: 'bolt_datafono', label: '⚡ Bolt Datáfono' },
+        { value: 'bancolombia', label: '🏦 Bancolombia' }
     ];
 
     // Capturar el ESCANER ("Enter" en el teclado sin enviar un formulario)
@@ -760,14 +772,16 @@
             }
         });
 
-        // Mostrar / ocultar control de comisión 5% (Solo activo cuando es tarjeta / Bolt)
+        // Mostrar / ocultar control de comisión 5% (Activo automáticamente con Bolt Datafono)
         const comisionBox = document.getElementById('card_commission_box');
-        if (metodo === 'tarjeta') {
+        const toggleCom = document.getElementById('btn_toggle_comision');
+        if (metodo === 'bolt_datafono' || metodo === 'tarjeta') {
             if (comisionBox) comisionBox.style.display = 'block';
+            comisionTarjetaActiva = true;
+            if (toggleCom) toggleCom.checked = true;
         } else {
             if (comisionBox) comisionBox.style.display = 'none';
             comisionTarjetaActiva = false;
-            const toggleCom = document.getElementById('btn_toggle_comision');
             if (toggleCom) toggleCom.checked = false;
         }
 
@@ -789,8 +803,8 @@
 
     function esMetodoTarjeta() {
         const esMixto = document.getElementById('toggle_pago_mixto')?.checked;
-        if (!esMixto) return metodoActual === 'tarjeta';
-        return pagosMixtos.some(p => p.metodo_pago === 'tarjeta');
+        if (!esMixto) return metodoActual === 'bolt_datafono' || metodoActual === 'tarjeta';
+        return pagosMixtos.some(p => p.metodo_pago === 'bolt_datafono' || p.metodo_pago === 'tarjeta');
     }
 
     function obtenerSubtotal() {
@@ -895,6 +909,11 @@
     function actualizarPagoParcial(index, campo, valor) {
         if (campo === 'metodo_pago') {
             pagosMixtos[index].metodo_pago = valor;
+            if (valor === 'bolt_datafono' || valor === 'tarjeta') {
+                comisionTarjetaActiva = true;
+                const toggleCom = document.getElementById('btn_toggle_comision');
+                if (toggleCom) toggleCom.checked = true;
+            }
         }
         if (campo === 'monto') {
             pagosMixtos[index].monto = parseFloat(valor) || 0;

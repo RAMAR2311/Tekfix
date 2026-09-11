@@ -332,26 +332,44 @@
         </div>
     </div>
 
-    <!-- 2. BANCOLOMBIA -->
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="hist-method-card p-3 h-100" style="border-left: 5px solid #F59E0B !important;">
+    <!-- 2. BOLT QR -->
+    <div class="col-12 col-sm-6 col-md-4 col-xl">
+        <div class="hist-method-card p-3 h-100" style="border-left: 5px solid #0284C7 !important;">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">BANCOLOMBIA</span>
-                    <div class="hist-method-value" style="color: #D97706;">
-                        <span style="font-size: 1.25rem; font-weight: 700; color: #F59E0B; margin-right: 2px;">$</span>{{ (total_bancolombia)|cop }}
+                    <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">BOLT QR</span>
+                    <div class="hist-method-value" style="color: #0284C7;">
+                        <span style="font-size: 1.25rem; font-weight: 700; color: #0284C7; margin-right: 2px;">$</span>{{ (total_bolt_qr)|cop }}
                     </div>
-                    <small class="text-secondary fw-semibold" style="font-size: 0.72rem;">Digital: {{ pct_bancolombia }}%</small>
+                    <small class="text-secondary fw-semibold" style="font-size: 0.72rem;">Digital: {{ pct_bolt_qr }}%</small>
                 </div>
-                <div class="hist-method-avatar" style="background: rgba(245, 158, 11, 0.15); color: #D97706; border: 1px solid rgba(245, 158, 11, 0.3);">
-                    <i class="fa-solid fa-building-columns fs-5"></i>
+                <div class="hist-method-avatar" style="background: rgba(2, 132, 199, 0.15); color: #0284C7; border: 1px solid rgba(2, 132, 199, 0.3);">
+                    <i class="fa-solid fa-qrcode fs-5"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 3. DAVIPLATA -->
-    <div class="col-12 col-sm-6 col-lg-3">
+    <!-- 3. BOLT (DATÁFONO) -->
+    <div class="col-12 col-sm-6 col-md-4 col-xl">
+        <div class="hist-method-card p-3 h-100" style="border-left: 5px solid var(--tekfix-primary) !important;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">BOLT (DATÁFONO)</span>
+                    <div class="hist-method-value" style="color: var(--tekfix-primary);">
+                        <span style="font-size: 1.25rem; font-weight: 700; color: var(--tekfix-hover); margin-right: 2px;">$</span>{{ (total_bolt_datafono)|cop }}
+                    </div>
+                    <small class="text-secondary fw-semibold" style="font-size: 0.72rem;">Digital: {{ pct_bolt_datafono }}%</small>
+                </div>
+                <div class="hist-method-avatar" style="background: rgba(197, 160, 89, 0.18); color: var(--tekfix-primary); border: 1px solid rgba(197, 160, 89, 0.4);">
+                    <i class="fa-solid fa-bolt fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. DAVIPLATA -->
+    <div class="col-12 col-sm-6 col-md-4 col-xl">
         <div class="hist-method-card p-3 h-100" style="border-left: 5px solid #EF4444 !important;">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -368,19 +386,22 @@
         </div>
     </div>
 
-    <!-- 4. BOLT (DATÁFONO) -->
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="hist-method-card p-3 h-100" style="border-left: 5px solid var(--tekfix-primary) !important;">
+    <!-- 5. BANCOLOMBIA (HISTÓRICO) -->
+    <div class="col-12 col-sm-6 col-md-4 col-xl">
+        <div class="hist-method-card p-3 h-100" style="border-left: 5px solid #2563EB !important;">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">BOLT (DATÁFONO)</span>
-                    <div class="hist-method-value" style="color: var(--tekfix-primary);">
-                        <span style="font-size: 1.25rem; font-weight: 700; color: var(--tekfix-hover); margin-right: 2px;">$</span>{{ (total_tarjeta)|cop }}
+                    <span class="text-uppercase fw-bold text-secondary d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.06em;">
+                        BANCOLOMBIA 
+                        {% if total_bancolombia > 0 %}<span class="badge bg-warning bg-opacity-25 text-dark" style="font-size:0.58rem;">Histórico</span>{% endif %}
+                    </span>
+                    <div class="hist-method-value" style="color: #2563EB;">
+                        <span style="font-size: 1.25rem; font-weight: 700; color: #2563EB; margin-right: 2px;">$</span>{{ (total_bancolombia)|cop }}
                     </div>
-                    <small class="text-secondary fw-semibold" style="font-size: 0.72rem;">Digital: {{ pct_tarjeta }}%</small>
+                    <small class="text-secondary fw-semibold" style="font-size: 0.72rem;">Digital: {{ pct_bancolombia }}%</small>
                 </div>
-                <div class="hist-method-avatar" style="background: rgba(197, 160, 89, 0.18); color: var(--tekfix-primary); border: 1px solid rgba(197, 160, 89, 0.4);">
-                    <i class="fa-solid fa-bolt fs-5"></i>
+                <div class="hist-method-avatar" style="background: rgba(37, 99, 235, 0.15); color: #2563EB; border: 1px solid rgba(37, 99, 235, 0.3);">
+                    <i class="fa-solid fa-building-columns fs-5"></i>
                 </div>
             </div>
         </div>
@@ -433,8 +454,16 @@
                                 <span class="badge rounded-pill px-3 py-1 fw-semibold border shadow-none" style="background-color: #F5F3FF; border-color: #DDD6FE !important; color: #7C3AED; font-size: 0.75rem;">
                                     <i class="fa-solid fa-mobile-screen me-1"></i> Nequi
                                 </span>
+                            {% elif metodo == 'bolt_qr' %}
+                                <span class="badge rounded-pill px-3 py-1 fw-semibold border shadow-none" style="background-color: #E0F2FE; border-color: #BAE6FD !important; color: #0284C7; font-size: 0.75rem;">
+                                    <i class="fa-solid fa-qrcode me-1"></i> Bolt QR
+                                </span>
+                            {% elif metodo in ['bolt_datafono', 'tarjeta', 'bolt'] %}
+                                <span class="badge rounded-pill px-3 py-1 fw-semibold border shadow-none" style="background-color: rgba(197, 160, 89, 0.12); border-color: rgba(197, 160, 89, 0.3) !important; color: var(--tekfix-primary); font-size: 0.75rem;">
+                                    <i class="fa-solid fa-bolt me-1"></i> Bolt (Datáfono)
+                                </span>
                             {% elif metodo == 'bancolombia' %}
-                                <span class="badge rounded-pill px-3 py-1 fw-semibold border shadow-none" style="background-color: #FFFBEB; border-color: #FDE68A !important; color: #D97706; font-size: 0.75rem;">
+                                <span class="badge rounded-pill px-3 py-1 fw-semibold border shadow-none" style="background-color: #EFF6FF; border-color: #BFDBFE !important; color: #2563EB; font-size: 0.75rem;">
                                     <i class="fa-solid fa-building-columns me-1"></i> Bancolombia
                                 </span>
                             {% elif metodo == 'daviplata' %}
@@ -520,25 +549,28 @@
 {% for venta in ventas %}
 {% set p_efectivo = namespace(val=0) %}
 {% set p_nequi = namespace(val=0) %}
+{% set p_bolt_qr = namespace(val=0) %}
+{% set p_bolt_datafono = namespace(val=0) %}
 {% set p_bancolombia = namespace(val=0) %}
 {% set p_daviplata = namespace(val=0) %}
-{% set p_tarjeta = namespace(val=0) %}
 
 {% if venta.pagos %}
     {% for p in venta.pagos %}
         {% if p.metodo_pago == 'efectivo' %}{% set p_efectivo.val = p.monto %}
         {% elif p.metodo_pago == 'nequi' %}{% set p_nequi.val = p.monto %}
+        {% elif p.metodo_pago == 'bolt_qr' %}{% set p_bolt_qr.val = p.monto %}
+        {% elif p.metodo_pago in ['bolt_datafono', 'tarjeta', 'bolt'] %}{% set p_bolt_datafono.val = p.monto %}
         {% elif p.metodo_pago == 'bancolombia' %}{% set p_bancolombia.val = p.monto %}
         {% elif p.metodo_pago == 'daviplata' %}{% set p_daviplata.val = p.monto %}
-        {% elif p.metodo_pago == 'tarjeta' %}{% set p_tarjeta.val = p.monto %}
         {% endif %}
     {% endfor %}
 {% else %}
     {% if venta.metodo_pago == 'efectivo' %}{% set p_efectivo.val = venta.monto_total %}
     {% elif venta.metodo_pago == 'nequi' %}{% set p_nequi.val = venta.monto_total %}
+    {% elif venta.metodo_pago == 'bolt_qr' %}{% set p_bolt_qr.val = venta.monto_total %}
+    {% elif venta.metodo_pago in ['bolt_datafono', 'tarjeta', 'bolt'] %}{% set p_bolt_datafono.val = venta.monto_total %}
     {% elif venta.metodo_pago == 'bancolombia' %}{% set p_bancolombia.val = venta.monto_total %}
     {% elif venta.metodo_pago == 'daviplata' %}{% set p_daviplata.val = venta.monto_total %}
-    {% elif venta.metodo_pago == 'tarjeta' %}{% set p_tarjeta.val = venta.monto_total %}
     {% endif %}
 {% endif %}
 
@@ -619,16 +651,40 @@
                                     <span class="badge rounded-pill px-2 py-1" style="background: rgba(139, 92, 246, 0.1); color: #7C3AED;">Billetera</span>
                                 </label>
 
+                                <!-- Bolt QR -->
+                                <label class="d-flex align-items-center justify-content-between p-3 rounded-3 border" style="border-color: #E5E7EB !important; cursor: pointer;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input class="form-check-input mt-0" type="radio" name="nuevo_metodo" value="bolt_qr" {% if venta.metodo_pago == 'bolt_qr' %}checked{% endif %}>
+                                        <div>
+                                            <span class="fw-bold text-tekfix-main d-block" style="font-size: 0.92rem;"><i class="fa-solid fa-qrcode me-2" style="color: #0284C7;"></i>Bolt QR</span>
+                                            <small class="text-secondary" style="font-size: 0.75rem;">Cobro digital vía código QR Bolt</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge rounded-pill px-2 py-1" style="background: rgba(2, 132, 199, 0.12); color: #0284C7;">QR</span>
+                                </label>
+
+                                <!-- Bolt Datáfono -->
+                                <label class="d-flex align-items-center justify-content-between p-3 rounded-3 border" style="border-color: #E5E7EB !important; cursor: pointer;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input class="form-check-input mt-0" type="radio" name="nuevo_metodo" value="bolt_datafono" {% if venta.metodo_pago in ['bolt_datafono', 'tarjeta', 'bolt'] %}checked{% endif %}>
+                                        <div>
+                                            <span class="fw-bold text-tekfix-main d-block" style="font-size: 0.92rem;"><i class="fa-solid fa-bolt me-2" style="color: var(--tekfix-primary);"></i>Bolt Datáfono</span>
+                                            <small class="text-secondary" style="font-size: 0.75rem;">Cobro por datáfono Bolt, débito o crédito</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge rounded-pill px-2 py-1" style="background: rgba(197, 160, 89, 0.15); color: var(--tekfix-primary);">Datáfono</span>
+                                </label>
+
                                 <!-- Bancolombia -->
                                 <label class="d-flex align-items-center justify-content-between p-3 rounded-3 border" style="border-color: #E5E7EB !important; cursor: pointer;">
                                     <div class="d-flex align-items-center gap-3">
                                         <input class="form-check-input mt-0" type="radio" name="nuevo_metodo" value="bancolombia" {% if venta.metodo_pago == 'bancolombia' %}checked{% endif %}>
                                         <div>
-                                            <span class="fw-bold text-tekfix-main d-block" style="font-size: 0.92rem;"><i class="fa-solid fa-building-columns me-2" style="color: #D97706;"></i>Bancolombia</span>
-                                            <small class="text-secondary" style="font-size: 0.75rem;">Transferencia cuenta de ahorros / corriente</small>
+                                            <span class="fw-bold text-tekfix-main d-block" style="font-size: 0.92rem;"><i class="fa-solid fa-building-columns me-2" style="color: #2563EB;"></i>Bancolombia</span>
+                                            <small class="text-secondary" style="font-size: 0.75rem;">Transferencia cuenta de ahorros / corriente (Histórico)</small>
                                         </div>
                                     </div>
-                                    <span class="badge rounded-pill px-2 py-1" style="background: rgba(245, 158, 11, 0.1); color: #D97706;">Bancos</span>
+                                    <span class="badge rounded-pill px-2 py-1" style="background: rgba(37, 99, 235, 0.1); color: #2563EB;">Bancos</span>
                                 </label>
 
                                 <!-- Daviplata -->
@@ -641,18 +697,6 @@
                                         </div>
                                     </div>
                                     <span class="badge rounded-pill px-2 py-1" style="background: rgba(239, 68, 68, 0.1); color: #DC2626;">Billetera</span>
-                                </label>
-
-                                <!-- Bolt (Datáfono / Tarjeta) -->
-                                <label class="d-flex align-items-center justify-content-between p-3 rounded-3 border" style="border-color: #E5E7EB !important; cursor: pointer;">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <input class="form-check-input mt-0" type="radio" name="nuevo_metodo" value="tarjeta" {% if venta.metodo_pago == 'tarjeta' %}checked{% endif %}>
-                                        <div>
-                                            <span class="fw-bold text-tekfix-main d-block" style="font-size: 0.92rem;"><i class="fa-solid fa-bolt me-2" style="color: var(--tekfix-primary);"></i>Bolt (Datáfono / Tarjeta)</span>
-                                            <small class="text-secondary" style="font-size: 0.75rem;">Cobro por datáfono Bolt, débito o crédito</small>
-                                        </div>
-                                    </div>
-                                    <span class="badge rounded-pill px-2 py-1" style="background: rgba(197, 160, 89, 0.15); color: var(--tekfix-primary);">Datáfono</span>
                                 </label>
                             </div>
                         </div>
@@ -717,10 +761,46 @@
                                     </button>
                                 </div>
 
+                                <!-- Bolt QR -->
+                                <div class="d-flex align-items-center gap-2 p-2 rounded-3 border bg-white">
+                                    <div class="d-flex align-items-center gap-2" style="width: 125px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-qrcode" style="color: #0284C7;"></i>
+                                        <span class="small fw-bold text-tekfix-main">Bolt QR</span>
+                                    </div>
+                                    <div class="input-group input-group-sm flex-grow-1">
+                                        <span class="input-group-text bg-light text-secondary border-end-0">$</span>
+                                        <input type="number" step="1" min="0" name="monto_bolt_qr" id="in_bolt_qr_{{ venta.id }}" 
+                                               class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
+                                               value="{{ "%.0f"|format(p_bolt_qr.val) if p_bolt_qr.val > 0 else "0" }}" 
+                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_bolt_qr_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
+                                        Restante
+                                    </button>
+                                </div>
+
+                                <!-- Bolt Datáfono -->
+                                <div class="d-flex align-items-center gap-2 p-2 rounded-3 border bg-white">
+                                    <div class="d-flex align-items-center gap-2" style="width: 125px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-bolt" style="color: var(--tekfix-primary);"></i>
+                                        <span class="small fw-bold text-tekfix-main">Bolt Datáfono</span>
+                                    </div>
+                                    <div class="input-group input-group-sm flex-grow-1">
+                                        <span class="input-group-text bg-light text-secondary border-end-0">$</span>
+                                        <input type="number" step="1" min="0" name="monto_bolt_datafono" id="in_bolt_datafono_{{ venta.id }}" 
+                                               class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
+                                               value="{{ "%.0f"|format(p_bolt_datafono.val) if p_bolt_datafono.val > 0 else "0" }}" 
+                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_bolt_datafono_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
+                                        Restante
+                                    </button>
+                                </div>
+
                                 <!-- Bancolombia -->
                                 <div class="d-flex align-items-center gap-2 p-2 rounded-3 border bg-white">
                                     <div class="d-flex align-items-center gap-2" style="width: 125px; flex-shrink: 0;">
-                                        <i class="fa-solid fa-building-columns" style="color: #D97706;"></i>
+                                        <i class="fa-solid fa-building-columns" style="color: #2563EB;"></i>
                                         <span class="small fw-bold text-tekfix-main">Bancolombia</span>
                                     </div>
                                     <div class="input-group input-group-sm flex-grow-1">
@@ -749,24 +829,6 @@
                                                oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
                                     </div>
                                     <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_daviplata_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
-                                        Restante
-                                    </button>
-                                </div>
-
-                                <!-- Bolt (Datáfono / Tarjeta) -->
-                                <div class="d-flex align-items-center gap-2 p-2 rounded-3 border bg-white">
-                                    <div class="d-flex align-items-center gap-2" style="width: 125px; flex-shrink: 0;">
-                                        <i class="fa-solid fa-bolt" style="color: var(--tekfix-primary);"></i>
-                                        <span class="small fw-bold text-tekfix-main">Bolt (Tarj.)</span>
-                                    </div>
-                                    <div class="input-group input-group-sm flex-grow-1">
-                                        <span class="input-group-text bg-light text-secondary border-end-0">$</span>
-                                        <input type="number" step="1" min="0" name="monto_tarjeta" id="in_tarjeta_{{ venta.id }}" 
-                                               class="form-control text-end fw-semibold split-input-{{ venta.id }}" 
-                                               value="{{ "%.0f"|format(p_tarjeta.val) if p_tarjeta.val > 0 else "0" }}" 
-                                               oninput="recalcularDividido({{ venta.id }}, {{ venta.monto_total }});">
-                                    </div>
-                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 fw-semibold text-secondary" style="font-size: 0.72rem;" onclick="llenarRestante('in_tarjeta_{{ venta.id }}', {{ venta.id }}, {{ venta.monto_total }});" title="Asignar restante">
                                         Restante
                                     </button>
                                 </div>

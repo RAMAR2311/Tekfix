@@ -245,7 +245,7 @@
         </div>
         <div class="row g-2 text-center">
             <!-- Nequi -->
-            <div class="col-6 col-md-4 col-xl-2">
+            <div class="col-6 col-sm-4 col-md-3 col-xl">
                 <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
                     <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #7828C8; font-size: 0.8rem; font-weight: 700;">
                         <i class="fa-solid fa-mobile-screen"></i> Nequi
@@ -253,17 +253,26 @@
                     <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.nequi|cop }}</div>
                 </div>
             </div>
-            <!-- Bancolombia -->
-            <div class="col-6 col-md-4 col-xl-2">
+            <!-- Bolt QR -->
+            <div class="col-6 col-sm-4 col-md-3 col-xl">
+                <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
+                    <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #0284C7; font-size: 0.8rem; font-weight: 700;">
+                        <i class="fa-solid fa-qrcode"></i> Bolt QR
+                    </div>
+                    <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.bolt_qr|cop }}</div>
+                </div>
+            </div>
+            <!-- Bolt Datáfono -->
+            <div class="col-6 col-sm-4 col-md-3 col-xl">
                 <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
                     <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #D97706; font-size: 0.8rem; font-weight: 700;">
-                        <i class="fa-solid fa-building-columns"></i> Bancolombia
+                        <i class="fa-solid fa-bolt"></i> Bolt Datáfono
                     </div>
-                    <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.bancolombia|cop }}</div>
+                    <div class="fw-bold fs-6" style="color: #0F172A;">${{ (desglose_digital.bolt_datafono or desglose_digital.tarjeta)|cop }}</div>
                 </div>
             </div>
             <!-- Daviplata -->
-            <div class="col-6 col-md-4 col-xl-2">
+            <div class="col-6 col-sm-4 col-md-3 col-xl">
                 <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
                     <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #DC2626; font-size: 0.8rem; font-weight: 700;">
                         <i class="fa-solid fa-wallet"></i> Daviplata
@@ -271,17 +280,20 @@
                     <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.daviplata|cop }}</div>
                 </div>
             </div>
-            <!-- Datáfono -->
-            <div class="col-6 col-md-4 col-xl-2">
+            <!-- Bancolombia (Histórico) -->
+            <div class="col-6 col-sm-4 col-md-3 col-xl">
                 <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
-                    <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #0284C7; font-size: 0.8rem; font-weight: 700;">
-                        <i class="fa-solid fa-credit-card"></i> Datáfono
+                    <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #2563EB; font-size: 0.8rem; font-weight: 700;">
+                        <i class="fa-solid fa-building-columns"></i> Bancolombia
+                        {% if desglose_digital.bancolombia > 0 %}
+                            <span class="badge bg-warning bg-opacity-25 text-dark rounded-pill px-1" style="font-size: 0.58rem;">Histórico</span>
+                        {% endif %}
                     </div>
-                    <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.tarjeta|cop }}</div>
+                    <div class="fw-bold fs-6" style="color: #0F172A;">${{ desglose_digital.bancolombia|cop }}</div>
                 </div>
             </div>
             <!-- Crédito -->
-            <div class="col-6 col-md-4 col-xl-2">
+            <div class="col-6 col-sm-4 col-md-3 col-xl">
                 <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
                     <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #CA8A04; font-size: 0.8rem; font-weight: 700;">
                         <i class="fa-solid fa-hourglass-half"></i> Crédito
@@ -290,7 +302,7 @@
                 </div>
             </div>
             <!-- Otros -->
-            <div class="col-6 col-md-4 col-xl-2">
+            <div class="col-6 col-sm-4 col-md-3 col-xl">
                 <div class="p-2 rounded-3 h-100 digital-wallet-card" style="background: #F8FAFC;">
                     <div class="d-flex align-items-center justify-content-center gap-1 mb-1" style="color: #64748B; font-size: 0.8rem; font-weight: 700;">
                         <i class="fa-solid fa-globe"></i> Otros
@@ -359,7 +371,13 @@
                                                 <i class="fa-solid fa-layer-group me-1"></i>Mixto
                                             </span>
                                             <div style="font-size: 0.68rem; color: #64748B; margin-top: 2px;">
-                                                {% for p in v.pagos %}{{ p.metodo_pago|capitalize }}: ${{ p.monto|cop }}{% if not loop.last %} · {% endif %}{% endfor %}
+                                                {% for p in v.pagos %}
+                                                    {% if p.metodo_pago == 'bolt_qr' %}Bolt QR: ${{ p.monto|cop }}
+                                                    {% elif p.metodo_pago in ['bolt_datafono', 'tarjeta', 'bolt'] %}Bolt Datáfono: ${{ p.monto|cop }}
+                                                    {% elif p.metodo_pago == 'bancolombia' %}Bancolombia: ${{ p.monto|cop }}
+                                                    {% else %}{{ p.metodo_pago|capitalize }}: ${{ p.monto|cop }}{% endif %}
+                                                    {% if not loop.last %} · {% endif %}
+                                                {% endfor %}
                                             </div>
                                         {% elif v.pagos|length == 1 %}
                                             {% set m = v.pagos[0].metodo_pago %}
@@ -368,16 +386,55 @@
                                                       style="background: rgba(16,185,129,0.12); color: #059669; border: 1px solid rgba(16,185,129,0.3); font-size: 0.72rem;">
                                                     <i class="fa-solid fa-money-bill me-1"></i>Efectivo
                                                 </span>
-                                            {% else %}
+                                            {% elif m == 'bolt_qr' %}
                                                 <span class="badge rounded-pill px-2 py-1"
                                                       style="background: rgba(2,132,199,0.12); color: #0284c7; border: 1px solid rgba(2,132,199,0.3); font-size: 0.72rem;">
-                                                    <i class="fa-solid fa-mobile-screen me-1"></i>{{ m|capitalize }}
+                                                    <i class="fa-solid fa-qrcode me-1"></i>Bolt QR
+                                                </span>
+                                            {% elif m in ['bolt_datafono', 'tarjeta', 'bolt'] %}
+                                                <span class="badge rounded-pill px-2 py-1"
+                                                      style="background: rgba(245,158,11,0.12); color: #d97706; border: 1px solid rgba(245,158,11,0.3); font-size: 0.72rem;">
+                                                    <i class="fa-solid fa-bolt me-1"></i>Bolt Datáfono
+                                                </span>
+                                            {% elif m == 'bancolombia' %}
+                                                <span class="badge rounded-pill px-2 py-1"
+                                                      style="background: rgba(37,99,235,0.12); color: #2563eb; border: 1px solid rgba(37,99,235,0.3); font-size: 0.72rem;">
+                                                    <i class="fa-solid fa-building-columns me-1"></i>Bancolombia
+                                                </span>
+                                            {% elif m == 'nequi' %}
+                                                <span class="badge rounded-pill px-2 py-1"
+                                                      style="background: rgba(124,58,237,0.12); color: #7c3aed; border: 1px solid rgba(124,58,237,0.3); font-size: 0.72rem;">
+                                                    <i class="fa-solid fa-mobile-screen me-1"></i>Nequi
+                                                </span>
+                                            {% elif m == 'daviplata' %}
+                                                <span class="badge rounded-pill px-2 py-1"
+                                                      style="background: rgba(220,38,38,0.12); color: #dc2626; border: 1px solid rgba(220,38,38,0.3); font-size: 0.72rem;">
+                                                    <i class="fa-solid fa-wallet me-1"></i>Daviplata
+                                                </span>
+                                            {% else %}
+                                                <span class="badge rounded-pill px-2 py-1 bg-light text-secondary border" style="font-size: 0.72rem;">
+                                                    {{ m|capitalize }}
                                                 </span>
                                             {% endif %}
                                         {% else %}
-                                            <span class="badge rounded-pill px-2 py-1 bg-light text-secondary border" style="font-size: 0.72rem;">
-                                                {{ v.metodo_pago|capitalize }}
-                                            </span>
+                                            {% set m = v.metodo_pago %}
+                                            {% if m == 'bolt_qr' %}
+                                                <span class="badge rounded-pill px-2 py-1" style="background: rgba(2,132,199,0.12); color: #0284c7; border: 1px solid rgba(2,132,199,0.3); font-size: 0.72rem;">
+                                                    <i class="fa-solid fa-qrcode me-1"></i>Bolt QR
+                                                </span>
+                                            {% elif m in ['bolt_datafono', 'tarjeta', 'bolt'] %}
+                                                <span class="badge rounded-pill px-2 py-1" style="background: rgba(245,158,11,0.12); color: #d97706; border: 1px solid rgba(245,158,11,0.3); font-size: 0.72rem;">
+                                                    <i class="fa-solid fa-bolt me-1"></i>Bolt Datáfono
+                                                </span>
+                                            {% elif m == 'bancolombia' %}
+                                                <span class="badge rounded-pill px-2 py-1" style="background: rgba(37,99,235,0.12); color: #2563eb; border: 1px solid rgba(37,99,235,0.3); font-size: 0.72rem;">
+                                                    <i class="fa-solid fa-building-columns me-1"></i>Bancolombia
+                                                </span>
+                                            {% else %}
+                                                <span class="badge rounded-pill px-2 py-1 bg-light text-secondary border" style="font-size: 0.72rem;">
+                                                    {{ (m or 'Efectivo')|capitalize }}
+                                                </span>
+                                            {% endif %}
                                         {% endif %}
                                     </td>
                                     <td>

@@ -193,16 +193,28 @@
                                     </span>
                                     <div style="font-size: 0.7rem; margin-top: 3px; color: #888;">
                                         {% for p in v.pagos %}
-                                            {{ p.metodo_pago|capitalize }}: ${{ (p.monto)|cop }}{% if not loop.last %}<br>{% endif %}
+                                            {% if p.metodo_pago == 'bolt_qr' %}Bolt QR: ${{ (p.monto)|cop }}
+                                            {% elif p.metodo_pago in ['bolt_datafono', 'tarjeta', 'bolt'] %}Bolt Datáfono: ${{ (p.monto)|cop }}
+                                            {% elif p.metodo_pago == 'bancolombia' %}Bancolombia: ${{ (p.monto)|cop }}
+                                            {% else %}{{ p.metodo_pago|capitalize }}: ${{ (p.monto)|cop }}{% endif %}
+                                            {% if not loop.last %}<br>{% endif %}
                                         {% endfor %}
                                     </div>
                                 {% elif v.pagos|length == 1 %}
+                                    {% set m = v.pagos[0].metodo_pago %}
                                     <span class="badge bg-tekfix-card text-tekfix-main border rounded-pill px-3 py-1">
-                                        {{ v.pagos[0].metodo_pago|capitalize }}
+                                        {% if m == 'bolt_qr' %}Bolt QR
+                                        {% elif m in ['bolt_datafono', 'tarjeta', 'bolt'] %}Bolt Datáfono
+                                        {% elif m == 'bancolombia' %}Bancolombia
+                                        {% else %}{{ m|capitalize }}{% endif %}
                                     </span>
                                 {% else %}
+                                    {% set m = v.metodo_pago %}
                                     <span class="badge bg-tekfix-card text-tekfix-main border rounded-pill px-3 py-1">
-                                        {{ v.metodo_pago|capitalize }}
+                                        {% if m == 'bolt_qr' %}Bolt QR
+                                        {% elif m in ['bolt_datafono', 'tarjeta', 'bolt'] %}Bolt Datáfono
+                                        {% elif m == 'bancolombia' %}Bancolombia
+                                        {% else %}{{ (m or 'Efectivo')|capitalize }}{% endif %}
                                     </span>
                                 {% endif %}
                             </td>

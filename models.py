@@ -140,11 +140,25 @@ class Sale(db.Model):
         """Retorna un resumen legible del método de pago.
         Si es pago único, retorna el nombre del método.
         Si es mixto, retorna 'Pago Mixto' con desglose."""
+        nombres = {
+            'efectivo': 'Efectivo',
+            'nequi': 'Nequi',
+            'bolt_qr': 'Bolt QR',
+            'bolt_datafono': 'Bolt Datáfono',
+            'tarjeta': 'Bolt Datáfono',
+            'bolt': 'Bolt Datáfono',
+            'bancolombia': 'Bancolombia',
+            'daviplata': 'Daviplata',
+            'transferencia': 'Transferencia',
+            'mixto': 'Pago Mixto'
+        }
         if not self.pagos:
             # Retrocompatibilidad con ventas antiguas que solo tienen metodo_pago
-            return self.metodo_pago.capitalize() if self.metodo_pago else 'Efectivo'
+            m = (self.metodo_pago or 'efectivo').lower()
+            return nombres.get(m, m.capitalize())
         if len(self.pagos) == 1:
-            return self.pagos[0].metodo_pago.capitalize()
+            m = (self.pagos[0].metodo_pago or 'efectivo').lower()
+            return nombres.get(m, m.capitalize())
         return 'Pago Mixto'
 
 class SalePayment(db.Model):
