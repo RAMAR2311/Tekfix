@@ -594,7 +594,7 @@
                 <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
-            <form method="POST" action="{{ url_for('sales_bp.cambiar_metodo_pago', sale_id=venta.id) }}" id="formCambiarPago{{ venta.id }}" onsubmit="return validarPagoDividido({{ venta.id }});">
+            <form method="POST" action="{{ url_for('sales_bp.cambiar_metodo_pago', sale_id=venta.id) }}" id="formCambiarPago{{ venta.id }}" class="form-cambiar-pago" data-sale-id="{{ venta.id }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="fecha_inicio" value="{{ fecha_inicio or '' }}">
                 <input type="hidden" name="fecha_fin" value="{{ fecha_fin or '' }}">
@@ -1169,6 +1169,16 @@ document.addEventListener('DOMContentLoaded', function () {
             const saleId = this.getAttribute('data-sale-id');
             const totalVenta = parseFloat(this.getAttribute('data-total-venta')) || 0;
             if (targetId && saleId) llenarRestante(targetId, saleId, totalVenta);
+        });
+    });
+
+    // Validación al enviar el formulario de cambio de pago
+    document.querySelectorAll('.form-cambiar-pago').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            const saleId = this.getAttribute('data-sale-id');
+            if (saleId && !validarPagoDividido(saleId)) {
+                e.preventDefault();
+            }
         });
     });
 });
