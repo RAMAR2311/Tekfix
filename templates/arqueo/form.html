@@ -75,6 +75,21 @@
     box-shadow: 0 6px 20px rgba(221, 184, 86, 0.5);
     color: #000000 !important;
 }
+.box-caja-cuadrada {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1.5px solid #10B981;
+    color: #059669;
+}
+.box-caja-sobrante {
+    background: rgba(221, 184, 86, 0.12);
+    border: 1.5px solid #DDB856;
+    color: #9A7B1C;
+}
+.box-caja-faltante {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1.5px solid #EF4444;
+    color: #DC2626;
+}
 </style>
 
 {# ── ENCABEZADO SUPERIOR ─────────────────────────────────────────── #}
@@ -776,28 +791,21 @@
 
                             {% set esp_cerrado = (arqueo_existente.base_inicial|float + arqueo_existente.total_efectivo_sistema|float) - arqueo_existente.gastos_del_dia|float %}
                             {% if arqueo_existente.diferencia == 0 %}
-                                {% set diff_bg = "rgba(16, 185, 129, 0.08)" %}
-                                {% set diff_border = "#10B981" %}
-                                {% set diff_color = "#059669" %}
+                                {% set box_cls = "box-caja-cuadrada" %}
                                 {% set diff_label = "CAJA CUADRADA" %}
                             {% elif arqueo_existente.diferencia > 0 %}
-                                {% set diff_bg = "rgba(221, 184, 86, 0.12)" %}
-                                {% set diff_border = "#DDB856" %}
-                                {% set diff_color = "#9A7B1C" %}
+                                {% set box_cls = "box-caja-sobrante" %}
                                 {% set diff_label = "SOBRANTE DE CAJA" %}
                             {% else %}
-                                {% set diff_bg = "rgba(239, 68, 68, 0.08)" %}
-                                {% set diff_border = "#EF4444" %}
-                                {% set diff_color = "#DC2626" %}
+                                {% set box_cls = "box-caja-faltante" %}
                                 {% set diff_label = "FALTANTE DE CAJA" %}
                             {% endif %}
 
-                            <div class="p-3 rounded-3 text-center my-3"
-                                 style="background: {{ diff_bg }}; border: 1.5px solid {{ diff_border }};">
-                                <span class="fw-bold text-uppercase d-block" style="font-size: 0.78rem; letter-spacing: 0.06em; color: {{ diff_color }};">
+                            <div class="p-3 rounded-3 text-center my-3 {{ box_cls }}">
+                                <span class="fw-bold text-uppercase d-block" style="font-size: 0.78rem; letter-spacing: 0.06em;">
                                     {{ diff_label }}
                                 </span>
-                                <div class="fw-bolder fs-3 my-1" style="color: {{ diff_color }}; font-family: var(--font-heading);">
+                                <div class="fw-bolder fs-3 my-1" style="font-family: var(--font-heading);">
                                     {{ "+" if arqueo_existente.diferencia > 0 else "" }}${{ arqueo_existente.diferencia|cop }}
                                 </div>
                                 <small class="d-block text-secondary" style="font-size: 0.75rem;">
